@@ -1,0 +1,140 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: light;
+  --lacquer-red: #8a171b;
+  --deep-burgundy: #3d0d10;
+  --antique-gold: #c2a052;
+  --warm-ivory: #f5f0e7;
+  --charcoal: #1b1917;
+  --muted-ivory: #e4d9c8;
+  --surface-raised: #fffaf2;
+  --surface-inverse: #241012;
+  --border-subtle: rgb(61 13 16 / 0.16);
+  --focus-ring: #d8ba72;
+
+  --font-display:
+    "Iowan Old Style", "Palatino Linotype", "Book Antiqua", "Noto Serif",
+    "Noto Serif CJK SC", "Yu Mincho", serif;
+  --font-body:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", "Noto Sans", "Noto Sans CJK SC", "Yu Gothic", sans-serif;
+  --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+
+  --space-page: clamp(1.25rem, 4vw, 5rem);
+  --radius-sm: 0.375rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1.25rem;
+  --radius-display: clamp(1.25rem, 3vw, 2.25rem);
+  --shadow-soft: 0 1rem 3rem rgb(35 12 13 / 0.12);
+  --shadow-lacquer:
+    0 2rem 7rem rgb(27 7 8 / 0.42), inset 0 1px 0 rgb(255 255 255 / 0.12);
+  --duration-fast: 160ms;
+  --duration-medium: 360ms;
+  --duration-slow: 720ms;
+  --ease-brand: cubic-bezier(0.2, 0.72, 0.2, 1);
+}
+
+@theme inline {
+  --color-background: var(--warm-ivory);
+  --color-foreground: var(--charcoal);
+  --color-lacquer: var(--lacquer-red);
+  --color-burgundy: var(--deep-burgundy);
+  --color-gold: var(--antique-gold);
+  --color-ivory: var(--warm-ivory);
+  --color-charcoal: var(--charcoal);
+  --font-sans: var(--font-body);
+  --font-serif: var(--font-display);
+  --font-mono: var(--font-mono);
+}
+
+* {
+  border-color: var(--border-subtle);
+}
+
+html {
+  background: var(--warm-ivory);
+  scroll-padding-top: 6rem;
+}
+
+body {
+  min-width: 20rem;
+  overflow-x: clip;
+  background: var(--warm-ivory);
+  color: var(--charcoal);
+  font-family: var(--font-body);
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: var(--antique-gold);
+  color: var(--deep-burgundy);
+}
+
+:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 4px;
+}
+
+.brand-surface {
+  background:
+    radial-gradient(
+      circle at 16% 12%,
+      rgb(194 160 82 / 0.15),
+      transparent 25rem
+    ),
+    linear-gradient(135deg, #f8f3ea 0%, #eee3d3 100%);
+}
+
+.lacquer-grain {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(
+      circle at 20% 15%,
+      rgb(255 255 255 / 0.08),
+      transparent 26%
+    ),
+    radial-gradient(circle at 80% 80%, rgb(138 23 27 / 0.35), transparent 35%),
+    linear-gradient(
+      115deg,
+      transparent 20%,
+      rgb(255 255 255 / 0.035) 45%,
+      transparent 65%
+    );
+  opacity: 0.85;
+}
+
+.display-title {
+  font-family: var(--font-display);
+  font-size: clamp(3.5rem, 10vw, 8.5rem);
+  font-weight: 400;
+  letter-spacing: -0.055em;
+  line-height: 0.86;
+}
+
+.eyebrow {
+  color: var(--antique-gold);
+  font-size: 0.75rem;
+  font-weight: 650;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media (forced-colors: active) {
+  :focus-visible {
+    outline: 3px solid CanvasText;
+  }
+}
