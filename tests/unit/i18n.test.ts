@@ -22,11 +22,21 @@ function strings(value: unknown): string[] {
 describe("typed public dictionaries", () => {
   it("loads all configured locales with an identical shape", async () => {
     const dictionaries = await Promise.all(locales.map(getDictionary));
-    const referenceShape = dictionaryShape(dictionaries[0] satisfies PublicDictionary);
+    const referenceDictionary = dictionaries[0];
+
+    if (!referenceDictionary) {
+      throw new Error("At least one public locale must be configured.");
+    }
+
+    const referenceShape = dictionaryShape(
+      referenceDictionary satisfies PublicDictionary,
+    );
 
     for (const dictionary of dictionaries) {
       expect(dictionaryShape(dictionary)).toEqual(referenceShape);
-      expect(strings(dictionary).every((value) => value.trim().length > 0)).toBe(true);
+      expect(
+        strings(dictionary).every((value) => value.trim().length > 0),
+      ).toBe(true);
     }
   });
 

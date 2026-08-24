@@ -67,10 +67,17 @@ export interface ProductListingPageProps {
 
 interface ProductCardProps {
   dictionary: PublicDictionary;
+  headingLevel?: "h2" | "h3";
   product: ProductCardView;
 }
 
-export function ProductCard({ dictionary, product }: ProductCardProps) {
+export function ProductCard({
+  dictionary,
+  headingLevel = "h2",
+  product,
+}: ProductCardProps) {
+  const Heading = headingLevel;
+
   return (
     <article className="group border-burgundy/12 overflow-hidden rounded-[var(--radius-lg)] border bg-[var(--surface-raised)] shadow-[var(--shadow-soft)]">
       <a href={product.href} className="block overflow-hidden">
@@ -82,7 +89,7 @@ export function ProductCard({ dictionary, product }: ProductCardProps) {
       </a>
       <div className="p-6 sm:p-7">
         <div className="flex flex-wrap items-center gap-2">
-          <p className="text-gold text-xs font-semibold tracking-[0.14em] uppercase">
+          <p className="text-gold-ink text-xs font-semibold tracking-[0.14em] uppercase">
             {product.categoryLabel}
           </p>
           {product.statusLabel ? (
@@ -91,16 +98,16 @@ export function ProductCard({ dictionary, product }: ProductCardProps) {
             </span>
           ) : null}
         </div>
-        <h2 className="text-burgundy mt-3 font-serif text-2xl leading-tight tracking-[-0.02em]">
+        <Heading className="text-burgundy mt-3 font-serif text-2xl leading-tight tracking-[-0.02em]">
           <a href={product.href} className="hover:text-lacquer">
             {product.name}
           </a>
-        </h2>
+        </Heading>
         <p className="text-charcoal/62 mt-3 line-clamp-3 leading-7">
           {product.excerpt}
         </p>
         {product.materialLabel ? (
-          <p className="text-charcoal/48 mt-4 text-xs tracking-[0.1em] uppercase">
+          <p className="text-charcoal/64 mt-4 text-xs tracking-[0.1em] uppercase">
             {dictionary.product.material}: {product.materialLabel}
           </p>
         ) : null}
@@ -109,7 +116,7 @@ export function ProductCard({ dictionary, product }: ProductCardProps) {
             {product.badges.map((badge) => (
               <li
                 key={badge}
-                className="border-burgundy/12 text-charcoal/60 rounded-full border px-3 py-1 text-xs"
+                className="border-burgundy/12 text-charcoal/64 rounded-full border px-3 py-1 text-xs"
               >
                 {badge}
               </li>
@@ -151,7 +158,7 @@ export function ProductListingPage({
           className="border-burgundy/12 rounded-[var(--radius-lg)] border bg-white/55 p-5 shadow-[var(--shadow-soft)] sm:p-7"
           aria-label={dictionary.product.filters}
         >
-          <div className="grid gap-5 lg:grid-cols-[minmax(14rem,1.4fr)_repeat(3,minmax(10rem,1fr))]">
+          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-[minmax(14rem,1.4fr)_repeat(5,minmax(9rem,1fr))]">
             <label className="text-burgundy grid gap-2 text-sm font-semibold">
               <span>{dictionary.common.search}</span>
               <input
@@ -159,7 +166,7 @@ export function ProductListingPage({
                 name="q"
                 defaultValue={data.query}
                 placeholder={data.searchPlaceholder}
-                className="border-burgundy/18 bg-ivory text-charcoal placeholder:text-charcoal/35 focus:border-lacquer min-h-12 rounded-[var(--radius-sm)] border px-4 font-normal"
+                className="border-burgundy/18 bg-ivory text-charcoal placeholder:text-charcoal/64 focus:border-lacquer min-h-12 rounded-[var(--radius-sm)] border px-4 font-normal"
               />
             </label>
             {data.filterGroups.map((group) => (
@@ -215,7 +222,7 @@ export function ProductListingPage({
         </form>
 
         <div className="mt-10 flex items-center justify-between gap-5">
-          <p className="text-charcoal/58 text-sm" role="status">
+          <p className="text-charcoal/64 text-sm" role="status">
             {data.resultSummary}
           </p>
           <span
@@ -239,7 +246,7 @@ export function ProductListingPage({
             <h2 className="text-burgundy font-serif text-3xl">
               {data.emptyTitle}
             </h2>
-            <p className="text-charcoal/60 mx-auto mt-4 max-w-xl leading-7">
+            <p className="text-charcoal/64 mx-auto mt-4 max-w-xl leading-7">
               {data.emptyDescription}
             </p>
           </div>
@@ -257,6 +264,27 @@ export interface ProductSpecificationView {
   value: string;
 }
 
+export interface ProductVideoView {
+  captionsLanguage: string;
+  captionsSrc: string | null;
+  mimeType: "video/mp4" | "video/webm";
+  poster: PublicPageMedia | null;
+  src: string;
+  title: string;
+}
+
+export interface ProductVariantView {
+  description: string;
+  id: string;
+  label: string;
+}
+
+export interface ProductProcessStepView {
+  description: string;
+  id: string;
+  title: string;
+}
+
 export interface ProductDetailPageData {
   backLink: PublicPageLink;
   badges: readonly string[];
@@ -271,9 +299,12 @@ export interface ProductDetailPageData {
   material: string | null;
   name: string;
   primaryActions: readonly PublicPageLink[];
+  processSteps: readonly ProductProcessStepView[];
   relatedProducts: readonly ProductCardView[];
   specifications: readonly ProductSpecificationView[];
   storyParagraphs: readonly string[];
+  variants: readonly ProductVariantView[];
+  video: ProductVideoView | null;
 }
 
 export interface ProductDetailPageProps {
@@ -310,16 +341,40 @@ export function ProductDetailPage({
               aria-label={data.galleryLabel}
             >
               {data.gallery.map((media, index) => (
-                <MediaFrame
+                <div
                   key={media.id}
-                  media={media}
-                  sizes="(min-width: 1024px) 36vw, (min-width: 640px) 50vw, 100vw"
                   className={
                     index === 0
-                      ? "aspect-4/5 sm:col-span-2 sm:aspect-4/3"
-                      : "aspect-square"
+                      ? "group relative sm:col-span-2"
+                      : "group relative"
                   }
-                />
+                >
+                  <MediaFrame
+                    media={media}
+                    sizes="(min-width: 1024px) 36vw, (min-width: 640px) 50vw, 100vw"
+                    className={
+                      index === 0 ? "aspect-4/5 sm:aspect-4/3" : "aspect-square"
+                    }
+                  />
+                  {media.src ? (
+                    <a
+                      href={media.src}
+                      target="_blank"
+                      rel="noreferrer"
+                      aria-label={`${dictionary.product.zoomImage}: ${media.alt}`}
+                      className="bg-burgundy/92 text-ivory hover:bg-lacquer absolute top-4 right-4 inline-flex min-h-11 items-center rounded-full px-4 py-2 text-xs font-semibold shadow-lg transition"
+                    >
+                      {dictionary.product.zoomImage}
+                    </a>
+                  ) : (
+                    <span
+                      aria-disabled="true"
+                      className="bg-ivory/92 text-charcoal/68 absolute top-4 right-4 inline-flex min-h-11 max-w-[12rem] items-center rounded-full px-4 py-2 text-right text-xs font-semibold shadow-sm"
+                    >
+                      {dictionary.product.zoomUnavailable}
+                    </span>
+                  )}
+                </div>
               ))}
             </div>
           ) : null}
@@ -349,7 +404,7 @@ export function ProductDetailPage({
           <dl className="border-burgundy/12 divide-burgundy/10 mt-8 divide-y border-y">
             {data.material ? (
               <div className="grid grid-cols-[8rem_1fr] gap-4 py-4">
-                <dt className="text-charcoal/48 text-xs tracking-[0.12em] uppercase">
+                <dt className="text-charcoal/64 text-xs tracking-[0.12em] uppercase">
                   {dictionary.product.material}
                 </dt>
                 <dd className="text-sm font-medium">{data.material}</dd>
@@ -357,7 +412,7 @@ export function ProductDetailPage({
             ) : null}
             {data.finish ? (
               <div className="grid grid-cols-[8rem_1fr] gap-4 py-4">
-                <dt className="text-charcoal/48 text-xs tracking-[0.12em] uppercase">
+                <dt className="text-charcoal/64 text-xs tracking-[0.12em] uppercase">
                   {dictionary.product.finish}
                 </dt>
                 <dd className="text-sm font-medium">{data.finish}</dd>
@@ -365,7 +420,7 @@ export function ProductDetailPage({
             ) : null}
             {data.dimensions ? (
               <div className="grid grid-cols-[8rem_1fr] gap-4 py-4">
-                <dt className="text-charcoal/48 text-xs tracking-[0.12em] uppercase">
+                <dt className="text-charcoal/64 text-xs tracking-[0.12em] uppercase">
                   {dictionary.product.dimensions}
                 </dt>
                 <dd className="text-sm font-medium">{data.dimensions}</dd>
@@ -373,14 +428,14 @@ export function ProductDetailPage({
             ) : null}
             {data.leadTime ? (
               <div className="grid grid-cols-[8rem_1fr] gap-4 py-4">
-                <dt className="text-charcoal/48 text-xs tracking-[0.12em] uppercase">
+                <dt className="text-charcoal/64 text-xs tracking-[0.12em] uppercase">
                   {dictionary.product.leadTime}
                 </dt>
                 <dd className="text-sm font-medium">{data.leadTime}</dd>
               </div>
             ) : null}
           </dl>
-          <p className="text-charcoal/52 mt-5 text-sm leading-6">
+          <p className="text-charcoal/64 mt-5 text-sm leading-6">
             {data.madeToOrder
               ? dictionary.product.madeToOrder
               : dictionary.product.noPrice}
@@ -423,7 +478,7 @@ export function ProductDetailPage({
                   key={specification.id}
                   className="grid gap-2 py-5 sm:grid-cols-[11rem_1fr] sm:gap-5"
                 >
-                  <dt className="text-charcoal/50 text-xs tracking-[0.12em] uppercase">
+                  <dt className="text-charcoal/64 text-xs tracking-[0.12em] uppercase">
                     {specification.label}
                   </dt>
                   <dd className="text-sm leading-6 font-medium">
@@ -433,6 +488,101 @@ export function ProductDetailPage({
               ))}
             </dl>
           </div>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-7xl px-[var(--space-page)] py-20 lg:py-28">
+        <div className="grid gap-6 lg:grid-cols-3">
+          <article className="border-burgundy/12 rounded-[var(--radius-lg)] border bg-white/55 p-6 shadow-[var(--shadow-soft)] sm:p-8">
+            <p className="eyebrow">{dictionary.common.demoLabel}</p>
+            <h2 className="text-burgundy mt-4 font-serif text-3xl">
+              {dictionary.product.video}
+            </h2>
+            {data.video ? (
+              <video
+                controls
+                preload="metadata"
+                aria-label={data.video.title}
+                className="bg-burgundy mt-6 aspect-video w-full rounded-[var(--radius-md)]"
+                {...(data.video.poster?.src
+                  ? { poster: data.video.poster.src }
+                  : {})}
+              >
+                <source src={data.video.src} type={data.video.mimeType} />
+                {data.video.captionsSrc ? (
+                  <track
+                    default
+                    kind="captions"
+                    src={data.video.captionsSrc}
+                    srcLang={data.video.captionsLanguage}
+                    label={data.video.title}
+                  />
+                ) : null}
+              </video>
+            ) : (
+              <p className="text-charcoal/64 mt-5 leading-7" role="note">
+                {dictionary.product.videoUnavailable}
+              </p>
+            )}
+          </article>
+
+          <article className="border-burgundy/12 rounded-[var(--radius-lg)] border bg-white/55 p-6 shadow-[var(--shadow-soft)] sm:p-8">
+            <p className="eyebrow">{dictionary.common.demoLabel}</p>
+            <h2 className="text-burgundy mt-4 font-serif text-3xl">
+              {dictionary.product.variants}
+            </h2>
+            {data.variants.length > 0 ? (
+              <ul className="border-burgundy/12 divide-burgundy/10 mt-6 divide-y border-y">
+                {data.variants.map((variant) => (
+                  <li key={variant.id} className="py-4">
+                    <h3 className="text-burgundy font-semibold">
+                      {variant.label}
+                    </h3>
+                    <p className="text-charcoal/64 mt-2 text-sm leading-6">
+                      {variant.description}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-charcoal/64 mt-5 leading-7" role="note">
+                {dictionary.product.variantsUnavailable}
+              </p>
+            )}
+          </article>
+
+          <article className="border-burgundy/12 rounded-[var(--radius-lg)] border bg-white/55 p-6 shadow-[var(--shadow-soft)] sm:p-8">
+            <p className="eyebrow">{dictionary.common.demoLabel}</p>
+            <h2 className="text-burgundy mt-4 font-serif text-3xl">
+              {dictionary.product.process}
+            </h2>
+            {data.processSteps.length > 0 ? (
+              <ol className="border-burgundy/12 divide-burgundy/10 mt-6 divide-y border-y">
+                {data.processSteps.map((step, index) => (
+                  <li
+                    key={step.id}
+                    className="grid grid-cols-[2rem_1fr] gap-3 py-4"
+                  >
+                    <span className="text-gold-ink text-xs font-bold">
+                      {String(index + 1).padStart(2, "0")}
+                    </span>
+                    <div>
+                      <h3 className="text-burgundy font-semibold">
+                        {step.title}
+                      </h3>
+                      <p className="text-charcoal/64 mt-2 text-sm leading-6">
+                        {step.description}
+                      </p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            ) : (
+              <p className="text-charcoal/64 mt-5 leading-7" role="note">
+                {dictionary.product.processUnavailable}
+              </p>
+            )}
+          </article>
         </div>
       </section>
 
@@ -449,6 +599,7 @@ export function ProductDetailPage({
                 key={product.id}
                 product={product}
                 dictionary={dictionary}
+                headingLevel="h3"
               />
             ))}
           </div>

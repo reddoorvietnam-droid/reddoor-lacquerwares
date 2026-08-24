@@ -34,7 +34,7 @@ export default async function PublicLayout({
       <DoorIntro
         brandName={content.company.displayName}
         title={`${dictionary.home.title} ${dictionary.home.titleAccent}`}
-        skipLabel={dictionary.common.close}
+        skipLabel={dictionary.common.skipIntro}
       />
       <PublicHeader
         locale={locale}

@@ -72,6 +72,7 @@ interface PageFrameProps {
 export function PageFrame({ children, className }: PageFrameProps) {
   return (
     <main
+      id="main-content"
       className={cn(
         "bg-ivory text-charcoal min-h-screen overflow-clip",
         className,
@@ -100,7 +101,7 @@ export function PageNotices({ dictionary, isDemo, notices }: PageNoticesProps) {
     >
       {isDemo ? (
         <aside className="border-gold/35 bg-gold/10 text-burgundy flex items-start gap-3 rounded-[var(--radius-md)] border px-4 py-3 text-sm leading-6">
-          <span className="bg-gold text-burgundy mt-0.5 rounded-full px-2 py-0.5 text-[0.68rem] font-bold tracking-[0.16em] uppercase">
+          <span className="bg-gold text-burgundy mt-0.5 shrink-0 rounded-full px-2 py-0.5 text-[0.68rem] font-bold tracking-[0.16em] whitespace-nowrap uppercase">
             {dictionary.common.demoLabel}
           </span>
           <p>{dictionary.common.replaceContentNotice}</p>
@@ -155,7 +156,7 @@ export function PageHero({
         </div>
       ) : null}
       <div className="relative px-[var(--space-page)] py-20 sm:py-24 lg:py-32">
-        <p className="eyebrow">{eyebrow}</p>
+        <p className="eyebrow eyebrow-inverse">{eyebrow}</p>
         <h1 className="mt-5 max-w-5xl font-serif text-5xl leading-[0.94] font-normal tracking-[-0.045em] text-balance sm:text-7xl lg:text-8xl">
           {title}
         </h1>
@@ -318,7 +319,7 @@ export function RichContent({ blocks }: RichContentProps) {
 
         if (block.type === "list") {
           const listClass =
-            "marker:text-gold space-y-3 pl-6 marker:font-semibold";
+            "marker:text-gold-ink space-y-3 pl-6 marker:font-semibold";
           return block.style === "ordered" ? (
             <ol key={block.id} className={cn(listClass, "list-decimal")}>
               {block.items.map((item, index) => (
@@ -342,7 +343,7 @@ export function RichContent({ blocks }: RichContentProps) {
             >
               <p>{block.text}</p>
               {block.attribution ? (
-                <cite className="text-charcoal/55 mt-4 block font-sans text-xs tracking-[0.14em] uppercase not-italic">
+                <cite className="text-charcoal/64 mt-4 block font-sans text-xs tracking-[0.14em] uppercase not-italic">
                   {block.attribution}
                 </cite>
               ) : null}
@@ -388,7 +389,7 @@ export function PaginationNav({ dictionary, pagination }: PaginationNavProps) {
       ) : (
         <span />
       )}
-      <span className="text-charcoal/50 text-xs font-semibold tracking-[0.12em] uppercase">
+      <span className="text-charcoal/64 text-xs font-semibold tracking-[0.12em] uppercase">
         {pagination.currentLabel}
       </span>
       {pagination.next ? (

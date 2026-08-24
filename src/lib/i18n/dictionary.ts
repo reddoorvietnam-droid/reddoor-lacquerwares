@@ -10,6 +10,7 @@ export type PublicDictionary = {
     explore: string;
     viewAll: string;
     close: string;
+    skipIntro: string;
     previous: string;
     next: string;
     openMenu: string;
@@ -62,8 +63,26 @@ export type PublicDictionary = {
     termsTitle: string;
     accessibilityTitle: string;
   };
+  about: {
+    contentStatusLabel: string;
+    contentStatusValue: string;
+    claimsStatusLabel: string;
+    claimsStatusValue: string;
+    assetStatusLabel: string;
+    assetStatusValue: string;
+    principlesDescription: string;
+    principleKicker: string;
+    verifiedStoryTitle: string;
+    verifiedStoryDescription: string;
+    approvedCapabilitiesTitle: string;
+    approvedCapabilitiesDescription: string;
+    documentedPeopleTitle: string;
+    documentedPeopleDescription: string;
+    archiveNotice: string;
+  };
   product: {
     category: string;
+    collection: string;
     material: string;
     finish: string;
     dimensions: string;
@@ -74,6 +93,19 @@ export type PublicDictionary = {
     related: string;
     filters: string;
     sort: string;
+    sortDefault: string;
+    sortFeatured: string;
+    sortNameAscending: string;
+    sortNameDescending: string;
+    page: string;
+    zoomImage: string;
+    zoomUnavailable: string;
+    video: string;
+    videoUnavailable: string;
+    variants: string;
+    variantsUnavailable: string;
+    process: string;
+    processUnavailable: string;
     noPrice: string;
   };
   collection: {
@@ -86,6 +118,14 @@ export type PublicDictionary = {
     published: string;
     by: string;
     related: string;
+    share: string;
+    shareNative: string;
+    copyLink: string;
+    copySuccess: string;
+    copyFailed: string;
+    shareFacebook: string;
+    shareLinkedIn: string;
+    shareEmail: string;
   };
   contact: {
     fullName: string;
@@ -93,11 +133,18 @@ export type PublicDictionary = {
     email: string;
     phone: string;
     country: string;
+    countrySelect: string;
+    countryOther: string;
     interests: string;
     quantity: string;
     deadline: string;
     notes: string;
     attachment: string;
+    attachmentHelp: string;
+    mapTitle: string;
+    mapDescription: string;
+    loadMap: string;
+    mapUnavailable: string;
     consent: string;
     submit: string;
     demoNotice: string;

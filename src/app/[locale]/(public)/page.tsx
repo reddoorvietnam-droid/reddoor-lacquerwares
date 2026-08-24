@@ -7,10 +7,16 @@ import { demoNewsRepository } from "@/domains/news/demo-repository";
 import { demoProductRepository } from "@/domains/products/demo-repository";
 import { isLocale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
+import { getDemoStaticPageMetadata } from "@/lib/seo/route-metadata";
 
 type HomeRouteProps = {
   params: Promise<{ locale: string }>;
 };
+
+export async function generateMetadata({ params }: HomeRouteProps) {
+  const { locale } = await params;
+  return getDemoStaticPageMetadata(locale, "home");
+}
 
 export default async function HomeRoute({ params }: HomeRouteProps) {
   const { locale } = await params;

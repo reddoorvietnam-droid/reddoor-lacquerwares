@@ -63,9 +63,11 @@ function CollectionCard({
       </a>
       <div className="p-6 sm:p-8">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-xs tracking-[0.12em] uppercase">
-          <span className="text-gold font-bold">{collection.yearLabel}</span>
+          <span className="text-gold-ink font-bold">
+            {collection.yearLabel}
+          </span>
           {collection.localeLabel ? (
-            <span className="text-charcoal/45">{collection.localeLabel}</span>
+            <span className="text-charcoal/64">{collection.localeLabel}</span>
           ) : null}
           {collection.statusLabel ? (
             <span className="border-lacquer/20 bg-lacquer/8 text-lacquer rounded-full border px-2.5 py-1 font-semibold tracking-normal normal-case">
@@ -90,7 +92,7 @@ function CollectionCard({
             <span>{dictionary.collection.openBook}</span>
           </a>
           {collection.pageCountLabel ? (
-            <span className="text-charcoal/42 text-xs">
+            <span className="text-charcoal/64 text-xs">
               {collection.pageCountLabel}
             </span>
           ) : null}
@@ -134,7 +136,7 @@ export function CollectionListingPage({
           </nav>
         ) : null}
         <div className="mt-8 flex items-center gap-5">
-          <p className="text-charcoal/58 text-sm" role="status">
+          <p className="text-charcoal/64 text-sm" role="status">
             {data.resultSummary}
           </p>
           <span className="bg-gold h-px flex-1 opacity-35" aria-hidden="true" />
@@ -155,7 +157,7 @@ export function CollectionListingPage({
             <h2 className="text-burgundy font-serif text-3xl">
               {data.emptyTitle}
             </h2>
-            <p className="text-charcoal/60 mx-auto mt-4 max-w-xl leading-7">
+            <p className="text-charcoal/64 mx-auto mt-4 max-w-xl leading-7">
               {data.emptyDescription}
             </p>
           </div>
@@ -271,7 +273,7 @@ export function CollectionLandingPage({
               <ActionLink link={data.flipbookLink} variant="primary" />
             ) : (
               <span
-                className="border-burgundy/15 text-charcoal/42 inline-flex min-h-11 cursor-not-allowed items-center rounded-full border px-5 py-2.5 text-sm"
+                className="border-burgundy/15 text-charcoal/64 inline-flex min-h-11 cursor-not-allowed items-center rounded-full border px-5 py-2.5 text-sm"
                 aria-disabled="true"
               >
                 {data.flipbookUnavailableLabel}
@@ -280,7 +282,7 @@ export function CollectionLandingPage({
             {data.downloadLink ? (
               <ActionLink link={data.downloadLink} variant="quiet" />
             ) : (
-              <span className="text-charcoal/45 inline-flex min-h-11 items-center px-2 text-sm">
+              <span className="text-charcoal/64 inline-flex min-h-11 items-center px-2 text-sm">
                 {dictionary.collection.downloadDisabled}
               </span>
             )}
@@ -290,7 +292,7 @@ export function CollectionLandingPage({
             <dl className="border-burgundy/12 bg-burgundy/10 mt-10 grid gap-px overflow-hidden rounded-[var(--radius-lg)] border sm:grid-cols-2">
               {data.facts.map((fact) => (
                 <div key={fact.id} className="bg-ivory p-5">
-                  <dt className="text-charcoal/45 text-xs tracking-[0.12em] uppercase">
+                  <dt className="text-charcoal/64 text-xs tracking-[0.12em] uppercase">
                     {fact.label}
                   </dt>
                   <dd className="text-burgundy mt-2 font-semibold">
@@ -313,13 +315,13 @@ export function CollectionLandingPage({
                       href={chapter.href}
                       className="group/link grid min-h-16 grid-cols-[2rem_1fr_auto] items-center gap-3 py-3"
                     >
-                      <span className="text-gold text-xs font-bold">
+                      <span className="text-gold-ink text-xs font-bold">
                         {String(index + 1).padStart(2, "0")}
                       </span>
                       <span className="text-burgundy group-hover/link:text-lacquer font-semibold">
                         {chapter.title}
                       </span>
-                      <span className="text-charcoal/42 text-xs">
+                      <span className="text-charcoal/64 text-xs">
                         {chapter.pageLabel}
                       </span>
                     </a>
@@ -376,7 +378,7 @@ export function CollectionLandingPage({
                     className="aspect-4/3 rounded-none border-0"
                   />
                   <div className="p-6">
-                    <p className="text-gold text-xs font-semibold tracking-[0.12em] uppercase">
+                    <p className="text-gold-ink text-xs font-semibold tracking-[0.12em] uppercase">
                       {product.meta}
                     </p>
                     <h3 className="text-burgundy group-hover:text-lacquer mt-2 font-serif text-2xl leading-tight">

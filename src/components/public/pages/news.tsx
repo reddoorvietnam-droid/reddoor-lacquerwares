@@ -1,5 +1,7 @@
 import type { PublicDictionary } from "@/lib/i18n/dictionary";
 
+import { NewsShareActions } from "./news-share-actions";
+
 import {
   MediaFrame,
   PageFrame,
@@ -50,10 +52,13 @@ export interface NewsListingPageProps {
 
 interface NewsCardProps {
   dictionary: PublicDictionary;
+  headingLevel?: "h2" | "h3";
   item: NewsCardView;
 }
 
-function NewsCard({ dictionary, item }: NewsCardProps) {
+function NewsCard({ dictionary, headingLevel = "h2", item }: NewsCardProps) {
+  const Heading = headingLevel;
+
   return (
     <article className="group border-burgundy/12 overflow-hidden rounded-[var(--radius-lg)] border bg-white/50">
       <a href={item.href} className="block overflow-hidden">
@@ -65,26 +70,26 @@ function NewsCard({ dictionary, item }: NewsCardProps) {
       </a>
       <div className="p-6 sm:p-7">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
-          <span className="text-gold font-bold tracking-[0.12em] uppercase">
+          <span className="text-gold-ink font-bold tracking-[0.12em] uppercase">
             {item.categoryLabel}
           </span>
           <span className="text-charcoal/35" aria-hidden="true">
             ·
           </span>
-          <time className="text-charcoal/48" dateTime={item.publishedAt}>
+          <time className="text-charcoal/64" dateTime={item.publishedAt}>
             {item.publishedLabel}
           </time>
         </div>
-        <h2 className="text-burgundy mt-4 font-serif text-2xl leading-tight tracking-[-0.02em] sm:text-3xl">
+        <Heading className="text-burgundy mt-4 font-serif text-2xl leading-tight tracking-[-0.02em] sm:text-3xl">
           <a href={item.href} className="group-hover:text-lacquer">
             {item.title}
           </a>
-        </h2>
+        </Heading>
         <p className="text-charcoal/62 mt-4 line-clamp-3 leading-7">
           {item.excerpt}
         </p>
         {item.authorName ? (
-          <p className="text-charcoal/45 mt-5 text-xs">
+          <p className="text-charcoal/64 mt-5 text-xs">
             {dictionary.news.by} {item.authorName}
           </p>
         ) : null}
@@ -147,7 +152,7 @@ export function NewsListingPage({
               />
             </a>
             <div className="flex flex-col justify-center p-7 sm:p-10 lg:p-12">
-              <p className="text-gold text-xs font-bold tracking-[0.16em] uppercase">
+              <p className="text-gold-ink text-xs font-bold tracking-[0.16em] uppercase">
                 {data.featuredLabel}
               </p>
               <h2 className="text-burgundy mt-4 font-serif text-3xl leading-tight tracking-[-0.03em] sm:text-4xl">
@@ -158,7 +163,7 @@ export function NewsListingPage({
               <p className="text-charcoal/64 mt-5 leading-8">
                 {data.featured.excerpt}
               </p>
-              <div className="text-charcoal/45 mt-6 flex flex-wrap items-center gap-2 text-xs">
+              <div className="text-charcoal/64 mt-6 flex flex-wrap items-center gap-2 text-xs">
                 <time dateTime={data.featured.publishedAt}>
                   {data.featured.publishedLabel}
                 </time>
@@ -183,7 +188,7 @@ export function NewsListingPage({
         ) : null}
 
         <div className="mt-12 flex items-center gap-5">
-          <p className="text-charcoal/58 text-sm" role="status">
+          <p className="text-charcoal/64 text-sm" role="status">
             {data.resultSummary}
           </p>
           <span className="bg-gold h-px flex-1 opacity-35" aria-hidden="true" />
@@ -200,7 +205,7 @@ export function NewsListingPage({
             <h2 className="text-burgundy font-serif text-3xl">
               {data.emptyTitle}
             </h2>
-            <p className="text-charcoal/60 mx-auto mt-4 max-w-xl leading-7">
+            <p className="text-charcoal/64 mx-auto mt-4 max-w-xl leading-7">
               {data.emptyDescription}
             </p>
           </div>
@@ -265,7 +270,7 @@ export function NewsArticlePage({
           <p className="text-charcoal/64 mx-auto mt-7 max-w-3xl text-lg leading-8 text-pretty sm:text-xl">
             {data.excerpt}
           </p>
-          <div className="text-charcoal/45 mt-7 flex flex-wrap justify-center gap-x-3 gap-y-1 text-xs tracking-[0.08em] uppercase">
+          <div className="text-charcoal/64 mt-7 flex flex-wrap justify-center gap-x-3 gap-y-1 text-xs tracking-[0.08em] uppercase">
             <span>{dictionary.news.published}</span>
             <time dateTime={data.publishedAt}>{data.publishedLabel}</time>
             {data.authorName ? (
@@ -301,7 +306,7 @@ export function NewsArticlePage({
                     <li key={item.id}>
                       <a
                         href={item.href}
-                        className="text-charcoal/56 hover:text-lacquer block rounded-r-md px-2 py-2 text-sm leading-5"
+                        className="text-charcoal/64 hover:text-lacquer block rounded-r-md px-2 py-2 text-sm leading-5"
                       >
                         {item.label}
                       </a>
@@ -315,6 +320,7 @@ export function NewsArticlePage({
           )}
           <div className="max-w-3xl min-w-0">
             <RichContent blocks={data.blocks} />
+            <NewsShareActions dictionary={dictionary} title={data.title} />
           </div>
         </div>
       </article>
@@ -329,7 +335,12 @@ export function NewsArticlePage({
             />
             <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {data.relatedItems.map((item) => (
-                <NewsCard key={item.id} item={item} dictionary={dictionary} />
+                <NewsCard
+                  key={item.id}
+                  item={item}
+                  dictionary={dictionary}
+                  headingLevel="h3"
+                />
               ))}
             </div>
           </div>

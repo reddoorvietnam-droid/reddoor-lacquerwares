@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import "@/app/globals.css";
 import { isLocale, localeConfig, locales } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
+import { buildPublicMetadata } from "@/lib/seo/metadata";
 
 type LocaleLayoutProps = {
   children: ReactNode;
@@ -25,17 +26,28 @@ export async function generateMetadata({
   }
 
   const dictionary = await getDictionary(locale);
+  const metadata = buildPublicMetadata({
+    locale,
+    title: dictionary.meta.siteTitle,
+    description: dictionary.meta.siteDescription,
+    siteName: dictionary.meta.siteTitle,
+    isDemo: true,
+  });
 
   return {
-    metadataBase: new URL(
-      process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
-    ),
+    ...metadata,
     title: {
       default: dictionary.meta.siteTitle,
       template: `%s | ${dictionary.meta.siteTitle}`,
     },
-    description: dictionary.meta.siteDescription,
     applicationName: "Red Door Lacquerwares",
+    ...(process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
+      ? {
+          verification: {
+            google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
+          },
+        }
+      : {}),
   };
 }
 

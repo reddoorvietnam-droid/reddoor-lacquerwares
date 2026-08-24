@@ -5,6 +5,8 @@
   --lacquer-red: #8a171b;
   --deep-burgundy: #3d0d10;
   --antique-gold: #c2a052;
+  --antique-gold-ink: #765d1f;
+  --antique-gold-light: #cfb36d;
   --warm-ivory: #f5f0e7;
   --charcoal: #1b1917;
   --muted-ivory: #e4d9c8;
@@ -41,6 +43,8 @@
   --color-lacquer: var(--lacquer-red);
   --color-burgundy: var(--deep-burgundy);
   --color-gold: var(--antique-gold);
+  --color-gold-ink: var(--antique-gold-ink);
+  --color-gold-light: var(--antique-gold-light);
   --color-ivory: var(--warm-ivory);
   --color-charcoal: var(--charcoal);
   --font-sans: var(--font-body);
@@ -115,11 +119,19 @@ body {
 }
 
 .eyebrow {
-  color: var(--antique-gold);
+  color: var(--antique-gold-ink);
   font-size: 0.75rem;
   font-weight: 650;
   letter-spacing: 0.24em;
   text-transform: uppercase;
+}
+
+.eyebrow-inverse {
+  color: var(--antique-gold);
+}
+
+.eyebrow-on-lacquer {
+  color: var(--antique-gold-light);
 }
 
 @media (prefers-reduced-motion: reduce) {

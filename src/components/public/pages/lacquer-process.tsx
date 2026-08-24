@@ -73,7 +73,12 @@ export function LacquerProcessPage({
             className="from-burgundy via-lacquer to-gold/75 text-ivory grid aspect-4/5 place-items-center rounded-[var(--radius-lg)] bg-linear-to-br p-10 text-center shadow-[var(--shadow-lacquer)]"
             aria-hidden="true"
           >
-            <span className="text-ivory/25 font-serif text-7xl">01—∞</span>
+            <span
+              className="text-ivory/25 font-serif text-7xl"
+              aria-hidden="true"
+            >
+              01—∞
+            </span>
           </div>
         )}
         <div>
@@ -109,7 +114,7 @@ export function LacquerProcessPage({
                     sizes="(min-width: 1024px) 42vw, 100vw"
                     className="border-ivory/12 bg-burgundy aspect-4/3"
                   />
-                  <div className="text-ivory/48 mt-4 flex items-center justify-between gap-4 text-xs">
+                  <div className="text-ivory/68 mt-4 flex items-center justify-between gap-4 text-xs">
                     <span className="tracking-[0.14em] uppercase">
                       {step.numberLabel}
                     </span>

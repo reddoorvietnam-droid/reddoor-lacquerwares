@@ -74,7 +74,7 @@ export function SearchPage({
             name="q"
             defaultValue={data.query}
             placeholder={data.placeholder}
-            className="text-charcoal placeholder:text-charcoal/35 min-h-13 min-w-0 flex-1 rounded-[var(--radius-md)] bg-transparent px-4 text-lg"
+            className="text-charcoal placeholder:text-charcoal/64 min-h-13 min-w-0 flex-1 rounded-[var(--radius-md)] bg-transparent px-4 text-lg"
           />
           <button
             type="submit"
@@ -103,7 +103,7 @@ export function SearchPage({
 
         <div className="mt-10 flex items-center gap-5">
           <p
-            className="text-charcoal/58 text-sm"
+            className="text-charcoal/64 text-sm"
             role="status"
             aria-live="polite"
           >
@@ -118,13 +118,13 @@ export function SearchPage({
               <li key={result.id}>
                 <article className="grid gap-4 py-8 sm:grid-cols-[3rem_1fr_auto] sm:gap-6">
                   <span
-                    className="text-gold font-serif text-2xl"
+                    className="text-gold-ink font-serif text-2xl"
                     aria-hidden="true"
                   >
                     {String(index + 1).padStart(2, "0")}
                   </span>
                   <div className="min-w-0">
-                    <p className="text-gold text-xs font-bold tracking-[0.14em] uppercase">
+                    <p className="text-gold-ink text-xs font-bold tracking-[0.14em] uppercase">
                       {result.typeLabel}
                     </p>
                     <h2 className="text-burgundy mt-2 font-serif text-2xl leading-tight sm:text-3xl">
@@ -136,7 +136,7 @@ export function SearchPage({
                       {result.excerpt}
                     </p>
                     {result.meta.length > 0 ? (
-                      <ul className="text-charcoal/42 mt-4 flex flex-wrap gap-x-3 gap-y-1 text-xs">
+                      <ul className="text-charcoal/64 mt-4 flex flex-wrap gap-x-3 gap-y-1 text-xs">
                         {result.meta.map((item) => (
                           <li key={item}>{item}</li>
                         ))}
@@ -162,12 +162,12 @@ export function SearchPage({
             <h2 className="text-burgundy font-serif text-3xl">
               {data.emptyTitle}
             </h2>
-            <p className="text-charcoal/60 mx-auto mt-4 max-w-xl leading-7">
+            <p className="text-charcoal/64 mx-auto mt-4 max-w-xl leading-7">
               {data.emptyDescription}
             </p>
             {data.suggestions.length > 0 ? (
               <div className="mt-7">
-                <p className="text-charcoal/50 text-xs font-semibold tracking-[0.12em] uppercase">
+                <p className="text-charcoal/64 text-xs font-semibold tracking-[0.12em] uppercase">
                   {data.suggestionsLabel}
                 </p>
                 <ul className="mt-3 flex flex-wrap justify-center gap-2">

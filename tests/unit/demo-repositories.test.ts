@@ -21,8 +21,12 @@ describe("public demo repositories", () => {
       expect(products.length).toBeGreaterThan(0);
       expect(collections.length).toBeGreaterThan(0);
       expect(articles.length).toBeGreaterThan(0);
-      expect([...products, ...collections, ...articles].every((item) => item.isDemo)).toBe(true);
-      expect([...products, ...collections, ...articles].every(Object.isFrozen)).toBe(true);
+      expect(
+        [...products, ...collections, ...articles].every((item) => item.isDemo),
+      ).toBe(true);
+      expect(
+        [...products, ...collections, ...articles].every(Object.isFrozen),
+      ).toBe(true);
     }
   });
 
@@ -33,8 +37,14 @@ describe("public demo repositories", () => {
       demoNewsRepository.list("vi"),
     ]);
 
-    expect(products.every((product) => !product.showPrice && product.price === null)).toBe(true);
-    expect(collections.every((collection) => collection.year === null)).toBe(true);
-    expect(articles.every((article) => article.publishedAt === null)).toBe(true);
+    expect(
+      products.every((product) => !product.showPrice && product.price === null),
+    ).toBe(true);
+    expect(collections.every((collection) => collection.year === null)).toBe(
+      true,
+    );
+    expect(articles.every((article) => article.publishedAt === null)).toBe(
+      true,
+    );
   });
 });

@@ -1,6 +1,6 @@
 "use client";
 
-import type { FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 
 import type { PublicDictionary } from "@/lib/i18n/dictionary";
 
@@ -27,6 +27,14 @@ export interface QuoteFormOptionView {
   value: string;
 }
 
+export interface ContactMapView {
+  description: string;
+  embedUrl: string | null;
+  loadLabel: string;
+  title: string;
+  unavailableDescription: string;
+}
+
 export interface ContactRequestQuotePageData {
   acceptedAttachmentTypes: string;
   attachmentHelp: string;
@@ -44,6 +52,7 @@ export interface ContactRequestQuotePageData {
   heroEyebrow: string;
   heroMedia: PublicPageMedia | null;
   interestOptions: readonly QuoteFormOptionView[];
+  map: ContactMapView;
   quantityPlaceholder: string;
   submissionUnavailableDescription: string;
   submissionUnavailableTitle: string;
@@ -57,7 +66,81 @@ export interface ContactRequestQuotePageProps {
 }
 
 const fieldClassName =
-  "border-burgundy/18 bg-ivory text-charcoal placeholder:text-charcoal/35 min-h-12 w-full rounded-[var(--radius-sm)] border px-4 py-3 text-base focus:border-lacquer";
+  "border-burgundy/18 bg-ivory text-charcoal placeholder:text-charcoal/64 min-h-12 w-full rounded-[var(--radius-sm)] border px-4 py-3 text-base focus:border-lacquer";
+
+function ContactMapPreview({ map }: { map: ContactMapView }) {
+  const [requested, setRequested] = useState(false);
+  const contentId = "contact-map-content";
+
+  return (
+    <section
+      className="border-burgundy/12 bg-burgundy/3 mt-8 overflow-hidden rounded-[var(--radius-lg)] border"
+      aria-labelledby="contact-map-title"
+    >
+      <div className="relative min-h-48 overflow-hidden p-6">
+        <svg
+          aria-hidden="true"
+          className="text-gold/18 absolute inset-0 size-full"
+          viewBox="0 0 400 220"
+          fill="none"
+          preserveAspectRatio="none"
+        >
+          <path d="M0 55h400M0 110h400M0 165h400" stroke="currentColor" />
+          <path
+            d="M80 0v220M160 0v220M240 0v220M320 0v220"
+            stroke="currentColor"
+          />
+          <path
+            d="M-10 190C75 140 108 174 166 108S283 39 410 74"
+            stroke="currentColor"
+            strokeWidth="6"
+          />
+          <circle cx="235" cy="82" r="12" fill="currentColor" />
+        </svg>
+        <div className="relative z-10 max-w-sm">
+          <h3
+            id="contact-map-title"
+            className="text-burgundy font-serif text-2xl"
+          >
+            {map.title}
+          </h3>
+          <p className="text-charcoal/64 mt-3 text-sm leading-6">
+            {map.description}
+          </p>
+          {!requested ? (
+            <button
+              type="button"
+              aria-controls={contentId}
+              aria-expanded="false"
+              onClick={() => setRequested(true)}
+              className="bg-burgundy text-ivory hover:bg-lacquer mt-5 min-h-11 rounded-full px-5 py-2.5 text-sm font-semibold"
+            >
+              {map.loadLabel}
+            </button>
+          ) : null}
+        </div>
+      </div>
+      <div id={contentId} hidden={!requested}>
+        {requested && map.embedUrl ? (
+          <iframe
+            src={map.embedUrl}
+            title={map.title}
+            loading="lazy"
+            className="border-burgundy/12 h-72 w-full border-t"
+            referrerPolicy="no-referrer"
+          />
+        ) : requested ? (
+          <p
+            className="border-burgundy/12 bg-ivory text-charcoal/68 border-t px-6 py-5 text-sm leading-6"
+            role="status"
+          >
+            {map.unavailableDescription}
+          </p>
+        ) : null}
+      </div>
+    </section>
+  );
+}
 
 export function ContactRequestQuotePage({
   data,
@@ -79,7 +162,10 @@ export function ContactRequestQuotePage({
         media={data.heroMedia}
       />
 
-      <section className="mx-auto grid max-w-7xl gap-12 px-[var(--space-page)] py-20 lg:grid-cols-[0.72fr_1.28fr] lg:gap-16 lg:py-28">
+      <section
+        id="request-quote"
+        className="mx-auto grid max-w-7xl scroll-mt-24 gap-12 px-[var(--space-page)] py-20 lg:grid-cols-[0.72fr_1.28fr] lg:gap-16 lg:py-28"
+      >
         <aside className="self-start lg:sticky lg:top-24">
           <SectionHeading
             eyebrow={data.contactEyebrow}
@@ -90,7 +176,7 @@ export function ContactRequestQuotePage({
             <dl className="border-burgundy/12 divide-burgundy/10 mt-9 divide-y border-y">
               {data.contactPoints.map((point) => (
                 <div key={point.id} className="py-5">
-                  <dt className="text-charcoal/45 text-xs font-semibold tracking-[0.12em] uppercase">
+                  <dt className="text-charcoal/64 text-xs font-semibold tracking-[0.12em] uppercase">
                     {point.label}
                   </dt>
                   <dd className="text-burgundy mt-2 text-base font-semibold break-words">
@@ -103,7 +189,7 @@ export function ContactRequestQuotePage({
                     )}
                   </dd>
                   {point.note ? (
-                    <dd className="text-charcoal/48 mt-1 text-sm leading-6">
+                    <dd className="text-charcoal/64 mt-1 text-sm leading-6">
                       {point.note}
                     </dd>
                   ) : null}
@@ -111,6 +197,7 @@ export function ContactRequestQuotePage({
               ))}
             </dl>
           ) : null}
+          <ContactMapPreview map={data.map} />
         </aside>
 
         <div className="border-burgundy/12 rounded-[var(--radius-display)] border bg-[var(--surface-raised)] p-6 shadow-[var(--shadow-soft)] sm:p-9 lg:p-12">
@@ -189,7 +276,7 @@ export function ContactRequestQuotePage({
                   required
                 >
                   <option value="" disabled>
-                    {dictionary.contact.country}
+                    {dictionary.contact.countrySelect}
                   </option>
                   {data.countryOptions.map((option) => (
                     <option key={option.value} value={option.value}>
@@ -243,7 +330,7 @@ export function ContactRequestQuotePage({
                 />
                 <span
                   id="quote-deadline-help"
-                  className="text-charcoal/48 text-xs leading-5 font-normal"
+                  className="text-charcoal/64 text-xs leading-5 font-normal"
                 >
                   {data.deadlineHelp}
                 </span>
@@ -266,11 +353,13 @@ export function ContactRequestQuotePage({
                 type="file"
                 name="attachment"
                 accept={data.acceptedAttachmentTypes}
+                disabled
+                aria-disabled="true"
                 aria-describedby="quote-attachment-help"
               />
               <span
                 id="quote-attachment-help"
-                className="text-charcoal/48 text-xs leading-5 font-normal"
+                className="text-charcoal/64 text-xs leading-5 font-normal"
               >
                 {data.attachmentHelp}
               </span>
@@ -311,7 +400,7 @@ export function ContactRequestQuotePage({
               >
                 {dictionary.contact.submit}
               </button>
-              <p className="text-charcoal/48 max-w-xl text-xs leading-5">
+              <p className="text-charcoal/64 max-w-xl text-xs leading-5">
                 {dictionary.contact.demoNotice}
               </p>
             </div>

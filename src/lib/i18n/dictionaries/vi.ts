@@ -13,6 +13,7 @@ const dictionary = {
     explore: "Khám phá",
     viewAll: "Xem tất cả",
     close: "Đóng",
+    skipIntro: "Bỏ qua phần mở đầu",
     previous: "Trước",
     next: "Tiếp",
     openMenu: "Mở trình đơn",
@@ -75,8 +76,31 @@ const dictionary = {
     termsTitle: "Điều khoản sử dụng",
     accessibilityTitle: "Tuyên bố về khả năng tiếp cận",
   },
+  about: {
+    contentStatusLabel: "Trạng thái nội dung",
+    contentStatusValue: "DEMO — đang chờ doanh nghiệp phê duyệt",
+    claimsStatusLabel: "Thông tin thực tế",
+    claimsStatusValue: "Không công bố khi chưa xác minh",
+    assetStatusLabel: "Tài sản thương hiệu",
+    assetStatusValue: "Đang chờ hình ảnh được phê duyệt",
+    principlesDescription:
+      "Các thẻ DEMO này xác định bằng chứng cần có trước khi công bố thông tin về doanh nghiệp.",
+    principleKicker: "Nguyên tắc xuất bản",
+    verifiedStoryTitle: "Câu chuyện doanh nghiệp đã xác minh",
+    verifiedStoryDescription:
+      "Ngày thành lập, cột mốc, khách hàng, giải thưởng và chứng nhận vẫn là nội dung chờ cho đến khi được nguồn có thẩm quyền xác nhận.",
+    approvedCapabilitiesTitle: "Tuyên bố năng lực đã phê duyệt",
+    approvedCapabilitiesDescription:
+      "Thông tin về vật liệu, kỹ thuật, công suất và thời gian sản xuất chỉ xuất hiện sau khi doanh nghiệp cung cấp và phê duyệt.",
+    documentedPeopleTitle: "Con người và xưởng được ghi nhận",
+    documentedPeopleDescription:
+      "Hồ sơ nghệ nhân, hình ảnh xưởng, tên và vai trò cần có sự đồng ý cùng nguồn tư liệu được phê duyệt trước khi xuất bản.",
+    archiveNotice:
+      "Mọi chương trong dòng thời gian đều được ghi nhãn DEMO và không sử dụng năm, giải thưởng, khách hàng hoặc chứng nhận chưa xác minh.",
+  },
   product: {
     category: "Danh mục",
+    collection: "Bộ sưu tập",
     material: "Vật liệu",
     finish: "Bề mặt hoàn thiện",
     dimensions: "Kích thước",
@@ -87,6 +111,21 @@ const dictionary = {
     related: "Sản phẩm liên quan",
     filters: "Bộ lọc",
     sort: "Sắp xếp",
+    sortDefault: "Thứ tự tuyển chọn",
+    sortFeatured: "Nổi bật trước",
+    sortNameAscending: "Tên A–Z",
+    sortNameDescending: "Tên Z–A",
+    page: "Trang",
+    zoomImage: "Xem ảnh kích thước đầy đủ",
+    zoomUnavailable: "Ảnh kích thước đầy đủ đang chờ bổ sung",
+    video: "Video sản phẩm",
+    videoUnavailable: "Chưa có video sản phẩm được duyệt trong bản DEMO này.",
+    variants: "Biến thể",
+    variantsUnavailable:
+      "Chưa có biến thể sản phẩm được duyệt trong bản DEMO này.",
+    process: "Quy trình chế tác",
+    processUnavailable:
+      "Chưa có ghi chú quy trình chế tác được duyệt trong bản DEMO này.",
     noPrice: "Liên hệ để nhận báo giá",
   },
   collection: {
@@ -99,6 +138,14 @@ const dictionary = {
     published: "Đăng ngày",
     by: "Tác giả",
     related: "Câu chuyện liên quan",
+    share: "Chia sẻ câu chuyện này",
+    shareNative: "Chia sẻ",
+    copyLink: "Sao chép liên kết",
+    copySuccess: "Đã sao chép liên kết",
+    copyFailed: "Không thể sao chép liên kết",
+    shareFacebook: "Chia sẻ lên Facebook",
+    shareLinkedIn: "Chia sẻ lên LinkedIn",
+    shareEmail: "Chia sẻ qua email",
   },
   contact: {
     fullName: "Họ và tên",
@@ -106,11 +153,21 @@ const dictionary = {
     email: "Email",
     phone: "Điện thoại",
     country: "Quốc gia hoặc khu vực",
+    countrySelect: "Chọn quốc gia hoặc khu vực",
+    countryOther: "Quốc gia hoặc khu vực khác",
     interests: "Sản phẩm hoặc bộ sưu tập quan tâm",
     quantity: "Số lượng dự kiến",
     deadline: "Thời hạn mong muốn",
     notes: "Ghi chú",
     attachment: "Tệp đính kèm không bắt buộc",
+    attachmentHelp:
+      "Chỉ dành cho DEMO — chức năng chọn và tải tệp đang tắt. Khi được bật, hệ thống sẽ nhận PDF, JPG, PNG hoặc WebP tối đa 10 MB; không gửi dữ liệu cá nhân nhạy cảm.",
+    mapTitle: "Bản đồ",
+    mapDescription:
+      "Nội dung bản đồ bên ngoài chỉ được tải sau khi bạn chủ động chọn tải.",
+    loadMap: "Tải bản đồ",
+    mapUnavailable:
+      "Bản DEMO chưa có địa chỉ bản đồ đã xác minh nên không tải nội dung của bên thứ ba.",
     consent:
       "Tôi đồng ý để thông tin của mình được sử dụng nhằm phản hồi yêu cầu này.",
     submit: "Gửi yêu cầu",

@@ -1,0 +1,240 @@
+import "server-only";
+
+import type { NextAuthOptions } from "next-auth";
+import GoogleProvider from "next-auth/providers/google";
+import { z } from "zod";
+
+import { mongoAuditRepository } from "@/domains/audit/mongo-repository";
+import {
+  parseBootstrapAdminEmails,
+  tryBootstrapInitialSuperAdmin,
+} from "@/domains/identity/bootstrap";
+import { mongoIdentityRepository } from "@/domains/identity/mongo-repository";
+import { inspectAuthEnv, inspectMongoEnv } from "@/lib/env/server";
+
+const googleProfileSchema = z.object({
+  sub: z.string().trim().min(1).max(255),
+  email: z.email().max(320),
+  email_verified: z.literal(true),
+  name: z.string().trim().min(1).max(200).optional(),
+  picture: z.url().max(2_048).optional(),
+});
+
+function removePersonalTokenClaims(token: {
+  name?: string | null;
+  email?: string | null;
+  picture?: string | null;
+}): void {
+  delete token.name;
+  delete token.email;
+  delete token.picture;
+}
+
+function removeAuthorizationTokenClaims(token: {
+  sub?: string;
+  userId?: string;
+  userStatus?: "pending" | "active" | "suspended";
+  authzVersion?: number;
+}): void {
+  delete token.sub;
+  delete token.userId;
+  delete token.userStatus;
+  delete token.authzVersion;
+}
+
+function createAuthOptions(input: {
+  secret: string;
+  googleClientId: string;
+  googleClientSecret: string;
+  bootstrapAdminEmails: string | undefined;
+}): NextAuthOptions {
+  const allowedBootstrapEmails = parseBootstrapAdminEmails(
+    input.bootstrapAdminEmails,
+  );
+
+  return {
+    secret: input.secret,
+    providers: [
+      GoogleProvider({
+        clientId: input.googleClientId,
+        clientSecret: input.googleClientSecret,
+      }),
+    ],
+    session: {
+      strategy: "jwt",
+      maxAge: 8 * 60 * 60,
+      updateAge: 30 * 60,
+    },
+    jwt: { maxAge: 8 * 60 * 60 },
+    callbacks: {
+      async signIn({ account, profile }) {
+        if (account?.provider !== "google") {
+          return false;
+        }
+
+        const parsedProfile = googleProfileSchema.safeParse(profile);
+        if (!parsedProfile.success) {
+          return false;
+        }
+
+        try {
+          const occurredAt = new Date();
+          const identity =
+            await mongoIdentityRepository.synchronizeGoogleIdentity({
+              googleSubject: parsedProfile.data.sub,
+              email: parsedProfile.data.email,
+              displayName: parsedProfile.data.name ?? null,
+              avatarUrl: parsedProfile.data.picture ?? null,
+              occurredAt,
+            });
+          await tryBootstrapInitialSuperAdmin({
+            userId: identity.id,
+            normalizedEmail: identity.normalizedEmail,
+            allowedEmails: allowedBootstrapEmails,
+            occurredAt,
+            requestId: globalThis.crypto.randomUUID(),
+          });
+
+          const currentSnapshot =
+            await mongoIdentityRepository.findSnapshotByUserId(identity.id);
+          if (!currentSnapshot) {
+            return false;
+          }
+
+          await mongoAuditRepository.append({
+            actor: { type: "user", userId: identity.id },
+            action:
+              currentSnapshot.user.status === "active"
+                ? "auth.signIn"
+                : currentSnapshot.user.status === "pending"
+                  ? "auth.accessPending"
+                  : "auth.accessSuspended",
+            resourceType: "user",
+            resourceId: identity.id,
+            requestId: globalThis.crypto.randomUUID(),
+            metadata: { userStatus: currentSnapshot.user.status },
+            occurredAt,
+          });
+          return true;
+        } catch {
+          return false;
+        }
+      },
+      async jwt({ token, user }) {
+        removePersonalTokenClaims(token);
+
+        try {
+          if (user?.email) {
+            const identity =
+              await mongoIdentityRepository.findIdentityByNormalizedEmail(
+                user.email,
+              );
+
+            if (!identity) {
+              removeAuthorizationTokenClaims(token);
+              return token;
+            }
+
+            token.sub = identity.id;
+            token.userId = identity.id;
+            token.userStatus = identity.status;
+            token.authzVersion = identity.authzVersion;
+            return token;
+          }
+
+          if (!token.userId) {
+            removeAuthorizationTokenClaims(token);
+            return token;
+          }
+
+          const snapshot = await mongoIdentityRepository.findSnapshotByUserId(
+            token.userId,
+          );
+          if (!snapshot) {
+            removeAuthorizationTokenClaims(token);
+            return token;
+          }
+
+          token.sub = snapshot.user.id;
+          token.userStatus = snapshot.user.status;
+          token.authzVersion = snapshot.user.authzVersion;
+          return token;
+        } catch {
+          removeAuthorizationTokenClaims(token);
+          return token;
+        }
+      },
+      async session({ session, token }) {
+        if (
+          !token.userId ||
+          !token.userStatus ||
+          typeof token.authzVersion !== "number"
+        ) {
+          delete session.user;
+          return session;
+        }
+
+        session.user = {
+          id: token.userId,
+          status: token.userStatus,
+          authzVersion: token.authzVersion,
+          name: null,
+          email: null,
+          image: null,
+        };
+        return session;
+      },
+    },
+    events: {
+      async signOut({ token }) {
+        if (!token?.userId) {
+          return;
+        }
+
+        try {
+          await mongoAuditRepository.append({
+            actor: { type: "user", userId: token.userId },
+            action: "auth.signOut",
+            resourceType: "user",
+            resourceId: token.userId,
+            requestId: globalThis.crypto.randomUUID(),
+            occurredAt: new Date(),
+          });
+        } catch {
+          // Logout must still clear the session when audit storage is unavailable.
+        }
+      },
+    },
+  };
+}
+
+export type AuthConfiguration =
+  | { configured: false; invalidKeys: readonly string[] }
+  | { configured: true; options: NextAuthOptions };
+
+export function getAuthConfiguration(): AuthConfiguration {
+  const authEnv = inspectAuthEnv();
+  const mongoEnv = inspectMongoEnv();
+
+  if (!authEnv.configured || !mongoEnv.configured) {
+    return {
+      configured: false,
+      invalidKeys: [
+        ...new Set([
+          ...(authEnv.configured ? [] : authEnv.invalidKeys),
+          ...(mongoEnv.configured ? [] : mongoEnv.invalidKeys),
+        ]),
+      ],
+    };
+  }
+
+  return {
+    configured: true,
+    options: createAuthOptions({
+      secret: authEnv.value.AUTH_SECRET,
+      googleClientId: authEnv.value.AUTH_GOOGLE_ID,
+      googleClientSecret: authEnv.value.AUTH_GOOGLE_SECRET,
+      bootstrapAdminEmails: authEnv.value.ADMIN_EMAILS,
+    }),
+  };
+}

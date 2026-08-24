@@ -13,6 +13,7 @@ const dictionary = {
     explore: "Entdecken",
     viewAll: "Alle anzeigen",
     close: "Schließen",
+    skipIntro: "Intro überspringen",
     previous: "Zurück",
     next: "Weiter",
     openMenu: "Menü öffnen",
@@ -75,8 +76,31 @@ const dictionary = {
     termsTitle: "Nutzungsbedingungen",
     accessibilityTitle: "Erklärung zur Barrierefreiheit",
   },
+  about: {
+    contentStatusLabel: "Inhaltsstatus",
+    contentStatusValue: "DEMO — Freigabe durch das Unternehmen ausstehend",
+    claimsStatusLabel: "Tatsachenangaben",
+    claimsStatusValue: "Keine Veröffentlichung ohne Prüfung",
+    assetStatusLabel: "Markenmaterial",
+    assetStatusValue: "Freigegebene Fotografie ausstehend",
+    principlesDescription:
+      "Diese DEMO-Karten benennen die Nachweise, die vor der Veröffentlichung von Unternehmensangaben erforderlich sind.",
+    principleKicker: "Redaktionelle Absicherung",
+    verifiedStoryTitle: "Eine geprüfte Unternehmensgeschichte",
+    verifiedStoryDescription:
+      "Gründungsdaten, Meilensteine, Kunden, Auszeichnungen und Zertifizierungen bleiben Platzhalter, bis eine befugte Quelle sie bestätigt.",
+    approvedCapabilitiesTitle: "Freigegebene Leistungsangaben",
+    approvedCapabilitiesDescription:
+      "Aussagen zu Materialien, Techniken, Kapazitäten und Lieferzeiten erscheinen erst nach Bereitstellung und Freigabe durch das Unternehmen.",
+    documentedPeopleTitle: "Dokumentierte Menschen und Werkstatt",
+    documentedPeopleDescription:
+      "Profile, Werkstattbilder, Namen und Rollen benötigen vor der Veröffentlichung Einwilligungen und freigegebenes Quellenmaterial.",
+    archiveNotice:
+      "Alle Kapitel der Zeitleiste sind als DEMO gekennzeichnet und verzichten auf ungeprüfte Jahre, Auszeichnungen, Kunden oder Zertifizierungen.",
+  },
   product: {
     category: "Kategorie",
+    collection: "Kollektion",
     material: "Material",
     finish: "Oberfläche",
     dimensions: "Abmessungen",
@@ -87,6 +111,22 @@ const dictionary = {
     related: "Ähnliche Produkte",
     filters: "Filter",
     sort: "Sortieren",
+    sortDefault: "Kuratierte Reihenfolge",
+    sortFeatured: "Empfehlungen zuerst",
+    sortNameAscending: "Name A–Z",
+    sortNameDescending: "Name Z–A",
+    page: "Seite",
+    zoomImage: "Bild in voller Größe ansehen",
+    zoomUnavailable: "Bild in voller Größe steht noch aus",
+    video: "Produktvideo",
+    videoUnavailable:
+      "In dieser DEMO ist kein freigegebenes Produktvideo verfügbar.",
+    variants: "Varianten",
+    variantsUnavailable:
+      "In dieser DEMO sind keine freigegebenen Varianten verfügbar.",
+    process: "Herstellungsprozess",
+    processUnavailable:
+      "In dieser DEMO sind keine freigegebenen Herstellungsnotizen verfügbar.",
     noPrice: "Preis auf Anfrage",
   },
   collection: {
@@ -100,6 +140,14 @@ const dictionary = {
     published: "Veröffentlicht",
     by: "Von",
     related: "Ähnliche Geschichten",
+    share: "Diesen Beitrag teilen",
+    shareNative: "Teilen",
+    copyLink: "Link kopieren",
+    copySuccess: "Link kopiert",
+    copyFailed: "Der Link konnte nicht kopiert werden",
+    shareFacebook: "Auf Facebook teilen",
+    shareLinkedIn: "Auf LinkedIn teilen",
+    shareEmail: "Per E-Mail teilen",
   },
   contact: {
     fullName: "Vollständiger Name",
@@ -107,11 +155,21 @@ const dictionary = {
     email: "E-Mail",
     phone: "Telefon",
     country: "Land oder Region",
+    countrySelect: "Land oder Region auswählen",
+    countryOther: "Anderes Land oder andere Region",
     interests: "Produkte oder Kollektionen von Interesse",
     quantity: "Geschätzte Menge",
     deadline: "Gewünschter Termin",
     notes: "Anmerkungen",
     attachment: "Optionaler Anhang",
+    attachmentHelp:
+      "Nur DEMO — Dateiauswahl und Upload sind deaktiviert. Nach Aktivierung werden PDF, JPG, PNG oder WebP bis 10 MB akzeptiert; bitte keine sensiblen personenbezogenen Daten anhängen.",
+    mapTitle: "Karte",
+    mapDescription:
+      "Externe Karteninhalte werden erst geladen, nachdem Sie dies ausdrücklich auswählen.",
+    loadMap: "Karte laden",
+    mapUnavailable:
+      "Für diese DEMO liegt keine geprüfte Kartenadresse vor; daher wurden keine Drittanbieter-Inhalte geladen.",
     consent:
       "Ich stimme zu, dass meine Angaben zur Beantwortung dieser Anfrage verwendet werden.",
     submit: "Anfrage senden",

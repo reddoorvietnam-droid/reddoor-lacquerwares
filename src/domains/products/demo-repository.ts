@@ -482,6 +482,9 @@ function makeProducts(locale: Locale): readonly PublicProduct[] {
         images: [
           makeImage(blueprint.id, copy.imageAlt, localeCopy.replacementHint),
         ],
+        video: null,
+        variants: [],
+        processSteps: [],
         tags: [copy.demoTag, copy.placeholderTag],
         collectionIds: blueprint.collectionIds,
         featured: blueprint.featured,

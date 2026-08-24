@@ -23,6 +23,32 @@ export interface PublicProductPrice {
   readonly currency: "VND" | "USD" | "EUR";
 }
 
+export interface PublicProductVideo {
+  readonly assetKey: string;
+  readonly src: string;
+  readonly mimeType: "video/mp4" | "video/webm";
+  readonly title: string;
+  readonly poster: PublicProductImage | null;
+  readonly captionsSrc: string | null;
+  readonly captionsLanguage: Locale;
+  readonly isDemo: true;
+  readonly replacementHint: string;
+}
+
+export interface PublicProductVariant {
+  readonly id: string;
+  readonly label: string;
+  readonly description: string;
+  readonly isDemo: true;
+}
+
+export interface PublicProductProcessStep {
+  readonly id: string;
+  readonly title: string;
+  readonly description: string;
+  readonly isDemo: true;
+}
+
 export interface PublicProduct {
   readonly id: string;
   readonly marker: "DEMO";
@@ -42,6 +68,9 @@ export interface PublicProduct {
   readonly showPrice: false;
   readonly price: PublicProductPrice | null;
   readonly images: readonly PublicProductImage[];
+  readonly video: PublicProductVideo | null;
+  readonly variants: readonly PublicProductVariant[];
+  readonly processSteps: readonly PublicProductProcessStep[];
   readonly tags: readonly string[];
   readonly collectionIds: readonly string[];
   readonly featured: boolean;

@@ -74,7 +74,7 @@ function LegalDocumentPage({
 
       <div className="mx-auto grid max-w-6xl gap-12 px-[var(--space-page)] py-16 lg:grid-cols-[14rem_minmax(0,1fr)] lg:gap-16 lg:py-24">
         <aside className="self-start lg:sticky lg:top-24">
-          <p className="text-gold text-xs font-bold tracking-[0.14em] uppercase">
+          <p className="text-gold-ink text-xs font-bold tracking-[0.14em] uppercase">
             {data.lastUpdatedLabel}
           </p>
           {data.sections.length > 0 ? (
@@ -87,9 +87,12 @@ function LegalDocumentPage({
                   <li key={section.id}>
                     <a
                       href={`#${section.id}`}
-                      className="text-charcoal/56 hover:text-lacquer grid grid-cols-[1.5rem_1fr] gap-2 rounded-r-md px-2 py-2 text-sm leading-5"
+                      className="text-charcoal/64 hover:text-lacquer grid grid-cols-[1.5rem_1fr] gap-2 rounded-r-md px-2 py-2 text-sm leading-5"
                     >
-                      <span className="text-gold text-xs" aria-hidden="true">
+                      <span
+                        className="text-gold-ink text-xs"
+                        aria-hidden="true"
+                      >
                         {String(index + 1).padStart(2, "0")}
                       </span>
                       <span>{section.title}</span>
@@ -112,7 +115,7 @@ function LegalDocumentPage({
               >
                 <div className="grid gap-5 sm:grid-cols-[3rem_1fr]">
                   <span
-                    className="text-gold font-serif text-2xl"
+                    className="text-gold-ink font-serif text-2xl"
                     aria-hidden="true"
                   >
                     {String(index + 1).padStart(2, "0")}

@@ -13,6 +13,7 @@ const dictionary = {
     explore: "探る",
     viewAll: "すべて見る",
     close: "閉じる",
+    skipIntro: "イントロをスキップ",
     previous: "前へ",
     next: "次へ",
     openMenu: "メニューを開く",
@@ -74,8 +75,31 @@ const dictionary = {
     termsTitle: "利用規約",
     accessibilityTitle: "アクセシビリティ方針",
   },
+  about: {
+    contentStatusLabel: "コンテンツの状態",
+    contentStatusValue: "デモ — 会社の承認待ち",
+    claimsStatusLabel: "事実に関する記載",
+    claimsStatusValue: "確認前の情報は公開しません",
+    assetStatusLabel: "ブランド素材",
+    assetStatusValue: "承認済み写真を準備中",
+    principlesDescription:
+      "これらのデモカードは、会社情報を公開する前に必要な根拠を示しています。",
+    principleKicker: "公開時の保護方針",
+    verifiedStoryTitle: "確認済みの会社沿革",
+    verifiedStoryDescription:
+      "創業日、節目、顧客、受賞歴、認証は、権限のある情報源による確認が完了するまで仮表示のままです。",
+    approvedCapabilitiesTitle: "承認済みの対応力情報",
+    approvedCapabilitiesDescription:
+      "素材、技法、生産能力、納期に関する記載は、会社からの提供と承認後にのみ掲載します。",
+    documentedPeopleTitle: "記録に基づく人と工房",
+    documentedPeopleDescription:
+      "職人紹介、工房写真、氏名、役割の公開には、同意と承認済み資料が必要です。",
+    archiveNotice:
+      "沿革の全章はデモと明記し、未確認の年、受賞歴、顧客、認証を掲載していません。",
+  },
   product: {
     category: "カテゴリー",
+    collection: "コレクション",
     material: "素材",
     finish: "仕上げ",
     dimensions: "寸法",
@@ -86,6 +110,20 @@ const dictionary = {
     related: "関連製品",
     filters: "絞り込み",
     sort: "並べ替え",
+    sortDefault: "推奨順",
+    sortFeatured: "注目製品を先に表示",
+    sortNameAscending: "名前 A–Z",
+    sortNameDescending: "名前 Z–A",
+    page: "ページ",
+    zoomImage: "原寸画像を見る",
+    zoomUnavailable: "原寸画像は準備中です",
+    video: "製品動画",
+    videoUnavailable: "このデモには承認済みの製品動画がありません。",
+    variants: "バリエーション",
+    variantsUnavailable:
+      "このデモには承認済みの製品バリエーションがありません。",
+    process: "製作工程",
+    processUnavailable: "このデモには承認済みの製作工程情報がありません。",
     noPrice: "価格はお問い合わせください",
   },
   collection: {
@@ -98,6 +136,14 @@ const dictionary = {
     published: "公開日",
     by: "執筆者",
     related: "関連する物語",
+    share: "この記事を共有",
+    shareNative: "共有",
+    copyLink: "リンクをコピー",
+    copySuccess: "リンクをコピーしました",
+    copyFailed: "リンクをコピーできませんでした",
+    shareFacebook: "Facebookで共有",
+    shareLinkedIn: "LinkedInで共有",
+    shareEmail: "メールで共有",
   },
   contact: {
     fullName: "氏名",
@@ -105,11 +151,21 @@ const dictionary = {
     email: "メールアドレス",
     phone: "電話番号",
     country: "国または地域",
+    countrySelect: "国または地域を選択",
+    countryOther: "その他の国または地域",
     interests: "関心のある製品またはコレクション",
     quantity: "予定数量",
     deadline: "希望納期",
     notes: "備考",
     attachment: "任意の添付ファイル",
+    attachmentHelp:
+      "デモのみ — ファイルの選択とアップロードは無効です。有効化後は10 MBまでのPDF、JPG、PNG、WebPを受け付けます。機密性の高い個人情報は添付しないでください。",
+    mapTitle: "地図",
+    mapDescription:
+      "外部地図コンテンツは、利用者が読み込みを選択した後にのみ取得します。",
+    loadMap: "地図を読み込む",
+    mapUnavailable:
+      "このデモには確認済みの地図住所がないため、第三者コンテンツは読み込まれていません。",
     consent:
       "このお問い合わせへの回答に必要な範囲で、入力情報が使用されることに同意します。",
     submit: "問い合わせを送信",

@@ -56,7 +56,10 @@ type DemoMediaSource =
 
 export type DemoProductListingQuery = {
   category: string;
+  collection: string;
+  finish: string;
   material: string;
+  page: string;
   query: string;
   sort: string;
 };
@@ -220,9 +223,42 @@ function includesQuery(
   return normalized(values.join(" "), locale).includes(query);
 }
 
-function formatDimensions(dimensions: PublicProductDimensions | null): string | null {
+function formatDimensions(
+  dimensions: PublicProductDimensions | null,
+): string | null {
   if (!dimensions) return null;
   return `${dimensions.width} × ${dimensions.height} × ${dimensions.depth} ${dimensions.unit}`;
+}
+
+const DEMO_PRODUCT_PAGE_SIZE = 3;
+const DEMO_PRODUCT_SORT_VALUES = [
+  "default",
+  "featured",
+  "name-asc",
+  "name-desc",
+] as const;
+
+type DemoProductSort = (typeof DEMO_PRODUCT_SORT_VALUES)[number];
+
+function productSort(value: string): DemoProductSort {
+  return DEMO_PRODUCT_SORT_VALUES.includes(value as DemoProductSort)
+    ? (value as DemoProductSort)
+    : "default";
+}
+
+function selectedOption(
+  value: string,
+  options: readonly ProductFilterOptionView[],
+): string {
+  return options.some((option) => option.value === value) ? value : "";
+}
+
+function productPage(value: string, pageCount: number): number {
+  if (!/^\d+$/.test(value)) return 1;
+
+  const parsed = Number.parseInt(value, 10);
+  if (!Number.isSafeInteger(parsed) || parsed < 1) return 1;
+  return Math.min(parsed, Math.max(pageCount, 1));
 }
 
 export async function getDemoAboutHistoryPageData(
@@ -232,7 +268,7 @@ export async function getDemoAboutHistoryPageData(
   const content = await demoContentRepository.getSnapshot(locale);
 
   return {
-    archiveNote: content.company.contentNotice,
+    archiveNote: dictionary.about.archiveNotice,
     closingLink: {
       href: `${localePath(locale, "/contact")}#request-quote`,
       label: dictionary.common.requestQuote,
@@ -241,7 +277,23 @@ export async function getDemoAboutHistoryPageData(
     closingTitle: dictionary.home.contactTitle,
     heroEyebrow: content.company.eyebrow,
     heroMedia: toDemoMedia(content.company.heroImage, dictionary),
-    highlights: [],
+    highlights: [
+      {
+        id: "content-status",
+        label: dictionary.about.contentStatusLabel,
+        value: dictionary.about.contentStatusValue,
+      },
+      {
+        id: "claims-status",
+        label: dictionary.about.claimsStatusLabel,
+        value: dictionary.about.claimsStatusValue,
+      },
+      {
+        id: "asset-status",
+        label: dictionary.about.assetStatusLabel,
+        value: dictionary.about.assetStatusValue,
+      },
+    ],
     historyDescription: dictionary.pages.aboutIntro,
     historyEyebrow: content.company.eyebrow,
     historyTitle: dictionary.home.historyTitle,
@@ -253,8 +305,30 @@ export async function getDemoAboutHistoryPageData(
       media: toDemoMedia(milestone.image, dictionary),
     })),
     overviewParagraphs: [content.company.summary],
-    principles: [],
-    principlesDescription: dictionary.home.craftBody,
+    principles: [
+      {
+        id: "verified-story",
+        kicker: dictionary.about.principleKicker,
+        title: dictionary.about.verifiedStoryTitle,
+        description: dictionary.about.verifiedStoryDescription,
+        media: null,
+      },
+      {
+        id: "approved-capabilities",
+        kicker: dictionary.about.principleKicker,
+        title: dictionary.about.approvedCapabilitiesTitle,
+        description: dictionary.about.approvedCapabilitiesDescription,
+        media: null,
+      },
+      {
+        id: "documented-people",
+        kicker: dictionary.about.principleKicker,
+        title: dictionary.about.documentedPeopleTitle,
+        description: dictionary.about.documentedPeopleDescription,
+        media: null,
+      },
+    ],
+    principlesDescription: dictionary.about.principlesDescription,
     principlesEyebrow: dictionary.home.eyebrow,
     principlesTitle: dictionary.home.craftTitle,
   };
@@ -265,39 +339,31 @@ export async function getDemoProductListingPageData(
   dictionary: PublicDictionary,
   options: DemoProductListingQuery,
 ): Promise<ProductListingPageData> {
-  const [content, allProducts] = await Promise.all([
+  const [content, allProducts, collections] = await Promise.all([
     demoContentRepository.getSnapshot(locale),
     demoProductRepository.list(locale),
+    demoCollectionRepository.list(locale),
   ]);
   const query = normalized(options.query, locale);
-  const filteredProducts = allProducts.filter((product) => {
-    if (options.category && product.categorySlug !== options.category) {
-      return false;
-    }
-    if (
-      options.material &&
-      !product.materialLabels.includes(options.material)
-    ) {
-      return false;
-    }
-    return includesQuery(
-      [
-        product.name,
-        product.summary,
-        product.categoryLabel,
-        ...product.materialLabels,
-        ...product.tags,
-      ],
-      query,
-      locale,
-    );
-  });
+  const collectionTitles = new Map(
+    collections.map((collection) => [collection.id, collection.title]),
+  );
   const categoryOptions = uniqueOptions(
     allProducts.map((product) => ({
       value: product.categorySlug,
       label: product.categoryLabel,
     })),
   );
+  const collectionOptions = collections
+    .filter((collection) =>
+      allProducts.some((product) =>
+        product.collectionIds.includes(collection.id),
+      ),
+    )
+    .map((collection) => ({
+      value: collection.id,
+      label: collection.title,
+    }));
   const materialOptions = uniqueOptions(
     allProducts.flatMap((product) =>
       product.materialLabels.map((material) => ({
@@ -306,55 +372,184 @@ export async function getDemoProductListingPageData(
       })),
     ),
   );
+  const finishOptions = uniqueOptions(
+    allProducts.map((product) => ({
+      value: product.finishLabel,
+      label: product.finishLabel,
+    })),
+  );
+  const category = selectedOption(options.category, categoryOptions);
+  const collection = selectedOption(options.collection, collectionOptions);
+  const material = selectedOption(options.material, materialOptions);
+  const finish = selectedOption(options.finish, finishOptions);
+  const sort = productSort(options.sort);
+  const filteredProducts = allProducts.filter((product) => {
+    if (category && product.categorySlug !== category) {
+      return false;
+    }
+    if (collection && !product.collectionIds.includes(collection)) {
+      return false;
+    }
+    if (material && !product.materialLabels.includes(material)) {
+      return false;
+    }
+    if (finish && product.finishLabel !== finish) {
+      return false;
+    }
+    return includesQuery(
+      [
+        product.name,
+        product.summary,
+        product.categoryLabel,
+        ...product.materialLabels,
+        product.finishLabel,
+        ...product.collectionIds.map(
+          (collectionId) => collectionTitles.get(collectionId) ?? "",
+        ),
+        ...product.tags,
+      ],
+      query,
+      locale,
+    );
+  });
+  const collator = new Intl.Collator(locale, {
+    numeric: true,
+    sensitivity: "base",
+  });
+  const sortedProducts = [...filteredProducts].sort((left, right) => {
+    if (sort === "featured") {
+      return (
+        Number(right.featured) - Number(left.featured) ||
+        left.sortOrder - right.sortOrder
+      );
+    }
+    if (sort === "name-asc") {
+      return collator.compare(left.name, right.name);
+    }
+    if (sort === "name-desc") {
+      return collator.compare(right.name, left.name);
+    }
+    return left.sortOrder - right.sortOrder;
+  });
+  const pageCount = Math.max(
+    1,
+    Math.ceil(sortedProducts.length / DEMO_PRODUCT_PAGE_SIZE),
+  );
+  const currentPage = productPage(options.page, pageCount);
+  const pageStart = (currentPage - 1) * DEMO_PRODUCT_PAGE_SIZE;
+  const pageProducts = sortedProducts.slice(
+    pageStart,
+    pageStart + DEMO_PRODUCT_PAGE_SIZE,
+  );
   const hasFilters = Boolean(
-    options.query || options.category || options.material,
+    query || category || collection || material || finish || sort !== "default",
+  );
+  const productsPath = localePath(locale, "/products");
+  const pageHref = (page: number) =>
+    withQuery(productsPath, {
+      q: options.query.trim(),
+      category,
+      collection,
+      material,
+      finish,
+      sort: sort === "default" ? "" : sort,
+      page: page > 1 ? String(page) : "",
+    });
+  const firstResult = sortedProducts.length > 0 ? pageStart + 1 : 0;
+  const lastResult = Math.min(
+    pageStart + pageProducts.length,
+    sortedProducts.length,
   );
 
   return {
     applyFiltersLabel: dictionary.product.filters,
     clearFiltersLink: hasFilters
       ? {
-          href: localePath(locale, "/products"),
+          href: productsPath,
           label: dictionary.common.viewAll,
         }
       : null,
     emptyDescription: dictionary.pages.productsIntro,
     emptyTitle: dictionary.pages.productsTitle,
-    filterAction: localePath(locale, "/products"),
+    filterAction: productsPath,
     filterGroups: [
       {
         id: "category",
         name: "category",
         label: dictionary.product.category,
-        currentValue: options.category,
+        currentValue: category,
         options: [
           { value: "", label: dictionary.common.viewAll },
           ...categoryOptions,
         ],
       },
       {
+        id: "collection",
+        name: "collection",
+        label: dictionary.product.collection,
+        currentValue: collection,
+        options: [
+          { value: "", label: dictionary.common.viewAll },
+          ...collectionOptions,
+        ],
+      },
+      {
         id: "material",
         name: "material",
         label: dictionary.product.material,
-        currentValue: options.material,
+        currentValue: material,
         options: [
           { value: "", label: dictionary.common.viewAll },
           ...materialOptions,
         ],
       },
+      {
+        id: "finish",
+        name: "finish",
+        label: dictionary.product.finish,
+        currentValue: finish,
+        options: [
+          { value: "", label: dictionary.common.viewAll },
+          ...finishOptions,
+        ],
+      },
     ],
     heroEyebrow: content.company.eyebrow,
     heroMedia: toDemoMedia(content.company.heroImage, dictionary),
-    pagination: null,
-    products: filteredProducts.map((product) =>
+    pagination:
+      pageCount > 1
+        ? {
+            currentLabel: `${dictionary.product.page} ${currentPage} / ${pageCount}`,
+            previous:
+              currentPage > 1
+                ? {
+                    href: pageHref(currentPage - 1),
+                    label: dictionary.common.previous,
+                  }
+                : null,
+            next:
+              currentPage < pageCount
+                ? {
+                    href: pageHref(currentPage + 1),
+                    label: dictionary.common.next,
+                  }
+                : null,
+          }
+        : null,
+    products: pageProducts.map((product) =>
       mapProductCard(locale, dictionary, product),
     ),
     query: options.query,
-    resultSummary: `${filteredProducts.length} · ${dictionary.pages.productsTitle}`,
+    resultSummary: `${firstResult}–${lastResult} / ${sortedProducts.length} · ${dictionary.pages.productsTitle}`,
     searchPlaceholder: dictionary.common.search,
-    sortCurrentValue: "default",
+    sortCurrentValue: sort,
     sortName: "sort",
-    sortOptions: [{ value: "default", label: dictionary.product.sort }],
+    sortOptions: [
+      { value: "default", label: dictionary.product.sortDefault },
+      { value: "featured", label: dictionary.product.sortFeatured },
+      { value: "name-asc", label: dictionary.product.sortNameAscending },
+      { value: "name-desc", label: dictionary.product.sortNameDescending },
+    ],
   };
 }
 
@@ -427,12 +622,34 @@ export async function getDemoProductDetailPageData(
         label: dictionary.common.requestQuote,
       },
     ],
+    processSteps: product.processSteps.map((step) => ({
+      id: step.id,
+      title: step.title,
+      description: step.description,
+    })),
     relatedProducts: allProducts
       .filter((candidate) => candidate.id !== product.id)
       .slice(0, 3)
       .map((candidate) => mapProductCard(locale, dictionary, candidate)),
     specifications,
     storyParagraphs: [product.story],
+    variants: product.variants.map((variant) => ({
+      id: variant.id,
+      label: variant.label,
+      description: variant.description,
+    })),
+    video: product.video
+      ? {
+          captionsLanguage: product.video.captionsLanguage,
+          captionsSrc: product.video.captionsSrc,
+          mimeType: product.video.mimeType,
+          poster: product.video.poster
+            ? toDemoMedia(product.video.poster, dictionary)
+            : null,
+          src: product.video.src,
+          title: product.video.title,
+        }
+      : null,
   };
 }
 
@@ -479,7 +696,9 @@ export async function getDemoCollectionLandingPageData(
         product.images.find((candidate) => candidate.isPrimary) ??
         product.images[0];
       if (!image) {
-        throw new Error(`DEMO product ${product.id} is missing its media record.`);
+        throw new Error(
+          `DEMO product ${product.id} is missing its media record.`,
+        );
       }
       return {
         id: product.id,
@@ -649,6 +868,14 @@ export async function getDemoContactRequestQuotePageData(
     demoProductRepository.list(locale),
   ]);
   const contact = content.settings.contact;
+  const regionNames = new Intl.DisplayNames([locale], { type: "region" });
+  const collator = new Intl.Collator(locale);
+  const countryOptions = ["VN", "CN", "JP", "FR", "DE"]
+    .map((countryCode) => ({
+      value: countryCode,
+      label: regionNames.of(countryCode) ?? countryCode,
+    }))
+    .sort((left, right) => collator.compare(left.label, right.label));
   const contactPoints = [
     ...(contact.email
       ? [
@@ -686,8 +913,8 @@ export async function getDemoContactRequestQuotePageData(
   ];
 
   return {
-    acceptedAttachmentTypes: "",
-    attachmentHelp: dictionary.contact.demoNotice,
+    acceptedAttachmentTypes: ".pdf,.jpg,.jpeg,.png,.webp",
+    attachmentHelp: dictionary.contact.attachmentHelp,
     consentDescription: dictionary.contact.demoNotice,
     consentLink: {
       href: localePath(locale, "/privacy"),
@@ -697,7 +924,10 @@ export async function getDemoContactRequestQuotePageData(
     contactEyebrow: content.company.eyebrow,
     contactPoints,
     contactTitle: dictionary.pages.contactTitle,
-    countryOptions: [],
+    countryOptions: [
+      ...countryOptions,
+      { value: "OTHER", label: dictionary.contact.countryOther },
+    ],
     deadlineHelp: dictionary.contact.demoNotice,
     formDescription: dictionary.contact.demoNotice,
     formEyebrow: dictionary.common.requestQuote,
@@ -708,6 +938,13 @@ export async function getDemoContactRequestQuotePageData(
       value: product.id,
       label: product.name,
     })),
+    map: {
+      description: dictionary.contact.mapDescription,
+      embedUrl: contact.mapUrl,
+      loadLabel: dictionary.contact.loadMap,
+      title: dictionary.contact.mapTitle,
+      unavailableDescription: dictionary.contact.mapUnavailable,
+    },
     quantityPlaceholder: dictionary.contact.quantity,
     submissionUnavailableDescription: contact.notice,
     submissionUnavailableTitle: dictionary.contact.demoNotice,

@@ -38,7 +38,7 @@ export function SectionHeading({
       {...props}
     >
       {eyebrow ? (
-        <p className={cn("eyebrow", inverse && "text-gold")}>{eyebrow}</p>
+        <p className={cn("eyebrow", inverse && "eyebrow-inverse")}>{eyebrow}</p>
       ) : null}
       <Heading
         className={cn(

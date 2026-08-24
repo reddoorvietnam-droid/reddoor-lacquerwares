@@ -84,6 +84,20 @@ export function MobileNavigation({
     return () => window.cancelAnimationFrame(frame);
   }, [isOpen]);
 
+  useEffect(() => {
+    const desktopBreakpoint = window.matchMedia("(min-width: 80rem)");
+
+    function closeAtDesktop(event: MediaQueryListEvent) {
+      if (event.matches && dialogRef.current?.open) {
+        closeMenu();
+      }
+    }
+
+    desktopBreakpoint.addEventListener("change", closeAtDesktop);
+    return () =>
+      desktopBreakpoint.removeEventListener("change", closeAtDesktop);
+  }, [closeMenu]);
+
   return (
     <div className={cn("xl:hidden", className)}>
       <Button
@@ -153,7 +167,7 @@ export function MobileNavigation({
                   >
                     <span>{item.label}</span>
                     <span
-                      className="text-gold font-sans text-xs tracking-[0.12em] transition-transform motion-safe:group-hover:translate-x-1"
+                      className="text-gold-ink font-sans text-xs tracking-[0.12em] transition-transform motion-safe:group-hover:translate-x-1"
                       aria-hidden="true"
                     >
                       {String(index + 1).padStart(2, "0")}

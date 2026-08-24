@@ -8,7 +8,7 @@ export default defineConfig({
   ...(process.env.CI ? { workers: 1 } : {}),
   reporter: process.env.CI ? "github" : "html",
   use: {
-    baseURL: "http://127.0.0.1:3000",
+    baseURL: "http://localhost:3000",
     trace: "on-first-retry",
     screenshot: "only-on-failure",
   },
@@ -17,9 +17,9 @@ export default defineConfig({
     { name: "chromium-mobile", use: { ...devices["Pixel 5"] } },
   ],
   webServer: {
-    command: "npm run dev",
-    url: "http://127.0.0.1:3000",
-    reuseExistingServer: !process.env.CI,
-    timeout: 120_000,
+    command: "npm run build && npm run start",
+    url: "http://localhost:3000",
+    reuseExistingServer: false,
+    timeout: 180_000,
   },
 });

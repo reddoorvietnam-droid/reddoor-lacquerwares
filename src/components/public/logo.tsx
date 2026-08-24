@@ -76,7 +76,7 @@ export function LogoWordmark({
           <span
             className={cn(
               "mt-1 hidden text-[0.5625rem] leading-none font-semibold tracking-[0.2em] uppercase sm:block",
-              inverse ? "text-gold" : "text-charcoal/55",
+              inverse ? "text-gold" : "text-charcoal/64",
             )}
           >
             {descriptor}

@@ -83,7 +83,7 @@ export function AboutHistoryPage({
             <dl className="border-burgundy/12 bg-burgundy/12 mt-8 grid grid-cols-2 gap-px overflow-hidden rounded-[var(--radius-lg)] border">
               {data.highlights.map((highlight) => (
                 <div key={highlight.id} className="bg-ivory p-5 sm:p-7">
-                  <dt className="text-charcoal/55 text-xs leading-5 tracking-[0.12em] uppercase">
+                  <dt className="text-charcoal/64 text-xs leading-5 tracking-[0.12em] uppercase">
                     {highlight.label}
                   </dt>
                   <dd className="text-burgundy mt-2 font-serif text-2xl leading-tight sm:text-3xl">
@@ -127,13 +127,16 @@ export function AboutHistoryPage({
                   />
                 ) : (
                   <div className="from-burgundy to-lacquer text-ivory flex aspect-4/3 items-end bg-linear-to-br p-6">
-                    <span className="text-ivory/25 font-serif text-6xl">
+                    <span
+                      className="text-ivory/25 font-serif text-6xl"
+                      aria-hidden="true"
+                    >
                       {String(index + 1).padStart(2, "0")}
                     </span>
                   </div>
                 )}
                 <div className="p-6 sm:p-8">
-                  <p className="text-gold text-xs font-semibold tracking-[0.16em] uppercase">
+                  <p className="text-gold-ink text-xs font-semibold tracking-[0.16em] uppercase">
                     {principle.kicker}
                   </p>
                   <h3 className="text-burgundy mt-3 font-serif text-2xl leading-tight">
@@ -168,7 +171,7 @@ export function AboutHistoryPage({
               className="relative grid gap-5 pl-14 md:grid-cols-[10rem_1fr] md:gap-12 md:pl-0"
             >
               <div className="md:text-right">
-                <span className="text-gold text-xs font-bold tracking-[0.14em] uppercase">
+                <span className="text-gold-ink text-xs font-bold tracking-[0.14em] uppercase">
                   {milestone.periodLabel}
                 </span>
               </div>
@@ -178,7 +181,7 @@ export function AboutHistoryPage({
               />
               <article className="border-burgundy/12 mb-8 grid gap-6 rounded-[var(--radius-lg)] border bg-white/45 p-6 md:grid-cols-[1fr_auto] md:p-8">
                 <div>
-                  <p className="text-charcoal/42 text-xs font-semibold tracking-[0.12em] uppercase">
+                  <p className="text-charcoal/64 text-xs font-semibold tracking-[0.12em] uppercase">
                     {String(index + 1).padStart(2, "0")}
                   </p>
                   <h3 className="text-burgundy mt-2 font-serif text-2xl leading-tight sm:text-3xl">

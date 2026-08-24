@@ -9,7 +9,11 @@ export const metadata: Metadata = {
     "Nền tảng thương hiệu và vận hành sản phẩm sơn mài thủ công của Red Door Vietnam.",
 };
 
-export default function RedirectRootLayout({ children }: { children: ReactNode }) {
+export default function RedirectRootLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
   return (
     <html lang="vi" className="h-full antialiased">
       <body className="min-h-full">{children}</body>

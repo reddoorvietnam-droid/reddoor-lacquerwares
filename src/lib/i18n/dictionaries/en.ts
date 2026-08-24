@@ -13,6 +13,7 @@ const dictionary = {
     explore: "Explore",
     viewAll: "View all",
     close: "Close",
+    skipIntro: "Skip intro",
     previous: "Previous",
     next: "Next",
     openMenu: "Open menu",
@@ -75,8 +76,31 @@ const dictionary = {
     termsTitle: "Terms of use",
     accessibilityTitle: "Accessibility statement",
   },
+  about: {
+    contentStatusLabel: "Content status",
+    contentStatusValue: "DEMO — awaiting company approval",
+    claimsStatusLabel: "Factual claims",
+    claimsStatusValue: "None published without verification",
+    assetStatusLabel: "Brand assets",
+    assetStatusValue: "Approved photography pending",
+    principlesDescription:
+      "These DEMO cards define the evidence required before company claims are published.",
+    principleKicker: "Publication safeguard",
+    verifiedStoryTitle: "A verified company story",
+    verifiedStoryDescription:
+      "Founding dates, milestones, clients, awards, and certifications remain placeholders until an authorized source confirms them.",
+    approvedCapabilitiesTitle: "Approved capability statements",
+    approvedCapabilitiesDescription:
+      "Materials, techniques, capacity, and lead-time claims will appear only after the company supplies and approves the details.",
+    documentedPeopleTitle: "Documented people and workshop",
+    documentedPeopleDescription:
+      "Artisan profiles, workshop imagery, names, and roles require consent and approved source material before publication.",
+    archiveNotice:
+      "All timeline chapters are labelled DEMO and avoid unverified years, awards, clients, or certifications.",
+  },
   product: {
     category: "Category",
+    collection: "Collection",
     material: "Material",
     finish: "Finish",
     dimensions: "Dimensions",
@@ -87,6 +111,21 @@ const dictionary = {
     related: "Related products",
     filters: "Filters",
     sort: "Sort",
+    sortDefault: "Curated order",
+    sortFeatured: "Featured first",
+    sortNameAscending: "Name A–Z",
+    sortNameDescending: "Name Z–A",
+    page: "Page",
+    zoomImage: "View full-size image",
+    zoomUnavailable: "Full-size image pending",
+    video: "Product video",
+    videoUnavailable: "No approved product video is available in this DEMO.",
+    variants: "Variants",
+    variantsUnavailable:
+      "No approved product variants are available in this DEMO.",
+    process: "Making process",
+    processUnavailable:
+      "No approved making-process notes are available in this DEMO.",
     noPrice: "Price available on request",
   },
   collection: {
@@ -99,6 +138,14 @@ const dictionary = {
     published: "Published",
     by: "By",
     related: "Related stories",
+    share: "Share this story",
+    shareNative: "Share",
+    copyLink: "Copy link",
+    copySuccess: "Link copied",
+    copyFailed: "The link could not be copied",
+    shareFacebook: "Share on Facebook",
+    shareLinkedIn: "Share on LinkedIn",
+    shareEmail: "Share by email",
   },
   contact: {
     fullName: "Full name",
@@ -106,11 +153,21 @@ const dictionary = {
     email: "Email",
     phone: "Phone",
     country: "Country or region",
+    countrySelect: "Select a country or region",
+    countryOther: "Another country or region",
     interests: "Products or collections of interest",
     quantity: "Estimated quantity",
     deadline: "Desired deadline",
     notes: "Notes",
     attachment: "Optional attachment",
+    attachmentHelp:
+      "DEMO only — file selection and upload are disabled. When enabled, accepted files will be PDF, JPG, PNG, or WebP up to 10 MB; do not include sensitive personal data.",
+    mapTitle: "Map",
+    mapDescription:
+      "External map content loads only after you choose to load it.",
+    loadMap: "Load map",
+    mapUnavailable:
+      "No verified map address is available in this DEMO, so no third-party content was loaded.",
     consent:
       "I agree that my information may be used to respond to this enquiry.",
     submit: "Send enquiry",

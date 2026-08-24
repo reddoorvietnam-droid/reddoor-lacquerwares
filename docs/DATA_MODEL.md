@@ -152,6 +152,15 @@ Fields: unique `code`, `name`, `type`, optional `parentId`, `status`, contact/ad
 
 Indexes: unique `{ code: 1 }`, `{ parentId: 1, status: 1 }`.
 
+### `SecurityBootstrapClaim`
+
+The fixed `_id: "initial-super-admin"` is an immutable, append-only sentinel for
+the one-time `ADMIN_EMAILS` bootstrap window. It records the provisioned user,
+claim mode, and timestamp inside the same MongoDB transaction as the first
+global `SUPER_ADMIN` grant. Once the claim exists, removing or suspending that
+grant never reopens email-based bootstrap; recovery must use the audited user
+and grant workflow described in `DEPLOYMENT.md`.
+
 ### Platform support collections
 
 | Model               | Purpose                                 | Required indexes                                   |

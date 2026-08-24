@@ -13,6 +13,7 @@ const dictionary = {
     explore: "Explorer",
     viewAll: "Tout voir",
     close: "Fermer",
+    skipIntro: "Passer l’introduction",
     previous: "Précédent",
     next: "Suivant",
     openMenu: "Ouvrir le menu",
@@ -75,8 +76,31 @@ const dictionary = {
     termsTitle: "Conditions d'utilisation",
     accessibilityTitle: "Déclaration d'accessibilité",
   },
+  about: {
+    contentStatusLabel: "Statut du contenu",
+    contentStatusValue: "DÉMO — en attente de validation par l'entreprise",
+    claimsStatusLabel: "Informations factuelles",
+    claimsStatusValue: "Aucune publication sans vérification",
+    assetStatusLabel: "Ressources de marque",
+    assetStatusValue: "Photographies approuvées en attente",
+    principlesDescription:
+      "Ces cartes DÉMO définissent les preuves requises avant la publication d'informations sur l'entreprise.",
+    principleKicker: "Garantie éditoriale",
+    verifiedStoryTitle: "Une histoire d'entreprise vérifiée",
+    verifiedStoryDescription:
+      "Les dates de fondation, étapes, clients, prix et certifications restent temporaires jusqu'à leur confirmation par une source habilitée.",
+    approvedCapabilitiesTitle: "Des capacités approuvées",
+    approvedCapabilitiesDescription:
+      "Les affirmations sur les matières, techniques, capacités et délais ne paraîtront qu'après transmission et validation par l'entreprise.",
+    documentedPeopleTitle: "Des personnes et un atelier documentés",
+    documentedPeopleDescription:
+      "Les portraits d'artisans, images d'atelier, noms et fonctions nécessitent un consentement et des sources approuvées avant publication.",
+    archiveNotice:
+      "Tous les chapitres de la chronologie portent la mention DÉMO et évitent les années, prix, clients ou certifications non vérifiés.",
+  },
   product: {
     category: "Catégorie",
+    collection: "Collection",
     material: "Matière",
     finish: "Finition",
     dimensions: "Dimensions",
@@ -87,6 +111,22 @@ const dictionary = {
     related: "Produits associés",
     filters: "Filtres",
     sort: "Trier",
+    sortDefault: "Ordre éditorial",
+    sortFeatured: "Sélection en premier",
+    sortNameAscending: "Nom A–Z",
+    sortNameDescending: "Nom Z–A",
+    page: "Page",
+    zoomImage: "Voir l’image en taille réelle",
+    zoomUnavailable: "Image en taille réelle en attente",
+    video: "Vidéo du produit",
+    videoUnavailable:
+      "Aucune vidéo produit approuvée n’est disponible dans cette DÉMO.",
+    variants: "Variantes",
+    variantsUnavailable:
+      "Aucune variante approuvée n’est disponible dans cette DÉMO.",
+    process: "Processus de fabrication",
+    processUnavailable:
+      "Aucune note de fabrication approuvée n’est disponible dans cette DÉMO.",
     noPrice: "Prix sur demande",
   },
   collection: {
@@ -100,6 +140,14 @@ const dictionary = {
     published: "Publié le",
     by: "Par",
     related: "Récits associés",
+    share: "Partager ce récit",
+    shareNative: "Partager",
+    copyLink: "Copier le lien",
+    copySuccess: "Lien copié",
+    copyFailed: "Impossible de copier le lien",
+    shareFacebook: "Partager sur Facebook",
+    shareLinkedIn: "Partager sur LinkedIn",
+    shareEmail: "Partager par e-mail",
   },
   contact: {
     fullName: "Nom complet",
@@ -107,11 +155,21 @@ const dictionary = {
     email: "E-mail",
     phone: "Téléphone",
     country: "Pays ou région",
+    countrySelect: "Sélectionner un pays ou une région",
+    countryOther: "Autre pays ou région",
     interests: "Produits ou collections recherchés",
     quantity: "Quantité estimée",
     deadline: "Échéance souhaitée",
     notes: "Remarques",
     attachment: "Pièce jointe facultative",
+    attachmentHelp:
+      "DÉMO uniquement — la sélection et l'envoi de fichiers sont désactivés. Une fois activés, les formats PDF, JPG, PNG ou WebP seront acceptés jusqu'à 10 Mo ; n'ajoutez aucune donnée personnelle sensible.",
+    mapTitle: "Plan",
+    mapDescription:
+      "Le contenu cartographique externe n'est chargé qu'après votre choix explicite.",
+    loadMap: "Charger le plan",
+    mapUnavailable:
+      "Aucune adresse cartographique vérifiée n'est disponible dans cette DÉMO ; aucun contenu tiers n'a donc été chargé.",
     consent:
       "J'accepte que mes informations soient utilisées pour répondre à cette demande.",
     submit: "Envoyer la demande",
