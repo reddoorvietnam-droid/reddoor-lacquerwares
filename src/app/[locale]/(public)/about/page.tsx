@@ -25,5 +25,11 @@ export default async function AboutRoute({ params }: AboutRouteProps) {
   const dictionary = await getDictionary(locale);
   const data = await getDemoAboutHistoryPageData(locale, dictionary);
 
-  return <AboutHistoryPage data={data} dictionary={dictionary} isDemo />;
+  return (
+    <AboutHistoryPage
+      data={data}
+      dictionary={dictionary}
+      isDemo={data.contentIsDemo}
+    />
+  );
 }

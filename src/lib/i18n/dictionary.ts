@@ -19,6 +19,7 @@ export type PublicDictionary = {
     search: string;
     requestQuote: string;
     readStory: string;
+    featured: string;
     replaceContentNotice: string;
   };
   nav: {
@@ -145,9 +146,14 @@ export type PublicDictionary = {
     mapDescription: string;
     loadMap: string;
     mapUnavailable: string;
+    openInMaps: string;
     consent: string;
     submit: string;
     demoNotice: string;
+    fax: string;
+    officeAddress: string;
+    factoryAddress: string;
+    warehouseAddress: string;
   };
   footer: {
     description: string;

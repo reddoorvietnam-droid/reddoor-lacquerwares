@@ -27,6 +27,8 @@ export interface CollectionCardView {
 }
 
 export interface CollectionListingPageData {
+  /** True while the records behind this page are still placeholders. */
+  contentIsDemo: boolean;
   collections: readonly CollectionCardView[];
   emptyDescription: string;
   emptyTitle: string;
@@ -191,6 +193,8 @@ export interface CollectionProductLinkView {
 }
 
 export interface CollectionLandingPageData {
+  /** True while the records behind this page are still placeholders. */
+  contentIsDemo: boolean;
   backLink: PublicPageLink;
   chapters: readonly CollectionChapterView[];
   chaptersLabel: string;

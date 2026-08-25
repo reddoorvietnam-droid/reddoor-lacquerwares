@@ -22,6 +22,7 @@ const dictionary = {
     search: "Rechercher",
     requestQuote: "Demander un devis",
     readStory: "Lire l'histoire",
+    featured: "À la une",
     replaceContentNotice:
       "Contenu DÉMO — à remplacer par les textes et médias approuvés par l'entreprise.",
   },
@@ -166,15 +167,20 @@ const dictionary = {
       "DÉMO uniquement — la sélection et l'envoi de fichiers sont désactivés. Une fois activés, les formats PDF, JPG, PNG ou WebP seront acceptés jusqu'à 10 Mo ; n'ajoutez aucune donnée personnelle sensible.",
     mapTitle: "Plan",
     mapDescription:
-      "Le contenu cartographique externe n'est chargé qu'après votre choix explicite.",
+      "La carte ne se charge qu'à votre demande : la page n'envoie ainsi aucune requête tierce au départ.",
     loadMap: "Charger le plan",
     mapUnavailable:
-      "Aucune adresse cartographique vérifiée n'est disponible dans cette DÉMO ; aucun contenu tiers n'a donc été chargé.",
+      "La carte n'a pas pu être chargée. Vous pouvez l'ouvrir directement dans Google Maps.",
+    openInMaps: "Ouvrir dans Google Maps",
     consent:
       "J'accepte que mes informations soient utilisées pour répondre à cette demande.",
     submit: "Envoyer la demande",
     demoNotice:
       "Formulaire DÉMO — l'enregistrement et les notifications seront activés dans une phase ultérieure.",
+    fax: "Fax",
+    officeAddress: "Bureau",
+    factoryAddress: "Atelier",
+    warehouseAddress: "Entrepôt",
   },
   footer: {
     description:

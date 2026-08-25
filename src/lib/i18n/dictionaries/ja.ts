@@ -22,6 +22,7 @@ const dictionary = {
     search: "検索",
     requestQuote: "見積もりを依頼",
     readStory: "物語を読む",
+    featured: "注目",
     replaceContentNotice:
       "デモコンテンツです。会社が承認した文章と画像に差し替えてください。",
   },
@@ -162,15 +163,20 @@ const dictionary = {
       "デモのみ — ファイルの選択とアップロードは無効です。有効化後は10 MBまでのPDF、JPG、PNG、WebPを受け付けます。機密性の高い個人情報は添付しないでください。",
     mapTitle: "地図",
     mapDescription:
-      "外部地図コンテンツは、利用者が読み込みを選択した後にのみ取得します。",
+      "地図はお客さまが操作したときにのみ読み込まれます。ページ表示の時点で外部への通信は行いません。",
     loadMap: "地図を読み込む",
     mapUnavailable:
-      "このデモには確認済みの地図住所がないため、第三者コンテンツは読み込まれていません。",
+      "地図を読み込めませんでした。Google マップで直接ご覧いただけます。",
+    openInMaps: "Google マップで開く",
     consent:
       "このお問い合わせへの回答に必要な範囲で、入力情報が使用されることに同意します。",
     submit: "問い合わせを送信",
     demoNotice:
       "デモフォームです。保存と通知の機能は今後のフェーズで有効になります。",
+    fax: "ファックス",
+    officeAddress: "オフィス",
+    factoryAddress: "工房",
+    warehouseAddress: "倉庫",
   },
   footer: {
     description:

@@ -2,20 +2,30 @@ import { expect, test, type Page } from "@playwright/test";
 
 const publicLocales = ["vi", "en", "fr", "de", "ja", "zh-CN"] as const;
 
-async function openLocaleSwitcher(page: Page) {
-  const languageSwitcher = page.getByRole("combobox", { name: "Ngôn ngữ" });
+/**
+ * The language control is a listbox rather than a native select, because a
+ * native option cannot render a flag. Below the desktop breakpoint it lives
+ * inside the mobile drawer.
+ */
+async function revealLocaleTrigger(page: Page) {
+  const trigger = page.getByRole("button", { name: /Ngôn ngữ/ });
   const viewport = page.viewportSize();
 
-  if (!viewport || viewport.width >= 1280) {
-    await expect(languageSwitcher).toBeVisible();
-    return languageSwitcher;
+  if (viewport && viewport.width < 1280) {
+    const menuButton = page.locator('header button[aria-haspopup="dialog"]');
+    await expect(menuButton).toBeVisible();
+    await menuButton.click();
   }
 
-  const menuButton = page.locator('header button[aria-haspopup="dialog"]');
-  await expect(menuButton).toBeVisible();
-  await menuButton.click();
-  await expect(languageSwitcher).toBeVisible();
-  return languageSwitcher;
+  await expect(trigger).toBeVisible();
+  return trigger;
+}
+
+async function openLocaleSwitcher(page: Page) {
+  const trigger = await revealLocaleTrigger(page);
+  await trigger.click();
+  await expect(page.getByRole("listbox")).toBeVisible();
+  return trigger;
 }
 
 test.beforeEach(async ({ page }) => {
@@ -41,8 +51,8 @@ test("preserves the current public path and query when switching language", asyn
 }) => {
   await page.goto("/vi/products?sort=name");
 
-  const localeSwitcher = await openLocaleSwitcher(page);
-  await localeSwitcher.selectOption("en");
+  await openLocaleSwitcher(page);
+  await page.getByRole("option", { name: "English" }).click();
 
   await expect(page).toHaveURL(/\/en\/products\?sort=name$/);
   await expect(
@@ -130,4 +140,45 @@ test("shows the door intro once per session and provides a skip control", async 
 
   await page.reload();
   await expect(intro).not.toBeVisible();
+});
+
+test("drives the language listbox entirely from the keyboard", async ({
+  page,
+}) => {
+  await page.goto("/vi");
+
+  const trigger = await revealLocaleTrigger(page);
+  await trigger.focus();
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("listbox")).toBeVisible();
+
+  // Escape must close the list and hand focus back to the trigger, otherwise a
+  // keyboard user is stranded.
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("listbox")).toHaveCount(0);
+  await expect(trigger).toBeFocused();
+
+  await page.keyboard.press("Enter");
+  await page.keyboard.press("ArrowDown");
+  await expect(page.getByRole("option", { name: "English" })).toBeFocused();
+  await page.keyboard.press("Enter");
+
+  await expect(page).toHaveURL(/\/en$/);
+});
+
+test("names every language in text beside its flag", async ({ page }) => {
+  await page.goto("/vi");
+  await openLocaleSwitcher(page);
+
+  // A flag identifies a country, not a language, so the name must be present.
+  for (const name of [
+    "Tiếng Việt",
+    "English",
+    "Français",
+    "Deutsch",
+    "日本語",
+    "简体中文",
+  ]) {
+    await expect(page.getByRole("option", { name })).toBeVisible();
+  }
 });

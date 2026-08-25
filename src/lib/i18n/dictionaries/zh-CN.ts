@@ -22,6 +22,7 @@ const dictionary = {
     search: "搜索",
     requestQuote: "申请报价",
     readStory: "阅读故事",
+    featured: "精选",
     replaceContentNotice: "演示内容——请替换为公司批准的文案和媒体。",
   },
   nav: {
@@ -152,12 +153,18 @@ const dictionary = {
     attachmentHelp:
       "仅用于演示——文件选择和上传已禁用。启用后将接受不超过 10 MB 的 PDF、JPG、PNG 或 WebP；请勿附加敏感个人信息。",
     mapTitle: "地图",
-    mapDescription: "仅在您主动选择加载后，才会请求外部地图内容。",
+    mapDescription:
+      "地图仅在您点击后加载，页面初次打开时不会向第三方发起请求。",
     loadMap: "加载地图",
-    mapUnavailable: "此演示暂无经过核实的地图地址，因此未加载任何第三方内容。",
+    mapUnavailable: "地图加载失败。您可以直接在 Google 地图中打开。",
+    openInMaps: "在 Google 地图中打开",
     consent: "我同意使用我的信息来回复此次咨询。",
     submit: "发送咨询",
     demoNotice: "演示表单——保存和通知流程将在后续阶段启用。",
+    fax: "传真",
+    officeAddress: "办公室",
+    factoryAddress: "工坊",
+    warehouseAddress: "仓库",
   },
   footer: {
     description:

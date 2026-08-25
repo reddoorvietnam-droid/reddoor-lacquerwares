@@ -40,6 +40,8 @@ export interface ProductFilterGroupView {
 }
 
 export interface ProductListingPageData {
+  /** True while the records behind this page are still placeholders. */
+  contentIsDemo: boolean;
   applyFiltersLabel: string;
   clearFiltersLink: PublicPageLink | null;
   emptyDescription: string;
@@ -286,6 +288,8 @@ export interface ProductProcessStepView {
 }
 
 export interface ProductDetailPageData {
+  /** True while the records behind this page are still placeholders. */
+  contentIsDemo: boolean;
   backLink: PublicPageLink;
   badges: readonly string[];
   categoryLabel: string;

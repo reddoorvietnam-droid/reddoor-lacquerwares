@@ -73,17 +73,20 @@ export type DemoSearchQuery = {
   scope: string;
 };
 
-function toDemoMedia(
-  media: DemoMediaSource,
-  dictionary: PublicDictionary,
-): PublicPageMedia {
+/**
+ * Maps a domain image record to the shape the page components render.
+ *
+ * No caption is emitted. While an asset is still a reserved slot the box itself
+ * already states its size, and once a real photograph lands a caption belongs
+ * to the photograph, not to this mapping.
+ */
+function toPageMedia(media: DemoMediaSource): PublicPageMedia {
   return {
     id: media.assetKey,
-    src: null,
+    src: media.src,
     alt: media.alt,
     width: media.width,
     height: media.height,
-    caption: dictionary.common.demoLabel,
   };
 }
 
@@ -129,9 +132,9 @@ function mapProductCard(
       product.materialLabels.length > 0
         ? product.materialLabels.join(", ")
         : null,
-    media: toDemoMedia(image, dictionary),
+    media: toPageMedia(image),
     badges: product.tags,
-    statusLabel: dictionary.common.demoLabel,
+    statusLabel: null,
   };
 }
 
@@ -145,11 +148,11 @@ function mapCollectionCard(
     href: collectionHref(locale, collection),
     title: collection.title,
     excerpt: collection.summary,
-    cover: toDemoMedia(collection.cover, dictionary),
+    cover: toPageMedia(collection.cover),
     yearLabel: collection.editionLabel,
     localeLabel: null,
     pageCountLabel: null,
-    statusLabel: dictionary.common.demoLabel,
+    statusLabel: null,
   };
 }
 
@@ -193,7 +196,7 @@ function mapNewsCard(
     authorName: article.author,
     publishedAt: published.dateTime,
     publishedLabel: published.label,
-    media: toDemoMedia(article.image, dictionary),
+    media: toPageMedia(article.image),
   };
 }
 
@@ -268,6 +271,7 @@ export async function getDemoAboutHistoryPageData(
   const content = await demoContentRepository.getSnapshot(locale);
 
   return {
+    contentIsDemo: content.isDemo,
     archiveNote: dictionary.about.archiveNotice,
     closingLink: {
       href: `${localePath(locale, "/contact")}#request-quote`,
@@ -276,7 +280,7 @@ export async function getDemoAboutHistoryPageData(
     closingText: dictionary.home.contactBody,
     closingTitle: dictionary.home.contactTitle,
     heroEyebrow: content.company.eyebrow,
-    heroMedia: toDemoMedia(content.company.heroImage, dictionary),
+    heroMedia: toPageMedia(content.company.heroImage),
     highlights: [
       {
         id: "content-status",
@@ -302,7 +306,7 @@ export async function getDemoAboutHistoryPageData(
       periodLabel: milestone.periodLabel,
       title: milestone.title,
       description: milestone.summary,
-      media: toDemoMedia(milestone.image, dictionary),
+      media: toPageMedia(milestone.image),
     })),
     overviewParagraphs: [content.company.summary],
     principles: [
@@ -462,6 +466,7 @@ export async function getDemoProductListingPageData(
   );
 
   return {
+    contentIsDemo: sortedProducts.some((entry) => entry.isDemo),
     applyFiltersLabel: dictionary.product.filters,
     clearFiltersLink: hasFilters
       ? {
@@ -515,7 +520,7 @@ export async function getDemoProductListingPageData(
       },
     ],
     heroEyebrow: content.company.eyebrow,
-    heroMedia: toDemoMedia(content.company.heroImage, dictionary),
+    heroMedia: toPageMedia(content.company.heroImage),
     pagination:
       pageCount > 1
         ? {
@@ -598,6 +603,7 @@ export async function getDemoProductDetailPageData(
   }
 
   return {
+    contentIsDemo: product.isDemo,
     backLink: {
       href: localePath(locale, "/products"),
       label: dictionary.pages.productsTitle,
@@ -606,7 +612,7 @@ export async function getDemoProductDetailPageData(
     categoryLabel: product.categoryLabel,
     dimensions,
     finish: product.finishLabel,
-    gallery: product.images.map((image) => toDemoMedia(image, dictionary)),
+    gallery: product.images.map((image) => toPageMedia(image)),
     galleryLabel: product.name,
     intro: product.summary,
     leadTime: product.leadTime,
@@ -632,7 +638,9 @@ export async function getDemoProductDetailPageData(
       .slice(0, 3)
       .map((candidate) => mapProductCard(locale, dictionary, candidate)),
     specifications,
-    storyParagraphs: [product.story],
+    // The domain already stores the story as separate paragraphs; collapsing
+    // them into one block ran the whole description together on the page.
+    storyParagraphs: product.storyParagraphs,
     variants: product.variants.map((variant) => ({
       id: variant.id,
       label: variant.label,
@@ -644,7 +652,7 @@ export async function getDemoProductDetailPageData(
           captionsSrc: product.video.captionsSrc,
           mimeType: product.video.mimeType,
           poster: product.video.poster
-            ? toDemoMedia(product.video.poster, dictionary)
+            ? toPageMedia(product.video.poster)
             : null,
           src: product.video.src,
           title: product.video.title,
@@ -663,13 +671,14 @@ export async function getDemoCollectionListingPageData(
   ]);
 
   return {
+    contentIsDemo: collections.some((entry) => entry.isDemo),
     collections: collections.map((collection) =>
       mapCollectionCard(locale, dictionary, collection),
     ),
     emptyDescription: dictionary.pages.collectionsIntro,
     emptyTitle: dictionary.pages.collectionsTitle,
     heroEyebrow: content.company.eyebrow,
-    heroMedia: toDemoMedia(content.company.heroImage, dictionary),
+    heroMedia: toPageMedia(content.company.heroImage),
     pagination: null,
     resultSummary: `${collections.length} · ${dictionary.pages.collectionsTitle}`,
     yearLinks: [],
@@ -688,7 +697,7 @@ export async function getDemoCollectionLandingPageData(
   ]);
   if (!collection) return null;
 
-  const cover = toDemoMedia(collection.cover, dictionary);
+  const cover = toPageMedia(collection.cover);
   const products: CollectionProductLinkView[] = allProducts
     .filter((product) => collection.productIds.includes(product.id))
     .map((product) => {
@@ -705,11 +714,12 @@ export async function getDemoCollectionLandingPageData(
         href: productHref(locale, product),
         title: product.name,
         meta: product.categoryLabel,
-        media: toDemoMedia(image, dictionary),
+        media: toPageMedia(image),
       };
     });
 
   return {
+    contentIsDemo: collection.isDemo,
     backLink: {
       href: localePath(locale, "/collections"),
       label: dictionary.pages.collectionsTitle,
@@ -740,6 +750,7 @@ export async function getDemoLacquerProcessPageData(
   const content = await demoContentRepository.getSnapshot(locale);
 
   return {
+    contentIsDemo: content.isDemo,
     closingDescription: dictionary.home.contactBody,
     closingEyebrow: content.company.eyebrow,
     closingLink: {
@@ -748,10 +759,10 @@ export async function getDemoLacquerProcessPageData(
     },
     closingTitle: dictionary.home.contactTitle,
     heroEyebrow: content.company.eyebrow,
-    heroMedia: toDemoMedia(content.company.heroImage, dictionary),
+    heroMedia: toPageMedia(content.company.heroImage),
     overviewDescription: dictionary.home.craftBody,
     overviewEyebrow: dictionary.home.eyebrow,
-    overviewMedia: toDemoMedia(content.company.heroImage, dictionary),
+    overviewMedia: toPageMedia(content.company.heroImage),
     overviewParagraphs: [content.company.summary],
     overviewTitle: dictionary.home.craftTitle,
     steps: content.process.map((stage) => ({
@@ -760,8 +771,8 @@ export async function getDemoLacquerProcessPageData(
       title: stage.title,
       summary: stage.summary,
       detailParagraphs: [],
-      media: toDemoMedia(stage.image, dictionary),
-      meta: [dictionary.common.demoLabel],
+      media: toPageMedia(stage.image),
+      meta: [stage.stepLabel],
     })),
     stepsLabel: dictionary.pages.processTitle,
   };
@@ -792,6 +803,7 @@ export async function getDemoNewsListingPageData(
   const path = localePath(locale, "/news");
 
   return {
+    contentIsDemo: articles.some((entry) => entry.isDemo),
     categoryLinks: [
       { href: path, label: dictionary.common.viewAll },
       ...categories.map(([value, label]) => ({
@@ -805,9 +817,9 @@ export async function getDemoNewsListingPageData(
     featured: featuredArticle
       ? mapNewsCard(locale, dictionary, featuredArticle)
       : null,
-    featuredLabel: dictionary.common.demoLabel,
+    featuredLabel: dictionary.common.featured,
     heroEyebrow: content.company.eyebrow,
-    heroMedia: toDemoMedia(content.company.heroImage, dictionary),
+    heroMedia: toPageMedia(content.company.heroImage),
     items: articles
       .filter((article) => article.id !== featuredArticle?.id)
       .map((article) => mapNewsCard(locale, dictionary, article)),
@@ -834,6 +846,7 @@ export async function getDemoNewsArticlePageData(
   );
 
   return {
+    contentIsDemo: article.isDemo,
     authorName: article.author,
     backLink: {
       href: localePath(locale, "/news"),
@@ -846,7 +859,7 @@ export async function getDemoNewsArticlePageData(
     })),
     categoryLabel: article.categoryLabel,
     excerpt: article.excerpt,
-    heroMedia: toDemoMedia(article.image, dictionary),
+    heroMedia: toPageMedia(article.image),
     publishedAt: published.dateTime,
     publishedLabel: published.label,
     relatedItems: allArticles
@@ -899,12 +912,48 @@ export async function getDemoContactRequestQuotePageData(
           },
         ]
       : []),
+    ...(contact.fax
+      ? [
+          {
+            id: "fax",
+            label: dictionary.contact.fax,
+            value: contact.fax,
+            // A fax number is not dialable from a browser, so no tel: link.
+            href: null,
+            note: contact.notice,
+          },
+        ]
+      : []),
     ...(contact.address
       ? [
           {
             id: "address",
-            label: dictionary.nav.contact,
+            label: dictionary.contact.officeAddress,
             value: contact.address,
+            href: null,
+            note: contact.notice,
+          },
+        ]
+      : []),
+    // The workshop and the warehouse are separate sites from the office, and
+    // buyers arranging a visit or a pickup need the right one.
+    ...(contact.factoryAddress
+      ? [
+          {
+            id: "factory",
+            label: dictionary.contact.factoryAddress,
+            value: contact.factoryAddress,
+            href: null,
+            note: contact.notice,
+          },
+        ]
+      : []),
+    ...(contact.warehouseAddress
+      ? [
+          {
+            id: "warehouse",
+            label: dictionary.contact.warehouseAddress,
+            value: contact.warehouseAddress,
             href: null,
             note: contact.notice,
           },
@@ -913,6 +962,7 @@ export async function getDemoContactRequestQuotePageData(
   ];
 
   return {
+    contentIsDemo: content.isDemo,
     acceptedAttachmentTypes: ".pdf,.jpg,.jpeg,.png,.webp",
     attachmentHelp: dictionary.contact.attachmentHelp,
     consentDescription: dictionary.contact.demoNotice,
@@ -933,14 +983,20 @@ export async function getDemoContactRequestQuotePageData(
     formEyebrow: dictionary.common.requestQuote,
     formTitle: dictionary.pages.contactTitle,
     heroEyebrow: content.company.eyebrow,
-    heroMedia: toDemoMedia(content.company.heroImage, dictionary),
+    heroMedia: toPageMedia(content.company.heroImage),
     interestOptions: products.map((product) => ({
       value: product.id,
       label: product.name,
     })),
     map: {
       description: dictionary.contact.mapDescription,
-      embedUrl: contact.mapUrl,
+      // `hl` follows the visitor's locale so the map's own labels match the
+      // surrounding page rather than defaulting to the pasted URL's language.
+      embedUrl: contact.mapEmbedUrl
+        ? `${contact.mapEmbedUrl}&hl=${locale}`
+        : null,
+      placeUrl: contact.mapUrl,
+      placeLinkLabel: dictionary.contact.openInMaps,
       loadLabel: dictionary.contact.loadMap,
       title: dictionary.contact.mapTitle,
       unavailableDescription: dictionary.contact.mapUnavailable,
@@ -1052,10 +1108,11 @@ export async function getDemoSearchPageData(
   }));
 
   return {
+    contentIsDemo: false,
     action: path,
     emptyDescription: dictionary.meta.siteDescription,
     emptyTitle: dictionary.pages.searchTitle,
-    heroEyebrow: dictionary.common.demoLabel,
+    heroEyebrow: dictionary.pages.searchTitle,
     intro: dictionary.meta.siteDescription,
     pagination: null,
     placeholder: dictionary.common.search,

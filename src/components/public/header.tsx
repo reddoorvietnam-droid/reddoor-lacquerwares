@@ -1,6 +1,5 @@
 import type { Route } from "next";
 import Link from "next/link";
-import { Search } from "lucide-react";
 
 import { localePath, type Locale } from "@/lib/i18n/config";
 import type { PublicDictionary } from "@/lib/i18n/dictionary";
@@ -86,6 +85,7 @@ export function PublicHeader({
         <Link href={homeHref} aria-label={dictionary.nav.home}>
           <LogoWordmark
             name={brandName}
+            priority
             {...(brandDescriptor ? { descriptor: brandDescriptor } : {})}
           />
         </Link>
@@ -99,7 +99,7 @@ export function PublicHeader({
               <li key={item.href}>
                 <Link
                   href={item.href}
-                  className="text-charcoal/72 hover:text-lacquer relative flex min-h-11 items-center px-2.5 text-[0.72rem] font-semibold tracking-[0.08em] uppercase transition-colors 2xl:px-3.5"
+                  className="text-charcoal/72 hover:text-lacquer relative flex min-h-11 items-center px-2.5 text-[0.7rem] font-semibold tracking-[0.06em] whitespace-nowrap uppercase transition-colors 2xl:px-3.5 2xl:text-[0.72rem]"
                 >
                   {item.label}
                 </Link>
@@ -108,14 +108,12 @@ export function PublicHeader({
           </ul>
         </nav>
 
+        {/*
+          The search entry point was removed from the header bar to keep it
+          uncluttered; search stays reachable from the mobile menu and the
+          `/search` route itself.
+        */}
         <div className="hidden shrink-0 items-center gap-1 xl:flex">
-          <Link
-            href={searchHref}
-            aria-label={dictionary.common.search}
-            className={buttonVariants({ variant: "ghost", size: "icon" })}
-          >
-            <Search className="size-4" aria-hidden="true" />
-          </Link>
           <LocaleSwitcher locale={locale} label={dictionary.common.language} />
           <Link
             href={quoteHref}

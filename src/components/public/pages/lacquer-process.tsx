@@ -23,6 +23,8 @@ export interface LacquerProcessStepView {
 }
 
 export interface LacquerProcessPageData {
+  /** True while the records behind this page are still placeholders. */
+  contentIsDemo: boolean;
   closingDescription: string;
   closingEyebrow: string;
   closingLink: PublicPageLink | null;

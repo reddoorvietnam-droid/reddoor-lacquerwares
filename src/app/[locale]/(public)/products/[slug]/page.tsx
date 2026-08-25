@@ -38,5 +38,11 @@ export default async function ProductDetailRoute({
     notFound();
   }
 
-  return <ProductDetailPage data={data} dictionary={dictionary} isDemo />;
+  return (
+    <ProductDetailPage
+      data={data}
+      dictionary={dictionary}
+      isDemo={data.contentIsDemo}
+    />
+  );
 }

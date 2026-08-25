@@ -5,3 +5,4 @@ playwright-report
 test-results
 vendor/*.tgz
 package-lock.json
+public/pdfjs

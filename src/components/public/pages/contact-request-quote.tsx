@@ -30,12 +30,17 @@ export interface QuoteFormOptionView {
 export interface ContactMapView {
   description: string;
   embedUrl: string | null;
+  /** Opens the place in Google Maps, where directions are available. */
+  placeUrl: string | null;
+  placeLinkLabel: string;
   loadLabel: string;
   title: string;
   unavailableDescription: string;
 }
 
 export interface ContactRequestQuotePageData {
+  /** True while the records behind this page are still placeholders. */
+  contentIsDemo: boolean;
   acceptedAttachmentTypes: string;
   attachmentHelp: string;
   consentDescription: string;
@@ -107,17 +112,29 @@ function ContactMapPreview({ map }: { map: ContactMapView }) {
           <p className="text-charcoal/64 mt-3 text-sm leading-6">
             {map.description}
           </p>
-          {!requested ? (
-            <button
-              type="button"
-              aria-controls={contentId}
-              aria-expanded="false"
-              onClick={() => setRequested(true)}
-              className="bg-burgundy text-ivory hover:bg-lacquer mt-5 min-h-11 rounded-full px-5 py-2.5 text-sm font-semibold"
-            >
-              {map.loadLabel}
-            </button>
-          ) : null}
+          <div className="mt-5 flex flex-wrap items-center gap-3">
+            {!requested ? (
+              <button
+                type="button"
+                aria-controls={contentId}
+                aria-expanded="false"
+                onClick={() => setRequested(true)}
+                className="bg-burgundy text-ivory hover:bg-lacquer min-h-11 rounded-full px-5 py-2.5 text-sm font-semibold"
+              >
+                {map.loadLabel}
+              </button>
+            ) : null}
+            {map.placeUrl ? (
+              <a
+                href={map.placeUrl}
+                target="_blank"
+                rel="noreferrer noopener"
+                className="border-burgundy/25 text-burgundy hover:border-gold hover:text-lacquer inline-flex min-h-11 items-center rounded-full border px-5 py-2.5 text-sm font-semibold transition-colors"
+              >
+                {map.placeLinkLabel}
+              </a>
+            ) : null}
+          </div>
         </div>
       </div>
       <div id={contentId} hidden={!requested}>

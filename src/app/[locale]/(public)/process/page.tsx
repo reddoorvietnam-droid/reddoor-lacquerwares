@@ -25,5 +25,11 @@ export default async function ProcessRoute({ params }: ProcessRouteProps) {
   const dictionary = await getDictionary(locale);
   const data = await getDemoLacquerProcessPageData(locale, dictionary);
 
-  return <LacquerProcessPage data={data} dictionary={dictionary} isDemo />;
+  return (
+    <LacquerProcessPage
+      data={data}
+      dictionary={dictionary}
+      isDemo={data.contentIsDemo}
+    />
+  );
 }

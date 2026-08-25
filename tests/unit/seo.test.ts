@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
 import generatedSitemap from "@/app/sitemap";
+import { demoCollectionRepository } from "@/domains/collections/demo-repository";
+import { demoNewsRepository } from "@/domains/news/demo-repository";
+import { demoProductRepository } from "@/domains/products/demo-repository";
+import { locales } from "@/lib/i18n/config";
 import {
   buildArticleJsonLd,
   buildBreadcrumbJsonLd,
@@ -215,7 +219,43 @@ describe("robots and sitemap", () => {
     });
   });
 
-  it("does not publish the current DEMO repositories in sitemap.xml", async () => {
-    await expect(generatedSitemap()).resolves.toEqual([]);
+  it("publishes the approved repositories and still withholds search and private paths", async () => {
+    // The repositories now hold copy the company stands behind, so the sitemap
+    // is expected to be populated. What must stay true is that nothing marked
+    // DEMO, and no search or admin path, can reach it — the exclusion above
+    // covers the DEMO case directly.
+    const [entries, products, collections, articles] = await Promise.all([
+      generatedSitemap(),
+      demoProductRepository.list("vi"),
+      demoCollectionRepository.list("vi"),
+      demoNewsRepository.list("vi"),
+    ]);
+    const urls = new Set(entries.map((entry) => entry.url));
+
+    expect(entries.length).toBeGreaterThan(0);
+
+    for (const locale of locales) {
+      for (const product of products) {
+        expect(
+          urls.has(localizedUrl(locale, `/products/${product.slug}`)),
+        ).toBe(true);
+      }
+      for (const collection of collections) {
+        expect(
+          urls.has(localizedUrl(locale, `/collections/${collection.slug}`)),
+        ).toBe(true);
+      }
+      for (const article of articles) {
+        expect(urls.has(localizedUrl(locale, `/news/${article.slug}`))).toBe(
+          true,
+        );
+      }
+    }
+
+    expect(
+      [...urls].some(
+        (url) => url.includes("/search") || url.includes("/admin"),
+      ),
+    ).toBe(false);
   });
 });

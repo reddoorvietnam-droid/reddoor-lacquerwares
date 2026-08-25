@@ -22,6 +22,7 @@ const dictionary = {
     search: "Suchen",
     requestQuote: "Angebot anfragen",
     readStory: "Geschichte lesen",
+    featured: "Im Fokus",
     replaceContentNotice:
       "DEMO-Inhalt — durch vom Unternehmen freigegebene Texte und Medien ersetzen.",
   },
@@ -166,15 +167,20 @@ const dictionary = {
       "Nur DEMO — Dateiauswahl und Upload sind deaktiviert. Nach Aktivierung werden PDF, JPG, PNG oder WebP bis 10 MB akzeptiert; bitte keine sensiblen personenbezogenen Daten anhängen.",
     mapTitle: "Karte",
     mapDescription:
-      "Externe Karteninhalte werden erst geladen, nachdem Sie dies ausdrücklich auswählen.",
+      "Die Karte lädt erst auf Ihren Wunsch, damit die Seite von sich aus keine Drittanbieter-Anfrage stellt.",
     loadMap: "Karte laden",
     mapUnavailable:
-      "Für diese DEMO liegt keine geprüfte Kartenadresse vor; daher wurden keine Drittanbieter-Inhalte geladen.",
+      "Die Karte konnte nicht geladen werden. Sie können sie direkt in Google Maps öffnen.",
+    openInMaps: "In Google Maps öffnen",
     consent:
       "Ich stimme zu, dass meine Angaben zur Beantwortung dieser Anfrage verwendet werden.",
     submit: "Anfrage senden",
     demoNotice:
       "DEMO-Formular — Speicherung und Benachrichtigungen werden in einer späteren Phase aktiviert.",
+    fax: "Fax",
+    officeAddress: "Büro",
+    factoryAddress: "Werkstatt",
+    warehouseAddress: "Lager",
   },
   footer: {
     description:

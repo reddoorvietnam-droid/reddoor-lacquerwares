@@ -42,5 +42,11 @@ export default async function NewsRoute({
     category: firstValue(query.category),
   });
 
-  return <NewsListingPage data={data} dictionary={dictionary} isDemo />;
+  return (
+    <NewsListingPage
+      data={data}
+      dictionary={dictionary}
+      isDemo={data.contentIsDemo}
+    />
+  );
 }

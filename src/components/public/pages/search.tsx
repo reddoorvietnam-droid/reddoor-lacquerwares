@@ -20,6 +20,8 @@ export interface SearchResultView {
 }
 
 export interface SearchPageData {
+  /** True while the records behind this page are still placeholders. */
+  contentIsDemo: boolean;
   action: string;
   emptyDescription: string;
   emptyTitle: string;

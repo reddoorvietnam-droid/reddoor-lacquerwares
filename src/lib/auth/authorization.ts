@@ -2,9 +2,12 @@ import type {
   AuthorizationGrant,
   AuthorizationRole,
   AuthorizationSnapshot,
-  ContentPermission,
   PermissionScope,
 } from "@/domains/identity/contracts";
+import {
+  requiresGlobalGrant,
+  type Permission,
+} from "@/domains/identity/permissions";
 
 export const accessDenialCodes = [
   "AUTH_NOT_CONFIGURED",
@@ -25,14 +28,14 @@ export type SessionIdentity = {
   authzVersion: number;
 };
 
-export type ContentPermissionTarget = {
+export type PermissionTarget = {
   resourceId?: string | null;
   ownerUserId?: string | null;
   businessUnitIds?: readonly string[];
 };
 
 export type EffectivePermission = {
-  permission: ContentPermission;
+  permission: Permission;
   scope: PermissionScope;
   businessUnitIds: readonly string[];
   roleKeys: readonly string[];
@@ -66,7 +69,7 @@ function activeGrant(grant: AuthorizationGrant, now: Date): boolean {
 
 function candidatesForPermission(
   snapshot: AuthorizationSnapshot,
-  permission: ContentPermission,
+  permission: Permission,
   now: Date,
 ): PermissionCandidate[] {
   const rolesByKey = new Map<string, AuthorizationRole>(
@@ -109,7 +112,7 @@ function unique(values: readonly string[]): string[] {
 }
 
 function effectivePermission(
-  permission: ContentPermission,
+  permission: Permission,
   candidates: readonly PermissionCandidate[],
 ): EffectivePermission {
   const globalAll = candidates.some(
@@ -136,10 +139,10 @@ function effectivePermission(
 }
 
 function scopeCoversTarget(
-  permission: ContentPermission,
+  permission: Permission,
   actorUserId: string,
   candidates: readonly PermissionCandidate[],
-  target: ContentPermissionTarget,
+  target: PermissionTarget,
 ): boolean {
   if (
     candidates.some(
@@ -149,7 +152,9 @@ function scopeCoversTarget(
     return true;
   }
 
-  if (permission === "content.review" || permission === "content.publish") {
+  // Review, approval, publication, and platform administration are satisfied
+  // only by an explicitly global grant, which the check above already covered.
+  if (requiresGlobalGrant(permission)) {
     return false;
   }
 
@@ -191,22 +196,28 @@ function scopeCoversTarget(
     return false;
   }
 
-  if (permission === "content.create") {
+  const action = permission.slice(permission.indexOf(".") + 1);
+
+  // Creating under `own` scope means the service assigns ownership to the actor;
+  // a client-supplied owner that is not the actor is rejected.
+  if (action === "create") {
     return !target.ownerUserId || target.ownerUserId === actorUserId;
   }
 
-  if (permission === "content.read" && !target.resourceId) {
+  // A list, count, or autocomplete read carries no resource; the repository
+  // still narrows the query to the actor's own records.
+  if (action.startsWith("read") && !target.resourceId) {
     return true;
   }
 
   return target.ownerUserId === actorUserId;
 }
 
-export function evaluateContentPermission(input: {
+export function evaluatePermission(input: {
   session: SessionIdentity;
   snapshot: AuthorizationSnapshot;
-  permission: ContentPermission;
-  target?: ContentPermissionTarget;
+  permission: Permission;
+  target?: PermissionTarget;
   requestId: string;
   now: Date;
 }): AccessDecision {
@@ -261,6 +272,12 @@ export function evaluateContentPermission(input: {
     },
   };
 }
+
+/** @deprecated Kept for Phase 2 content call sites. Use `PermissionTarget`. */
+export type ContentPermissionTarget = PermissionTarget;
+
+/** @deprecated Kept for Phase 2 content call sites. Use `evaluatePermission`. */
+export const evaluateContentPermission = evaluatePermission;
 
 export class ContentAccessDeniedError extends Error {
   readonly code: AccessDenialCode;

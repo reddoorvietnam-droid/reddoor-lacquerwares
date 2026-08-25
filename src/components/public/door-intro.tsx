@@ -4,7 +4,7 @@ import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 
 import { Button } from "../ui/button";
-import { LogoMark } from "./logo";
+import { BrandPlaque } from "./logo";
 
 export type DoorIntroProps = {
   brandName: string;
@@ -148,7 +148,11 @@ export function DoorIntro({
               ease: [0.2, 0.72, 0.2, 1],
             }}
           >
-            <LogoMark decorative className="w-12" />
+            <BrandPlaque
+              className="ring-gold/30 w-36 rounded-sm ring-1 sm:w-44"
+              sizes="(min-width: 640px) 11rem, 9rem"
+              priority
+            />
             <p
               id={titleId}
               className="mt-6 font-serif text-4xl tracking-[0.06em] uppercase sm:text-6xl"

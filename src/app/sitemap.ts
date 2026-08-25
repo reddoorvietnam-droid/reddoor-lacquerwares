@@ -66,7 +66,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }),
   );
 
-  // DEMO records intentionally produce an empty sitemap until reviewed,
+  // Only approved, indexable records reach the sitemap; anything still marked
+  // as a placeholder is filtered out upstream,
   // publishable data replaces the in-memory repositories.
   return buildPublicSitemap(localizedSources.flat());
 }

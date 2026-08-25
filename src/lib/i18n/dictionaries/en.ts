@@ -22,6 +22,7 @@ const dictionary = {
     search: "Search",
     requestQuote: "Request a quote",
     readStory: "Read the story",
+    featured: "Featured",
     replaceContentNotice:
       "DEMO content — replace with copy and media approved by the company.",
   },
@@ -164,15 +165,20 @@ const dictionary = {
       "DEMO only — file selection and upload are disabled. When enabled, accepted files will be PDF, JPG, PNG, or WebP up to 10 MB; do not include sensitive personal data.",
     mapTitle: "Map",
     mapDescription:
-      "External map content loads only after you choose to load it.",
+      "The map loads only when you ask for it, so the page makes no third-party request up front.",
     loadMap: "Load map",
     mapUnavailable:
-      "No verified map address is available in this DEMO, so no third-party content was loaded.",
+      "The map could not be loaded. You can open it directly in Google Maps.",
+    openInMaps: "Open in Google Maps",
     consent:
       "I agree that my information may be used to respond to this enquiry.",
     submit: "Send enquiry",
     demoNotice:
       "DEMO form — submission and notification workflows will be enabled in a later phase.",
+    fax: "Fax",
+    officeAddress: "Office",
+    factoryAddress: "Factory",
+    warehouseAddress: "Warehouse",
   },
   footer: {
     description:

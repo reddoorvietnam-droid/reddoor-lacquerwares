@@ -11,7 +11,7 @@ import type { PublicDictionary } from "@/lib/i18n/dictionary";
 
 import { buttonVariants, Container, SectionHeading } from "../ui";
 import { DemoNotice } from "./demo-notice";
-import { LacquerArt, type LacquerArtVariant } from "./lacquer-art";
+import { ImageSlot } from "./image-slot";
 import { MotionReveal } from "./motion-reveal";
 
 type HomePageProps = {
@@ -22,12 +22,6 @@ type HomePageProps = {
   collections: readonly PublicCollection[];
   news: readonly PublicNewsArticle[];
 };
-
-const artVariants: readonly LacquerArtVariant[] = ["portal", "moon", "layers"];
-
-function artVariant(index: number): LacquerArtVariant {
-  return artVariants[index % artVariants.length] ?? "portal";
-}
 
 export function HomePage({
   locale,
@@ -42,7 +36,14 @@ export function HomePage({
 
   return (
     <main id="main-content">
-      <section className="bg-burgundy text-ivory relative isolate flex min-h-[92svh] items-end overflow-hidden pt-36 pb-16 sm:pb-20 lg:min-h-[min(94svh,60rem)] lg:pb-24">
+      {/*
+        On a phone the artwork sits behind the text rather than beside it, so
+        bottom-aligning the content inside a near-full-height section left a
+        large void above it. Small screens centre the content in a shorter
+        section; the editorial bottom alignment returns from `lg` up, where the
+        artwork occupies the right half and the space is no longer empty.
+      */}
+      <section className="bg-burgundy text-ivory relative isolate flex min-h-[76svh] items-center overflow-hidden pt-12 pb-14 sm:pt-16 sm:pb-20 lg:min-h-[min(86svh,50rem)] lg:items-end lg:pt-24 lg:pb-20">
         <div className="lacquer-grain" aria-hidden="true" />
         <div
           className="pointer-events-none absolute inset-y-0 right-0 hidden w-1/2 opacity-75 lg:block"
@@ -65,7 +66,12 @@ export function HomePage({
         <Container className="relative">
           <div className="max-w-5xl">
             <p className="eyebrow eyebrow-inverse">{home.eyebrow}</p>
-            <h1 className="mt-7 font-serif text-[clamp(4.2rem,13vw,10.5rem)] leading-[0.78] font-normal tracking-[-0.065em] text-balance">
+            {/*
+              Line height is looser than a Latin-only display setting would use:
+              Vietnamese stacks tone marks above already-accented vowels (ề, ố,
+              ộ), and a tighter leading collides them with the line above.
+            */}
+            <h1 className="mt-7 font-serif text-[clamp(3.15rem,9.5vw,8.5rem)] leading-[0.92] font-normal tracking-[-0.055em] text-balance">
               {home.title}
               <span className="text-gold mt-3 block translate-x-[0.18em] italic sm:mt-5">
                 {home.titleAccent}
@@ -85,24 +91,39 @@ export function HomePage({
             </div>
           </div>
         </Container>
+        {/*
+          Vertical writing mode rather than a rotation: rotating a horizontal
+          box about its bottom-right corner pushed most of the line below the
+          section, where `overflow-hidden` clipped all but the last word.
+        */}
         <p
-          className="text-ivory/35 absolute right-[var(--space-page)] bottom-8 hidden origin-bottom-right -rotate-90 text-[0.65rem] tracking-[0.28em] uppercase xl:block"
+          className="text-ivory/35 absolute right-6 bottom-10 hidden rotate-180 text-[0.65rem] tracking-[0.28em] uppercase [writing-mode:vertical-rl] xl:block"
           aria-hidden="true"
         >
           {content.company.displayName} · {content.company.tagline}
         </p>
       </section>
 
-      <section className="bg-ivory py-10">
-        <Container>
-          <DemoNotice common={common} />
-        </Container>
-      </section>
+      {/* Shown only while the snapshot is still stand-in copy. */}
+      {content.isDemo ? (
+        <section className="bg-ivory py-10">
+          <Container>
+            <DemoNotice common={common} />
+          </Container>
+        </section>
+      ) : null}
 
       <section className="bg-ivory overflow-hidden py-20 sm:py-28 lg:py-36">
         <Container className="grid items-center gap-14 lg:grid-cols-[0.9fr_1.1fr] lg:gap-24">
           <MotionReveal>
-            <LacquerArt variant="moon" className="mx-auto max-w-lg lg:mx-0" />
+            <ImageSlot
+              width={1000}
+              height={1250}
+              label={content.company.eyebrow}
+              assetKey="home-craft-01"
+              display
+              className="mx-auto max-w-lg lg:mx-0"
+            />
           </MotionReveal>
           <MotionReveal delay={0.08}>
             <SectionHeading
@@ -176,14 +197,19 @@ export function HomePage({
                   href={href(`/products/${product.slug}`)}
                   className="group block rounded-[var(--radius-lg)] focus-visible:outline-offset-8"
                 >
-                  <LacquerArt
-                    variant={artVariant(index)}
+                  <ImageSlot
+                    width={1200}
+                    height={1500}
+                    label={product.name}
+                    assetKey={`product-${product.slug}-01`}
+                    display
                     className="transition-transform duration-[var(--duration-medium)] group-hover:-translate-y-1"
                   />
                   <div className="mt-6 flex items-start justify-between gap-5">
                     <div>
                       <p className="text-lacquer text-[0.65rem] tracking-[0.18em] uppercase">
-                        {product.categoryLabel} · {product.marker}
+                        {product.categoryLabel}
+                        {product.marker ? ` · ${product.marker}` : ""}
                       </p>
                       <h3 className="text-burgundy mt-2 font-serif text-2xl">
                         {product.name}
@@ -231,7 +257,8 @@ export function HomePage({
                   <div className="border-gold/35 relative mx-auto aspect-[3/4] max-w-sm rounded-r-xl border-y border-r bg-[#541015] p-3 shadow-[1.5rem_2rem_4rem_rgb(0_0_0/0.28)] transition duration-[var(--duration-medium)] group-hover:-translate-y-1 group-hover:rotate-[0.5deg] before:absolute before:inset-y-0 before:left-0 before:w-4 before:bg-gradient-to-r before:from-black/45 before:to-transparent">
                     <div className="border-gold/30 flex size-full flex-col justify-between border p-7 text-center">
                       <p className="text-gold text-[0.62rem] tracking-[0.25em] uppercase">
-                        {content.company.displayName} · {collection.marker}
+                        {content.company.displayName}
+                        {collection.marker ? ` · ${collection.marker}` : ""}
                       </p>
                       <div>
                         <p className="text-ivory font-serif text-3xl leading-none">
@@ -304,12 +331,20 @@ export function HomePage({
         <Container className="grid gap-14 lg:grid-cols-[1.15fr_0.85fr] lg:items-center lg:gap-24">
           <MotionReveal>
             <p className="eyebrow eyebrow-inverse">{home.eyebrow}</p>
-            <blockquote className="mt-7 font-serif text-[clamp(2.7rem,6vw,5.7rem)] leading-[0.95] tracking-[-0.045em] text-balance">
+            <blockquote className="mt-7 font-serif text-[clamp(2.1rem,4.8vw,4.4rem)] leading-[1.04] tracking-[-0.04em] text-balance">
               “{home.craftBody}”
             </blockquote>
           </MotionReveal>
           <MotionReveal delay={0.08}>
-            <LacquerArt variant="layers" className="mx-auto max-w-md" />
+            <ImageSlot
+              width={900}
+              height={1125}
+              label={home.craftTitle}
+              assetKey="home-craft-02"
+              inverse
+              display
+              className="mx-auto max-w-md"
+            />
           </MotionReveal>
         </Container>
       </section>
@@ -366,7 +401,7 @@ export function HomePage({
             <p className="eyebrow eyebrow-on-lacquer">
               {dictionary.nav.contact}
             </p>
-            <h2 className="mt-6 font-serif text-[clamp(3.1rem,8vw,7rem)] leading-[0.88] tracking-[-0.05em] text-balance">
+            <h2 className="mt-6 font-serif text-[clamp(2.5rem,6.2vw,5.5rem)] leading-[0.98] tracking-[-0.045em] text-balance">
               {home.contactTitle}
             </h2>
             <p className="text-ivory/72 mt-7 max-w-2xl text-base leading-8 sm:text-lg">

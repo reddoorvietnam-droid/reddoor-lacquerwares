@@ -10,11 +10,60 @@ type AdminCopy = {
   navigationLabel: string;
   navigation: {
     overview: string;
+    operations: string;
+    approvals: string;
+    organization: string;
     content: string;
     products: string;
     news: string;
     collections: string;
     settings: string;
+  };
+  operations: {
+    eyebrow: string;
+    title: string;
+    description: string;
+    stageColumn: string;
+    stepColumn: string;
+    ownerColumn: string;
+    permissionColumn: string;
+    approvalColumn: string;
+    approvalRequired: string;
+    approvalNone: string;
+    branches: string;
+    branchesDescription: string;
+    guards: string;
+    guardList: readonly string[];
+    notImplemented: string;
+  };
+  approvals: {
+    eyebrow: string;
+    title: string;
+    description: string;
+    rule: string;
+    subjectColumn: string;
+    deciderColumn: string;
+    separationTitle: string;
+    separationDescription: string;
+    notImplemented: string;
+  };
+  organization: {
+    eyebrow: string;
+    title: string;
+    description: string;
+    positionColumn: string;
+    rolesColumn: string;
+    responsibilitiesColumn: string;
+    dataColumn: string;
+    formsTitle: string;
+    formsDescription: string;
+    formColumn: string;
+    ownerColumn: string;
+    statusColumn: string;
+    statusAvailable: string;
+    statusPlanned: string;
+    visibilityTitle: string;
+    visibilityDescription: string;
   };
   overview: {
     eyebrow: string;
@@ -152,11 +201,75 @@ const adminDictionaries = {
     navigationLabel: "Điều hướng quản trị",
     navigation: {
       overview: "Tổng quan",
+      operations: "Quy trình đơn hàng",
+      approvals: "Phê duyệt",
+      organization: "Cơ cấu tổ chức",
       content: "Nội dung",
       products: "Sản phẩm",
       news: "Tin tức",
       collections: "Bộ sưu tập",
       settings: "Thiết lập",
+    },
+    operations: {
+      eyebrow: "Quy trình vận hành",
+      title: "Mười lăm bước của một đơn hàng",
+      description:
+        "Sơ đồ dưới đây là quy trình đã được chốt, đang được mã hóa thành máy trạng thái. Mỗi bước ghi rõ vị trí chịu trách nhiệm, quyền cần có để rời bước và điểm bắt buộc Giám đốc phê duyệt.",
+      stageColumn: "Bước",
+      stepColumn: "STT",
+      ownerColumn: "Vị trí phụ trách",
+      permissionColumn: "Quyền để chuyển bước",
+      approvalColumn: "Giám đốc duyệt",
+      approvalRequired: "Bắt buộc",
+      approvalNone: "Không",
+      branches: "Hai nhánh rẽ",
+      branchesDescription:
+        "Thiếu nguyên liệu thì đơn hàng chuyển sang đặt mua rồi quay lại kiểm tra tồn kho. Kiểm tra chất lượng không đạt thì đơn hàng quay lại sản xuất để khắc phục, kèm lý do bắt buộc.",
+      guards: "Ràng buộc bắt buộc",
+      guardList: [
+        "Không cho nhảy bước ngoài sơ đồ.",
+        "Đơn đã đóng hoặc đã hủy không thể chuyển tiếp.",
+        "Bước có cổng duyệt phải có quyết định phê duyệt còn hiệu lực.",
+        "Chưa đạt kiểm tra chất lượng thì không được đóng gói.",
+        "Hủy đơn và trả về khắc phục đều bắt buộc ghi lý do.",
+      ],
+      notImplemented:
+        "Trang này hiển thị quy trình đã được mã hóa. Việc lưu đơn hàng thật, gán đơn vị thực hiện và ghi audit thuộc bước triển khai tiếp theo và chưa hoạt động.",
+    },
+    approvals: {
+      eyebrow: "Cổng phê duyệt",
+      title: "Giám đốc phê duyệt toàn bộ",
+      description:
+        "Theo yêu cầu đã chốt, mọi nghiệp vụ trọng yếu đều phải qua Giám đốc. Nắm quyền thực hiện một thao tác không đồng nghĩa được hoàn tất thao tác đó: hệ thống giữ yêu cầu ở trạng thái chờ cho đến khi có quyết định.",
+      rule: "Đơn hàng, giá bán, thay đổi giá, mua nguyên liệu, chi phí phát sinh, xuất hàng — tất cả.",
+      subjectColumn: "Nội dung cần duyệt",
+      deciderColumn: "Quyền quyết định",
+      separationTitle: "Tách bạch trách nhiệm",
+      separationDescription:
+        "Người gửi yêu cầu không bao giờ là người duyệt, kể cả Giám đốc tự gửi. Từ chối bắt buộc ghi lý do, và nếu bản ghi gốc thay đổi sau khi duyệt thì phải trình duyệt lại.",
+      notImplemented:
+        "Danh sách dưới đây là các loại phê duyệt đã được mã hóa. Hàng đợi phê duyệt có dữ liệu thật chưa được triển khai.",
+    },
+    organization: {
+      eyebrow: "Cơ cấu tổ chức",
+      title: "Vị trí, trách nhiệm và dữ liệu phụ trách",
+      description:
+        "Hệ thống mô tả vị trí công việc chứ không gắn cứng tên người. Bàn giao công việc là thay đổi việc cấp quyền, không phải sửa mã nguồn.",
+      positionColumn: "Vị trí",
+      rolesColumn: "Role được cấp",
+      responsibilitiesColumn: "Trách nhiệm",
+      dataColumn: "Dữ liệu phụ trách",
+      formsTitle: "Biểu mẫu đang dùng tại công ty",
+      formsDescription:
+        "Các biểu mẫu được yêu cầu dựng lại trong hệ thống. Trạng thái dưới đây phản ánh trung thực phần đã có màn hình và phần mới chỉ có định nghĩa.",
+      formColumn: "Biểu mẫu",
+      ownerColumn: "Vị trí phụ trách",
+      statusColumn: "Trạng thái",
+      statusAvailable: "Đã có màn hình",
+      statusPlanned: "Mới có định nghĩa",
+      visibilityTitle: "Quy tắc xem giá",
+      visibilityDescription:
+        "Giá bán, biên lợi nhuận và lợi nhuận chỉ Giám đốc và Kế toán công ty được xem. Giá mua và các phần dữ liệu vận hành còn lại thì mọi vị trí đều xem được; quyền chỉnh sửa phải được cấp riêng.",
     },
     overview: {
       eyebrow: "Tổng quan vận hành",
@@ -326,11 +439,75 @@ const adminDictionaries = {
     navigationLabel: "Administration navigation",
     navigation: {
       overview: "Overview",
+      operations: "Order process",
+      approvals: "Approvals",
+      organization: "Organisation",
       content: "Content",
       products: "Products",
       news: "News",
       collections: "Collections",
       settings: "Settings",
+    },
+    operations: {
+      eyebrow: "Operating process",
+      title: "The fifteen steps of an order",
+      description:
+        "The chart below is the agreed process, encoded as a state machine. Each step names the position accountable for it, the permission required to leave it, and whether the Director must approve before it advances.",
+      stageColumn: "Stage",
+      stepColumn: "No.",
+      ownerColumn: "Accountable position",
+      permissionColumn: "Permission to advance",
+      approvalColumn: "Director approval",
+      approvalRequired: "Required",
+      approvalNone: "None",
+      branches: "Two branches",
+      branchesDescription:
+        "A material shortage moves the order to purchasing and back to the inventory check. A failed inspection returns the order to production for rework, with a mandatory reason.",
+      guards: "Enforced guards",
+      guardList: [
+        "A move outside the chart is refused.",
+        "A closed or cancelled order cannot advance.",
+        "A gated stage needs a valid approval decision.",
+        "Packing is blocked until quality control passes.",
+        "Cancellation and rework must both record a reason.",
+      ],
+      notImplemented:
+        "This page shows the encoded process. Persisting real orders, assigning executing units, and writing audit records belong to the next implementation step and are not live.",
+    },
+    approvals: {
+      eyebrow: "Approval gate",
+      title: "The Director approves everything",
+      description:
+        "As confirmed, every significant operation passes through the Director. Holding the permission to perform an action does not mean it can be completed: the system parks the request until a decision exists.",
+      rule: "Orders, selling price, price changes, material purchases, incurred expenses, dispatch — all of them.",
+      subjectColumn: "Subject",
+      deciderColumn: "Permission to decide",
+      separationTitle: "Separation of duties",
+      separationDescription:
+        "The person who raised a request is never the person who releases it, even when the Director raises it. A rejection must record a reason, and if the underlying record changes after approval it must be approved again.",
+      notImplemented:
+        "The list below shows the encoded approval subjects. A queue backed by real records is not implemented yet.",
+    },
+    organization: {
+      eyebrow: "Organisation",
+      title: "Positions, responsibilities, and owned data",
+      description:
+        "The system describes positions rather than hard-coding names. A handover is a change to a grant, not a change to source code.",
+      positionColumn: "Position",
+      rolesColumn: "Roles granted",
+      responsibilitiesColumn: "Responsibilities",
+      dataColumn: "Data owned",
+      formsTitle: "Forms the company runs on",
+      formsDescription:
+        "The forms requested for rebuilding in the system. The status below is honest about which have a screen and which exist only as a definition.",
+      formColumn: "Form",
+      ownerColumn: "Accountable position",
+      statusColumn: "Status",
+      statusAvailable: "Screen built",
+      statusPlanned: "Definition only",
+      visibilityTitle: "Price visibility rule",
+      visibilityDescription:
+        "Selling price, margin, and profit are visible only to the Director and the Company Accountant. Purchase price and the remaining operational data are readable by every position; the right to edit is granted separately.",
     },
     overview: {
       eyebrow: "Operations overview",

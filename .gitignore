@@ -48,3 +48,6 @@ next-env.d.ts
 # local operational artifacts
 /backups/
 !/backups/.gitkeep
+
+# generated pdf.js decoder assets (see scripts/sync-pdfjs-assets.mjs)
+/public/pdfjs/

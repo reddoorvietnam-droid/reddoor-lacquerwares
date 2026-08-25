@@ -229,3 +229,45 @@ Ngày 2026-08-20, Next.js thông báo sẽ phát hành bản vá ngày 2026-08-2
 - Có thể làm chậm go-live tối thiểu đến khi có patch và verification.
 - Tránh phát hành một phiên bản đã biết sắp có critical fix.
 - Checklist thực thi nằm trong `DEPLOYMENT.md` và phải lưu evidence trong release/incident record.
+
+## ADR-011 — PDF binary lưu ở Cloudinary, không lưu ở MongoDB
+
+**Trạng thái:** Chấp nhận. Xác nhận lại sau khi cân nhắc phương án MongoDB.
+
+### Bối cảnh
+
+ADR-007 đã chốt lưu PDF binary trên Cloudinary. Câu hỏi được nêu lại: có nên lưu thẳng vào MongoDB để chỉ dùng một nhà cung cấp không? Vì đây là quyết định khó đảo ngược sau khi đã có dữ liệu thật, phần cân nhắc được ghi lại đây thay vì tranh luận lại về sau.
+
+Ước tính cho một collection 50 trang, xuất bản đủ sáu ngôn ngữ:
+
+| Thành phần               | Dung lượng  |
+| ------------------------ | ----------- |
+| PDF gốc                  | ~10 MB      |
+| Ảnh trang (1400px, JPEG) | ~15 MB      |
+| Thumbnail                | ~1.5 MB     |
+| Một ngôn ngữ             | **~26 MB**  |
+| Sáu ngôn ngữ             | **~156 MB** |
+
+### Phương án đã cân nhắc
+
+**MongoDB GridFS.** Một nhà cung cấp, một nơi backup, một mô hình phân quyền. Bị loại vì:
+
+- Atlas free là **512 MB giới hạn cứng**, không thể vượt, và dùng chung với toàn bộ dữ liệu vận hành. Audit log, inventory movement và document version đều append-only nên chỉ tăng. Một năm collection đã chiếm khoảng một phần ba dung lượng.
+- Không có CDN. Mỗi lượt xem một trang là một lần gọi function đọc từ Atlas rồi stream byte, trong khi kiến trúc yêu cầu không proxy binary qua Vercel Function.
+- MongoDB không tách được PDF thành ảnh từng trang. Chỉ còn hai đường, đều xấu: dựng ảnh trên server Vercel (cần raster engine nặng, rủi ro vượt giới hạn bundle và timeout), hoặc gửi nguyên PDF về máy khách mỗi lượt xem (chậm trên mạng di động và đốt băng thông).
+
+**Vercel Blob.** Cùng nhà cung cấp với hosting, có CDN, tách khỏi 512 MB của Atlas. Bị loại vì hạn mức free nhỏ hơn đáng kể và vẫn không tự tách PDF thành ảnh trang.
+
+### Quyết định
+
+- Byte của PDF và ảnh trang nằm ở Cloudinary. Browser upload trực tiếp bằng signed parameters; file không đi qua Vercel Function.
+- MongoDB vẫn là hệ thống lưu trữ chính thức của mọi thứ _về_ tài sản đó: `publicId`, checksum, số trang, kích thước, `version`, trạng thái workflow, người duyệt và lịch sử phiên bản. Xoá bản ghi MongoDB là mất quyền sở hữu, không phải mất file.
+- Ranh giới lưu trữ nằm sau `MediaStoragePort` (`src/lib/media/storage-port.ts`). Đổi nhà cung cấp là viết một driver mới, không sửa domain hay viewer.
+- URL ảnh trang chỉ dựng từ tập chiều rộng cố định `allowedPageWidths`. Chiều rộng tuỳ ý sẽ cho phép khách tạo vô hạn biến thể, mỗi biến thể tính vào quota transformation.
+- `CLOUDINARY_API_SECRET` chỉ tồn tại phía server, không xuất hiện trong response, log hay thông báo lỗi.
+
+### Hệ quả
+
+- Phụ thuộc thêm một nhà cung cấp và phải theo dõi quota 25 credit/tháng.
+- Cần cơ chế bù trừ khi upload lên Cloudinary thành công nhưng ghi MongoDB thất bại: đánh dấu asset `orphaned` và dọn sau, theo `DATA_MODEL.md`.
+- Nếu sau này bắt buộc phải rời Cloudinary, chi phí chuyển đổi nằm gọn trong một driver cộng với một lần migrate URL.

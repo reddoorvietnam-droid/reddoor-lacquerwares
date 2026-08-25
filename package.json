@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "node scripts/sync-pdfjs-assets.mjs && next dev",
+    "build": "node scripts/sync-pdfjs-assets.mjs && next build",
     "start": "next start",
     "lint": "eslint . --max-warnings=0",
     "typecheck": "tsc --noEmit",
@@ -14,9 +14,9 @@
     "test:run": "vitest run",
     "test:e2e": "playwright test",
     "test:e2e:install": "playwright install --with-deps chromium",
-    "seed": "tsx scripts/seed.ts",
-    "migrate": "tsx scripts/migrate.ts",
-    "backup": "tsx scripts/backup.ts",
+    "seed": "tsx --conditions=react-server scripts/seed.ts",
+    "migrate": "tsx --conditions=react-server scripts/migrate.ts",
+    "backup": "tsx --conditions=react-server scripts/backup.ts",
     "ci": "npm run lint && npm run typecheck && npm run test:run && npm run build"
   },
   "engines": {
@@ -36,6 +36,7 @@
     "next": "16.3.2",
     "next-auth": "^4.24.15",
     "page-flip": "^2.0.7",
+    "pdfjs-dist": "^6.2.108",
     "qrcode": "^1.5.4",
     "react": "19.2.8",
     "react-dom": "19.2.8",

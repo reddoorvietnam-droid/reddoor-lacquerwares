@@ -6,13 +6,9 @@ export {
   type PublicFooterProps,
 } from "./footer";
 export { PublicHeader, type PublicHeaderProps } from "./header";
-export {
-  LacquerArt,
-  type LacquerArtProps,
-  type LacquerArtVariant,
-} from "./lacquer-art";
 export { LocaleSwitcher, type LocaleSwitcherProps } from "./locale-switcher";
-export { LogoMark, LogoWordmark } from "./logo";
+export { BrandPlaque, LogoWordmark } from "./logo";
+export { ImageSlot, type ImageSlotProps } from "./image-slot";
 export {
   MobileNavigation,
   type MobileNavigationProps,

@@ -158,6 +158,10 @@ export function PublicFooter({
           ) : null}
         </div>
 
+        {/*
+          The mark already appears in the wordmark above; repeating it here
+          would show the same logo twice in one footer.
+        */}
         <p className="text-ivory/52 pt-7 text-xs leading-6">
           {dictionary.footer.copyright}
         </p>

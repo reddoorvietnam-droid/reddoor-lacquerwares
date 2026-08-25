@@ -27,5 +27,11 @@ export default async function CollectionsRoute({
   const dictionary = await getDictionary(locale);
   const data = await getDemoCollectionListingPageData(locale, dictionary);
 
-  return <CollectionListingPage data={data} dictionary={dictionary} isDemo />;
+  return (
+    <CollectionListingPage
+      data={data}
+      dictionary={dictionary}
+      isDemo={data.contentIsDemo}
+    />
+  );
 }

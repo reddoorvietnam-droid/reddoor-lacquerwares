@@ -19,7 +19,10 @@ const EMPTY_QUERY: DemoProductListingQuery = {
   sort: "",
 };
 
-describe("DEMO product public pages", () => {
+/** Mirrors DEMO_PRODUCT_PAGE_SIZE in `@/lib/public/demo-page-data`. */
+const PAGE_SIZE = 3;
+
+describe("product public pages", () => {
   it("builds truthful category, collection, material, and finish filters", async () => {
     const [dictionary, products] = await Promise.all([
       getDictionary("en"),
@@ -66,25 +69,32 @@ describe("DEMO product public pages", () => {
     const expectedNames = [...products]
       .sort((left, right) => collator.compare(right.name, left.name))
       .map((product) => product.name);
+    // Derived from the catalogue rather than hard-coded, so adding or removing
+    // a product family changes the fixture and not this assertion.
+    const pageCount = Math.ceil(products.length / PAGE_SIZE);
+
+    expect(pageCount).toBeGreaterThan(1);
 
     const firstPage = await getDemoProductListingPageData("en", dictionary, {
       ...EMPTY_QUERY,
       sort: "name-desc",
     });
-    const secondPage = await getDemoProductListingPageData("en", dictionary, {
+    const lastPage = await getDemoProductListingPageData("en", dictionary, {
       ...EMPTY_QUERY,
-      page: "2",
+      page: String(pageCount),
       sort: "name-desc",
     });
 
     expect(firstPage.products.map((product) => product.name)).toEqual(
-      expectedNames.slice(0, 3),
+      expectedNames.slice(0, PAGE_SIZE),
     );
-    expect(secondPage.products.map((product) => product.name)).toEqual(
-      expectedNames.slice(3),
+    expect(lastPage.products.map((product) => product.name)).toEqual(
+      expectedNames.slice((pageCount - 1) * PAGE_SIZE),
     );
-    expect(firstPage.pagination?.currentLabel).toBe("Page 1 / 2");
-    expect(secondPage.pagination?.currentLabel).toBe("Page 2 / 2");
+    expect(firstPage.pagination?.currentLabel).toBe(`Page 1 / ${pageCount}`);
+    expect(lastPage.pagination?.currentLabel).toBe(
+      `Page ${pageCount} / ${pageCount}`,
+    );
   });
 
   it("preserves active filters and sorting in pagination links", async () => {
@@ -94,7 +104,14 @@ describe("DEMO product public pages", () => {
     ]);
     const material = products[0]?.materialLabels[0];
 
-    if (!material) throw new Error("Expected a DEMO material fixture.");
+    if (!material) throw new Error("Expected a product material fixture.");
+
+    const pageCount = Math.ceil(
+      products.filter((product) => product.materialLabels.includes(material))
+        .length / PAGE_SIZE,
+    );
+
+    expect(pageCount).toBeGreaterThan(1);
 
     const firstPage = await getDemoProductListingPageData("en", dictionary, {
       ...EMPTY_QUERY,
@@ -116,14 +133,21 @@ describe("DEMO product public pages", () => {
       page: "999",
       sort: "name-asc",
     });
-    expect(clampedPage.pagination?.currentLabel).toBe("Page 2 / 2");
+    expect(clampedPage.pagination?.currentLabel).toBe(
+      `Page ${pageCount} / ${pageCount}`,
+    );
     const previousHref = clampedPage.pagination?.previous?.href;
 
     if (!previousHref) throw new Error("Expected a previous product page.");
 
     const previousUrl = new URL(previousHref, "https://example.test");
     expect(previousUrl.searchParams.get("material")).toBe(material);
-    expect(previousUrl.searchParams.has("page")).toBe(false);
+    // Page one is expressed by omitting the parameter, not by `page=1`.
+    if (pageCount - 1 > 1) {
+      expect(previousUrl.searchParams.get("page")).toBe(String(pageCount - 1));
+    } else {
+      expect(previousUrl.searchParams.has("page")).toBe(false);
+    }
   });
 
   it("indexes localized collection names in product search", async () => {

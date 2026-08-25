@@ -35,6 +35,8 @@ export interface AboutHighlightView {
 }
 
 export interface AboutHistoryPageData {
+  /** True while the records behind this page are still placeholders. */
+  contentIsDemo: boolean;
   archiveNote: string | null;
   closingLink: PublicPageLink | null;
   closingText: string;

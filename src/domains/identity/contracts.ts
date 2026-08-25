@@ -20,6 +20,8 @@ export const contentPermissions = [
 ] as const;
 export type ContentPermission = (typeof contentPermissions)[number];
 
+export type { Permission } from "@/domains/identity/permissions";
+
 export type AuthorizationUser = {
   id: string;
   status: UserStatus;

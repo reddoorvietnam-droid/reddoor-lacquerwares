@@ -1,12 +1,24 @@
 import type { Locale } from "@/lib/i18n/config";
 
+/**
+ * `"DEMO"` marks copy that is a stand-in and must not be read as a company
+ * statement; `null` marks copy the company stands behind. Mirrors
+ * `PublicContentMarker` in the content domain, but is declared here so the two
+ * domains stay independent of each other.
+ */
+export type PublicNewsMarker = "DEMO" | null;
+
 export interface PublicNewsImage {
+  /** Stable file name the final photograph should be saved as. */
   readonly assetKey: string;
-  readonly src: string;
+  /** Delivered image, or `null` while the photograph is still outstanding. */
+  readonly src: string | null;
   readonly alt: string;
+  /** Intended pixel size; the layout reserves this box either way. */
   readonly width: number;
   readonly height: number;
-  readonly isDemo: true;
+  /** True until a real photograph replaces the reserved slot. */
+  readonly assetPending: boolean;
   readonly replacementHint: string;
 }
 
@@ -19,8 +31,8 @@ export type PublicNewsContentBlock = PublicNewsParagraph;
 
 export interface PublicNewsArticle {
   readonly id: string;
-  readonly marker: "DEMO";
-  readonly isDemo: true;
+  readonly marker: PublicNewsMarker;
+  readonly isDemo: boolean;
   readonly locale: Locale;
   readonly slug: string;
   readonly title: string;
@@ -29,7 +41,12 @@ export interface PublicNewsArticle {
   readonly categorySlug: string;
   readonly categoryLabel: string;
   readonly tags: readonly string[];
+  /**
+   * Attributed to the company rather than to a person: no individual byline has
+   * been confirmed for any of this editorial.
+   */
   readonly author: string | null;
+  /** ISO `YYYY-MM-DD`, or `null` while the date is unconfirmed. */
   readonly publishedAt: string | null;
   readonly image: PublicNewsImage;
   readonly featured: boolean;

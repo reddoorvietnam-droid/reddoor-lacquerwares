@@ -25,5 +25,11 @@ export default async function ContactRoute({ params }: ContactRouteProps) {
   const dictionary = await getDictionary(locale);
   const data = await getDemoContactRequestQuotePageData(locale, dictionary);
 
-  return <ContactRequestQuotePage data={data} dictionary={dictionary} isDemo />;
+  return (
+    <ContactRequestQuotePage
+      data={data}
+      dictionary={dictionary}
+      isDemo={data.contentIsDemo}
+    />
+  );
 }

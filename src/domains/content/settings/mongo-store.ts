@@ -502,7 +502,7 @@ export class MongoSiteSettingsCommandStore implements SiteSettingsCommandStore {
         );
       }
 
-      await appendAtomicAuditEvent(auditEvent, session);
+      await appendAuditEventWithSession(auditEvent, session);
 
       const aggregate = await this.#readCurrent(session);
       if (aggregate.published?.id !== input.settingsId || aggregate.draft) {

@@ -1,16 +1,14 @@
 import "server-only";
 
 import type { AuditRepository } from "@/domains/audit/contracts";
-import type {
-  AuthorizationRepository,
-  ContentPermission,
-} from "@/domains/identity/contracts";
+import type { AuthorizationRepository } from "@/domains/identity/contracts";
+import type { Permission } from "@/domains/identity/permissions";
 import {
   ContentAccessDeniedError,
-  evaluateContentPermission,
+  evaluatePermission,
   type AccessContext,
   type AccessDenialCode,
-  type ContentPermissionTarget,
+  type PermissionTarget,
   type SessionIdentity,
 } from "@/lib/auth/authorization";
 
@@ -26,7 +24,7 @@ export type PermissionGuardDependencies = {
   createRequestId?: () => string;
 };
 
-export type RequireContentPermissionOptions = ContentPermissionTarget & {
+export type RequirePermissionOptions = PermissionTarget & {
   requestId?: string;
   correlationId?: string;
 };
@@ -39,8 +37,8 @@ async function appendDenialAudit(
   dependencies: PermissionGuardDependencies,
   input: {
     identity: SessionIdentity | null;
-    permission: ContentPermission;
-    options: RequireContentPermissionOptions;
+    permission: Permission;
+    options: RequirePermissionOptions;
     requestId: string;
     code: AccessDenialCode;
     occurredAt: Date;
@@ -72,11 +70,11 @@ async function appendDenialAudit(
   }
 }
 
-export function createContentPermissionGuard(
+export function createPermissionGuard(
   dependencies: PermissionGuardDependencies,
 ): (
-  permission: ContentPermission,
-  options?: RequireContentPermissionOptions,
+  permission: Permission,
+  options?: RequirePermissionOptions,
 ) => Promise<AccessContext> {
   return async (permission, options = {}) => {
     const occurredAt = dependencies.now?.() ?? new Date();
@@ -154,7 +152,7 @@ export function createContentPermissionGuard(
       throw new ContentAccessDeniedError("USER_NOT_FOUND");
     }
 
-    const decision = evaluateContentPermission({
+    const decision = evaluatePermission({
       session: resolution.identity,
       snapshot,
       permission,
@@ -178,3 +176,9 @@ export function createContentPermissionGuard(
     return decision.context;
   };
 }
+
+/** @deprecated Kept for Phase 2 content call sites. Use `createPermissionGuard`. */
+export const createContentPermissionGuard = createPermissionGuard;
+
+/** @deprecated Kept for Phase 2 content call sites. Use `RequirePermissionOptions`. */
+export type RequireContentPermissionOptions = RequirePermissionOptions;

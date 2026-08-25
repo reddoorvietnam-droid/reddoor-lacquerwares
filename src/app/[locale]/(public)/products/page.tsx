@@ -58,5 +58,11 @@ export default async function ProductsRoute({
     sort: firstValue(query.sort),
   });
 
-  return <ProductListingPage data={data} dictionary={dictionary} isDemo />;
+  return (
+    <ProductListingPage
+      data={data}
+      dictionary={dictionary}
+      isDemo={data.contentIsDemo}
+    />
+  );
 }

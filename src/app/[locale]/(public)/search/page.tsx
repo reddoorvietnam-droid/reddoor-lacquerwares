@@ -39,5 +39,11 @@ export default async function SearchRoute({
     scope: firstValue(query.scope),
   });
 
-  return <SearchPage data={data} dictionary={dictionary} isDemo />;
+  return (
+    <SearchPage
+      data={data}
+      dictionary={dictionary}
+      isDemo={data.contentIsDemo}
+    />
+  );
 }

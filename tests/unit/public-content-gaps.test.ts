@@ -23,7 +23,7 @@ describe("Phase 1 public content safeguards", () => {
     }
   });
 
-  it("provides localized country choices without enabling unsafe uploads or maps", async () => {
+  it("provides localized country choices and a click-to-load, locale-matched map", async () => {
     for (const locale of locales) {
       const dictionary = await getDictionary(locale);
       const page = await getDemoContactRequestQuotePageData(locale, dictionary);
@@ -36,7 +36,27 @@ describe("Phase 1 public content safeguards", () => {
       );
       expect(page.acceptedAttachmentTypes).toBe(".pdf,.jpg,.jpeg,.png,.webp");
       expect(page.attachmentHelp).toBe(dictionary.contact.attachmentHelp);
-      expect(page.map.embedUrl).toBeNull();
+      // The map is now a verified place rather than a missing one, so the
+      // assertion moved from "there is none" to "it is the safe kind":
+      // keyless embed, no tracking parameters carried over from the pasted
+      // browser URL, and labelled in the visitor's own language.
+      const embedUrl = page.map.embedUrl;
+      expect(embedUrl).not.toBeNull();
+      const embed = new URL(embedUrl ?? "");
+      expect(embed.host).toBe("maps.google.com");
+      expect(embed.searchParams.get("output")).toBe("embed");
+      expect(embed.searchParams.get("hl")).toBe(locale);
+      expect(embed.searchParams.has("entry")).toBe(false);
+      expect(embed.searchParams.has("g_ep")).toBe(false);
+
+      // The outward link opens the company's own listing, and only over https.
+      const placeUrl = page.map.placeUrl;
+      expect(placeUrl).not.toBeNull();
+      expect(new URL(placeUrl ?? "").protocol).toBe("https:");
+      expect(page.map.placeLinkLabel).toBe(dictionary.contact.openInMaps);
+
+      // The frame is still never loaded until the visitor asks for it, so the
+      // unavailable message must stay wired up.
       expect(page.map.unavailableDescription).toBe(
         dictionary.contact.mapUnavailable,
       );

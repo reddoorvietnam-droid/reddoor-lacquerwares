@@ -22,6 +22,7 @@ const dictionary = {
     search: "Tìm kiếm",
     requestQuote: "Yêu cầu báo giá",
     readStory: "Đọc câu chuyện",
+    featured: "Nổi bật",
     replaceContentNotice:
       "Nội dung DEMO — hãy thay bằng nội dung và hình ảnh đã được doanh nghiệp phê duyệt.",
   },
@@ -30,14 +31,14 @@ const dictionary = {
     about: "Về chúng tôi",
     products: "Sản phẩm",
     collections: "Bộ sưu tập",
-    process: "Quy trình sơn mài",
+    process: "Kỹ thuật sơn mài",
     news: "Tin tức",
     contact: "Liên hệ",
   },
   home: {
     eyebrow: "CỬA ĐỎ — SƠN MÀI SỐNG",
     title: "Bề mặt sống động,",
-    titleAccent: "được tạo tác bằng tay",
+    titleAccent: "được tạo tác thủ công",
     intro:
       "Phần giới thiệu DEMO này dành chỗ cho câu chuyện thương hiệu Cửa Đỏ Việt Nam đã được phê duyệt.",
     craftTitle: "Câu chuyện vật liệu qua từng lớp",
@@ -46,7 +47,7 @@ const dictionary = {
     historyTitle: "Lịch sử công ty",
     featuredTitle: "Sản phẩm nổi bật",
     collectionsTitle: "Bộ sưu tập",
-    processTitle: "Quy trình sơn mài",
+    processTitle: "Kỹ thuật sơn mài",
     newsTitle: "Ghi chép từ xưởng",
     contactTitle: "Bắt đầu cuộc trò chuyện",
     contactBody:
@@ -62,7 +63,7 @@ const dictionary = {
     collectionsTitle: "Bộ sưu tập",
     collectionsIntro:
       "Mở các bìa sách nghệ thuật DEMO trong khi năm phát hành, PDF và câu chuyện chính thức đang được chuẩn bị.",
-    processTitle: "Quy trình sơn mài",
+    processTitle: "Kỹ thuật sơn mài",
     processIntro:
       "Trình tự DEMO cần được thay bằng vật liệu, công đoạn và thực hành tại xưởng đã được doanh nghiệp xác minh.",
     newsTitle: "Tin tức và câu chuyện",
@@ -164,15 +165,20 @@ const dictionary = {
       "Chỉ dành cho DEMO — chức năng chọn và tải tệp đang tắt. Khi được bật, hệ thống sẽ nhận PDF, JPG, PNG hoặc WebP tối đa 10 MB; không gửi dữ liệu cá nhân nhạy cảm.",
     mapTitle: "Bản đồ",
     mapDescription:
-      "Nội dung bản đồ bên ngoài chỉ được tải sau khi bạn chủ động chọn tải.",
+      "Bản đồ chỉ tải khi bạn bấm, để trang không phải gọi tới máy chủ bên thứ ba ngay từ đầu.",
     loadMap: "Tải bản đồ",
     mapUnavailable:
-      "Bản DEMO chưa có địa chỉ bản đồ đã xác minh nên không tải nội dung của bên thứ ba.",
+      "Không tải được bản đồ. Bạn có thể mở trực tiếp trong Google Maps.",
+    openInMaps: "Mở trong Google Maps",
     consent:
       "Tôi đồng ý để thông tin của mình được sử dụng nhằm phản hồi yêu cầu này.",
     submit: "Gửi yêu cầu",
     demoNotice:
       "Biểu mẫu DEMO — quy trình lưu yêu cầu và gửi thông báo sẽ được kích hoạt ở phase sau.",
+    fax: "Fax",
+    officeAddress: "Văn phòng",
+    factoryAddress: "Nhà máy",
+    warehouseAddress: "Kho hàng",
   },
   footer: {
     description:

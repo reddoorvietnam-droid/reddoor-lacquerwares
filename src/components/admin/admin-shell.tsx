@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Route } from "next";
 import type { ReactNode } from "react";
 
+import { BrandPlaque } from "@/components/public/logo";
 import type { AdminLocale } from "@/lib/i18n/admin";
 import { getAdminDictionary } from "@/lib/i18n/admin";
 
@@ -16,6 +17,18 @@ export function AdminShell({ locale, children, userLabel }: AdminShellProps) {
   const basePath = `/${locale}/admin` as Route;
   const navigation = [
     { href: basePath, label: copy.navigation.overview },
+    {
+      href: `${basePath}/operations` as Route,
+      label: copy.navigation.operations,
+    },
+    {
+      href: `${basePath}/approvals` as Route,
+      label: copy.navigation.approvals,
+    },
+    {
+      href: `${basePath}/organization` as Route,
+      label: copy.navigation.organization,
+    },
     {
       href: `${basePath}/content` as Route,
       label: copy.navigation.content,
@@ -46,12 +59,10 @@ export function AdminShell({ locale, children, userLabel }: AdminShellProps) {
       <header className="border-burgundy/15 bg-burgundy text-ivory lg:sticky lg:top-0 lg:z-30">
         <div className="mx-auto flex max-w-[100rem] flex-wrap items-center justify-between gap-4 px-[var(--space-page)] py-4">
           <Link href={basePath} className="group flex items-center gap-3">
-            <span
-              aria-hidden="true"
-              className="border-gold/35 bg-lacquer text-gold grid size-10 place-items-center rounded-xl border font-serif text-xl"
-            >
-              R
-            </span>
+            <BrandPlaque
+              className="ring-gold/30 w-14 shrink-0 rounded-sm ring-1"
+              sizes="3.5rem"
+            />
             <span>
               <span className="block font-serif text-lg leading-none">
                 {copy.productName}

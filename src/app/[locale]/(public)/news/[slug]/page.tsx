@@ -38,5 +38,11 @@ export default async function NewsArticleRoute({
     notFound();
   }
 
-  return <NewsArticlePage data={data} dictionary={dictionary} isDemo />;
+  return (
+    <NewsArticlePage
+      data={data}
+      dictionary={dictionary}
+      isDemo={data.contentIsDemo}
+    />
+  );
 }

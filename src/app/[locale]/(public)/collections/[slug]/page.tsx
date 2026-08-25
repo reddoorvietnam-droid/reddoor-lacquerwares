@@ -38,5 +38,11 @@ export default async function CollectionDetailRoute({
     notFound();
   }
 
-  return <CollectionLandingPage data={data} dictionary={dictionary} isDemo />;
+  return (
+    <CollectionLandingPage
+      data={data}
+      dictionary={dictionary}
+      isDemo={data.contentIsDemo}
+    />
+  );
 }

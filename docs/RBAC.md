@@ -19,6 +19,72 @@ Unknown Google users become `pending` and may see only the access-pending experi
 
 `ADMIN_EMAILS` is bootstrap-only. It may activate the initial Super Admin when no Super Admin exists. It is not a permanent authorization bypass and must not be checked in ordinary policies.
 
+### 1.1 Confirmed company rules
+
+Three rules were confirmed with the client working group and are encoded in `src/domains/identity/permissions.ts`, `src/domains/identity/role-definitions.ts`, and `src/domains/approvals/`. Where this document and that code disagree, the code is authoritative.
+
+**Rule 1 — Selling price, margin, and profit are visible only to the Director and the Company Accountant.**
+
+> "Về giá bán hàng chỉ Bác và kế toán cty biết."
+
+Implemented by keeping selling value in separate permissions that no resource read implies, and by granting them to `SUPER_ADMIN`, `DIRECTOR`, and `COMPANY_ACCOUNTANT` only:
+
+| Permission                  | Default grants    |
+| --------------------------- | ----------------- |
+| `orders.readSellingPrice`   | SA:A, DIR:A, CA:A |
+| `quotes.readSellingPrice`   | SA:A, DIR:A, CA:A |
+| `products.readSellingPrice` | SA:A, DIR:A, CA:A |
+| `finance.readProfit`        | SA:A, DIR:A, CA:A |
+
+This is a change. Earlier revisions of this document also granted `ORDER_MANAGER` `orders.readSellingPrice` and `products.readSellingPrice`. The role definition seeds no longer do. It is a deliberate client decision, not an oversight: the Order Manager creates, edits, and submits orders and quotes without seeing their selling value, and requests a price adjustment rather than reading or approving one.
+
+**Rule 2 — Purchase price and the remaining operational data are readable by everyone; editing requires an explicit grant.**
+
+> "Còn giá mua và các phần còn lại thì mọi ng đều xem được. Chỉnh sửa thi phải cấp quyền."
+
+Implemented by `sharedOperationalReads` in `role-definitions.ts`, a single list included by every active staff role except `CONTENT_EDITOR` and `PRODUCTION_UNIT`, which receive a narrower subset appropriate to their work:
+
+```text
+businessUnits.read      products.read           media.read
+orders.read             deliveries.read         suppliers.read
+procurement.read        procurement.readPrice   inventory.read
+production.read         packing.read            shipments.read
+documents.read          documents.download      reports.readOperational
+approvals.read
+```
+
+Note that `procurement.readPrice` — supplier purchase price, advances, and contract value — is inside this shared list, while every selling-value permission from Rule 1 is deliberately outside it, as are `finance.readCost`, `finance.readProfit`, `labor.readSalary`, `inventory.readValue`, and `customers.readSensitive`. Reading is broad; writing is not. No write permission appears in the shared list, and each write permission is granted role by role.
+
+**Rule 3 — Director approval is required for all significant operations.**
+
+Asked which operations must be approved by the Director in the system — orders, selling price, price changes, material purchase, incurred expenses, dispatch — the answer was "tất cả".
+
+Implemented by `approvalSubjects` in `src/domains/approvals/contracts.ts`. A gated action parks in a pending approval request instead of taking effect, and the business state machine refuses to advance until an approved decision exists:
+
+| Approval subject          | Permission the decider must hold |
+| ------------------------- | -------------------------------- |
+| `order.confirm`           | `orders.approve`                 |
+| `order.sellingPrice`      | `orders.approvePriceAdjustment`  |
+| `order.priceAdjustment`   | `orders.approvePriceAdjustment`  |
+| `order.cancel`            | `orders.cancel`                  |
+| `order.dispatch`          | `approvals.decide`               |
+| `quote.send`              | `quotes.approve`                 |
+| `quote.priceAdjustment`   | `quotes.approvePriceAdjustment`  |
+| `procurement.purchase`    | `procurement.approve`            |
+| `procurement.priceChange` | `procurement.approvePriceChange` |
+| `procurement.advance`     | `procurement.approveAdvance`     |
+| `expense.incurred`        | `expenses.approve`               |
+| `inventory.adjustment`    | `inventory.approveAdjustment`    |
+| `production.plan`         | `approvals.decide`               |
+| `sample.approval`         | `samples.approve`                |
+| `content.publication`     | `content.publish`                |
+| `collection.publication`  | `collections.approve`            |
+| `payroll.confirmation`    | `labor.confirmPayroll`           |
+
+`approvalDecidingRoleKeys` names `SUPER_ADMIN` and `DIRECTOR` as the roles that may decide a request. Separation of duties still applies: `assertDecidable` rejects a decision made by the person who raised the request, including a Director deciding their own, so the audit trail always shows two identities. A rejection must record a reason, and a decision whose `expectedRevision` no longer matches the record is refused.
+
+The sales-order state machine consumes four of these subjects directly; see `docs/ORDER_WORKFLOW.md`.
+
 ## 2. Actor and access context
 
 Every protected service receives a server-created context, never a client-created one:
@@ -121,37 +187,39 @@ Content, system settings, roles, and some media are not owned by a business unit
 
 Broad resource read permission does not expose protected fields. Repositories/query services return an authorized projection.
 
-| Permission                | Protects                                                             |
-| ------------------------- | -------------------------------------------------------------------- |
-| `customers.readSensitive` | private contacts, notes, tax and import/export identity fields       |
-| `orders.readSellingPrice` | selling price, discount, commercial adjustment and order total       |
-| `products.readCost`       | standard/estimated product and BOM cost                              |
-| `inventory.readValue`     | inventory valuation, not physical quantity                           |
-| `procurement.readPrice`   | supplier price, advance and contract value                           |
-| `finance.readCost`        | material, labor, workshop, shipping and actual cost                  |
-| `finance.readProfit`      | margin and estimated/actual profit                                   |
-| `labor.readSalary`        | salary/rate and personally sensitive labor-cost fields               |
-| `documents.readSensitive` | financial, payroll, customs-sensitive and identity-bearing documents |
-| `audit.export`            | bulk audit extraction                                                |
+| Permission                  | Protects                                                             |
+| --------------------------- | -------------------------------------------------------------------- |
+| `customers.readSensitive`   | private contacts, notes, tax and import/export identity fields       |
+| `orders.readSellingPrice`   | selling price, discount, commercial adjustment and order total       |
+| `quotes.readSellingPrice`   | quoted unit price, discount and quote total                          |
+| `products.readSellingPrice` | catalogue and list selling price                                     |
+| `products.readCost`         | standard/estimated product and BOM cost                              |
+| `inventory.readValue`       | inventory valuation, not physical quantity                           |
+| `procurement.readPrice`     | supplier price, advance and contract value                           |
+| `finance.readCost`          | material, labor, workshop, shipping and actual cost                  |
+| `finance.readProfit`        | margin and estimated/actual profit                                   |
+| `labor.readSalary`          | salary/rate and personally sensitive labor-cost fields               |
+| `documents.readSensitive`   | financial, payroll, customs-sensitive and identity-bearing documents |
+| `audit.export`              | bulk audit extraction                                                |
 
 When a permission is absent, omit/redact the field server-side before serialization, export, document generation, chart aggregation, and search indexing.
 
 ## 6. Default role profile
 
-| Role                 | Default responsibility                                                         | Important exclusions                                                                |
-| -------------------- | ------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------- |
-| `SUPER_ADMIN`        | platform setup, users/roles, all business capabilities                         | no secret values are managed or displayed in UI                                     |
-| `DIRECTOR`           | global operational visibility, approvals, publication, consolidated reporting  | cannot bypass audit/reason/state guards                                             |
-| `ORDER_MANAGER`      | customers, quote requests, quotes, orders and delivery coordination            | no cost/profit/salary; requests but does not approve price changes by default       |
-| `PRODUCT_DESIGNER`   | products, variants, BOM drafts and sample development                          | no publication, financial cost/profit or customer-private data by default           |
-| `CONTENT_EDITOR`     | public content, news, translations, collection drafts and media                | submits review; does not publish/rollback by default                                |
-| `WAREHOUSE_MANAGER`  | physical inventory, receipt/issue/reservation/transfer/stocktake               | quantity access does not imply valuation, selling price, or profit access           |
-| `FACTORY_MANAGER`    | production planning, assignment, progress, material use and QC approval        | order/customer views are operational projections with selling values redacted       |
-| `FACTORY_ACCOUNTANT` | unit expense, labor/cost capture and unit daily reporting                      | cannot approve/post own submissions; no company-wide profit by default              |
-| `PRODUCTION_UNIT`    | work assigned to the unit, progress, usage and QC evidence                     | no selling price, profit, customer-private data, or other units                     |
-| `COMPANY_ACCOUNTANT` | company finance, AR/AP, payments, expense posting, cost/profit/payroll reports | no role administration or content publication                                       |
-| `SUPPLIER_MANAGER`   | supplier, contract, purchase order and supply coordination                     | submits price/advance changes; does not approve them by default                     |
-| `REPORT_VIEWER`      | read-only operational reports within the granted units                         | sensitive financial metrics require separate permissions; no source-record mutation |
+| Role                 | Default responsibility                                                         | Important exclusions                                                                                             |
+| -------------------- | ------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------- |
+| `SUPER_ADMIN`        | platform setup, users/roles, all business capabilities                         | no secret values are managed or displayed in UI                                                                  |
+| `DIRECTOR`           | global operational visibility, approvals, publication, consolidated reporting  | cannot bypass audit/reason/state guards                                                                          |
+| `ORDER_MANAGER`      | customers, quote requests, quotes, orders and delivery coordination            | no selling price (Rule 1), cost, profit or salary; requests but does not approve price changes or confirm orders |
+| `PRODUCT_DESIGNER`   | products, variants, BOM drafts and sample development                          | no publication, financial cost/profit or customer-private data by default                                        |
+| `CONTENT_EDITOR`     | public content, news, translations, collection drafts and media                | submits review; does not publish/rollback by default                                                             |
+| `WAREHOUSE_MANAGER`  | physical inventory, receipt/issue/reservation/transfer/stocktake               | quantity access does not imply valuation, selling price, or profit access                                        |
+| `FACTORY_MANAGER`    | production planning, assignment, progress, material use and QC approval        | order/customer views are operational projections with selling values redacted                                    |
+| `FACTORY_ACCOUNTANT` | unit expense, labor/cost capture and unit daily reporting                      | cannot approve/post own submissions; no company-wide profit by default                                           |
+| `PRODUCTION_UNIT`    | work assigned to the unit, progress, usage and QC evidence                     | no selling price, profit, customer-private data, or other units                                                  |
+| `COMPANY_ACCOUNTANT` | company finance, AR/AP, payments, expense posting, cost/profit/payroll reports | no role administration or content publication                                                                    |
+| `SUPPLIER_MANAGER`   | supplier, contract, purchase order and supply coordination                     | submits price/advance changes; does not approve them by default                                                  |
+| `REPORT_VIEWER`      | read-only operational reports within the granted units                         | sensitive financial metrics require separate permissions; no source-record mutation                              |
 
 ## 7. Authoritative default permission matrix
 
@@ -186,8 +254,13 @@ Abbreviations: `SA` Super Admin, `DIR` Director, `OM` Order Manager, `PD` Produc
 | `audit.export`                                    | SA:A, DIR:A                                                              |
 | `notifications.retry`                             | SA:A, DIR:A, OM:B, CA:A                                                  |
 | `notifications.manageDeadLetter`                  | SA:A, DIR:A                                                              |
+| `approvals.read`                                  | SA:A, DIR:A, OM:B, PD:B, CE:A, WM:B, FM:B, FA:B, PU:B, CA:A, SM:B, RV:B* |
+| `approvals.request`                               | SA:A, DIR:A, OM:B, PD:B, CE:A, WM:B, FM:B, FA:B, PU:B, CA:A, SM:B        |
+| `approvals.decide`                                | SA:A, DIR:A only                                                         |
 
 Director role management constraints are defined in section 9; `users.manageRoles` does not permit management of Super Admin grants.
+
+`approvals.read` is part of the shared operational read list in section 1.1, so every staff role can see the approval queue for its scope. `approvals.request` raises a request; `approvals.decide` releases one. `approvals.decide` is listed in `globallyScopedPermissions`, so a grant narrowed to a business unit never satisfies it, and `approvalDecidingRoleKeys` restricts deciding to `SUPER_ADMIN` and `DIRECTOR`. Holding `approvals.decide` never permits deciding a request the holder raised.
 
 ### 7.2 Content, translation, media, and collections
 
@@ -217,7 +290,7 @@ Media permission is necessary but not sufficient: reading, downloading, or delet
 | Permission                                                                        | Default grants                                                    |
 | --------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
 | `products.read`                                                                   | SA:A, DIR:A, OM:B, PD:B, CE:B, WM:B, FM:B, FA:B, PU:B, CA:A, SM:B |
-| `products.readSellingPrice`                                                       | SA:A, DIR:A, OM:B, CA:A                                           |
+| `products.readSellingPrice`                                                       | SA:A, DIR:A, CA:A — see Rule 1 in section 1.1; OM removed         |
 | `products.readCost`                                                               | SA:A, DIR:A, FM:B, FA:B, CA:A                                     |
 | `products.create`                                                                 | SA:A, DIR:A, PD:B                                                 |
 | `products.update`, `products.manageVariants`                                      | SA:A, DIR:A, PD:O                                                 |
@@ -245,25 +318,32 @@ Operations roles receive only the product specification projection unless a sens
 | `quoteRequests.read`, `quoteRequests.assign`, `quoteRequests.update`         | SA:A, DIR:A, OM:B                                                                                     |
 | `quoteRequests.close`, `quoteRequests.markSpam`                              | SA:A, DIR:A, OM:B                                                                                     |
 | `quotes.read`                                                                | SA:A, DIR:A, OM:B, CA:A                                                                               |
+| `quotes.readSellingPrice`                                                    | SA:A, DIR:A, CA:A — see Rule 1 in section 1.1; OM not granted                                         |
 | `quotes.create`, `quotes.update`, `quotes.addVersion`, `quotes.submitReview` | SA:A, DIR:A, OM:B                                                                                     |
 | `quotes.approve`, `quotes.reject`                                            | SA:A, DIR:A                                                                                           |
 | `quotes.send`, `quotes.expire`                                               | SA:A, DIR:A, OM:B                                                                                     |
 | `quotes.requestPriceAdjustment`                                              | SA:A, DIR:A, OM:B                                                                                     |
 | `quotes.approvePriceAdjustment`                                              | SA:A, DIR:A, CA:A                                                                                     |
 | `orders.read`                                                                | SA:A, DIR:A, OM:B, PD:B, WM:B, FM:B, FA:B, PU:B, CA:A, SM:B                                           |
-| `orders.readSellingPrice`                                                    | SA:A, DIR:A, OM:B, CA:A                                                                               |
-| `orders.create`, `orders.updateDraft`, `orders.confirm`                      | SA:A, DIR:A, OM:B                                                                                     |
+| `orders.readSellingPrice`                                                    | SA:A, DIR:A, CA:A — see Rule 1 in section 1.1; OM removed                                             |
+| `orders.create`, `orders.updateDraft`                                        | SA:A, DIR:A, OM:B                                                                                     |
+| `orders.submitForApproval`                                                   | SA:A, DIR:A, OM:B, CA:A; leaves the order file for the Director decision                              |
+| `orders.approve`                                                             | SA:A, DIR:A; global grant required                                                                    |
+| `orders.confirm`                                                             | SA:A, DIR:A; requires an approved `order.confirm` decision                                            |
 | `orders.assignBusinessUnits`, `orders.assignResponsibleUsers`                | SA:A, DIR:A, OM:B                                                                                     |
 | `orders.transitionOperational`                                               | SA:A, DIR:A, OM:B; production/QC/packing transitions also require the relevant operational permission |
 | `orders.requestPriceAdjustment`                                              | SA:A, DIR:A, OM:B                                                                                     |
 | `orders.approvePriceAdjustment`                                              | SA:A, DIR:A, CA:A                                                                                     |
 | `orders.requestCancel`                                                       | SA:A, DIR:A, OM:B                                                                                     |
-| `orders.cancel`                                                              | SA:A, DIR:A                                                                                           |
+| `orders.cancel`                                                              | SA:A, DIR:A; global grant required, reason required                                                   |
+| `orders.close`                                                               | SA:A, DIR:A; global grant required                                                                    |
 | `deliveries.read`                                                            | SA:A, DIR:A, OM:B, WM:B, FM:B, CA:A                                                                   |
 | `deliveries.plan`, `deliveries.update`                                       | SA:A, DIR:A, OM:B, WM:B                                                                               |
 | `deliveries.confirmDispatch`                                                 | SA:A, DIR:A, WM:B                                                                                     |
 
-`orders.read` is projection-specific. Production Unit, Factory Manager, Warehouse Manager, Product Designer, and Supplier Manager do not receive customer-private data or selling values from it.
+`orders.read` is projection-specific and is part of the shared operational read list in section 1.1, so every staff role receives it. No role receives customer-private data or selling values from it; those require `customers.readSensitive` and `orders.readSellingPrice` separately. Under Rule 1 that now excludes the Order Manager as well as Production Unit, Factory Manager, Warehouse Manager, Product Designer, and Supplier Manager.
+
+Order-lifecycle permissions split deliberately along the sales-order state machine in `docs/ORDER_WORKFLOW.md`: the Order Manager creates and submits, the Company Accountant opens the file and settles it, and the Director confirms, cancels, and closes. `orders.approve`, `orders.cancel`, and `orders.close` are listed in `globallyScopedPermissions`, so a grant narrowed to a business unit never satisfies them.
 
 ### 7.5 Supplier and procurement
 
@@ -363,6 +443,19 @@ Factory Manager cost access is limited to operational cost for assigned work/uni
 | `reports.sendDigest`                                         | SA:A, DIR:A                                                                           |
 
 Document permissions are never sufficient on their own: read, download, export, import, and generation also require access to the owning/source record. For example, generating a commercial invoice requires access to the order, selling price and relevant customer fields; generating a cost report requires `finance.readCost`.
+
+### 7.10 Known drift from the seeded role definitions
+
+Sections 7.2 through 7.9 predate `src/domains/identity/permissions.ts` and `src/domains/identity/role-definitions.ts`. The rows corrected above (7.1, 7.3, 7.4) now match the seeds. The following differences are known and not yet reconciled row by row; where they conflict, the seeds are authoritative.
+
+| Location      | Drift                                                                                                                                                                                                                                                                                                                                                                                        |
+| ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 7.2           | `content.readDraft`, `content.submitReview`, `translations.readDraft`, and `translations.submitReview` are not in `permissionCatalog`. The catalog names `content.read` and has no separate submit-review permission for content or translations.                                                                                                                                            |
+| 7.2           | `media.softDelete` is listed for CA:A and SM:O. The seeds grant neither role `media.softDelete`; both receive `media.updateOwnMetadata` only.                                                                                                                                                                                                                                                |
+| 7.2, 7.5–7.9  | The shared operational read list in section 1.1 grants several read permissions more widely than these rows show, in particular `procurement.read`, `procurement.readPrice`, `suppliers.read`, `deliveries.read`, `production.read`, `packing.read`, `shipments.read`, `documents.read`, `documents.download`, and `reports.readOperational`. This is Rule 2 working as intended.            |
+| 7.1           | `settings.read` is additionally granted to `ORDER_MANAGER` at `all` scope by the seeds.                                                                                                                                                                                                                                                                                                      |
+| 7.7           | `labor.manageRecords` (WM:B, FA:B) and `labor.confirmPayroll` (SA:A, DIR:A, CA:A) are missing from the table.                                                                                                                                                                                                                                                                                |
+| 7.4, 7.5, 7.9 | **Resolved.** Four sales-order stages named an owning role that did not hold the stage's advance permission. `COMPANY_ACCOUNTANT` was granted `orders.submitForApproval`; `materialProcurement` and `loadingScheduled` moved to `WAREHOUSE_MANAGER`; `settled` moved to `DIRECTOR`. `tests/unit/order-workflow.test.ts` asserts the invariant for every stage. See `docs/ORDER_WORKFLOW.md`. |
 
 ## 8. Resource policy rules
 

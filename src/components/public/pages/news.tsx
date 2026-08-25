@@ -30,6 +30,8 @@ export interface NewsCardView {
 }
 
 export interface NewsListingPageData {
+  /** True while the records behind this page are still placeholders. */
+  contentIsDemo: boolean;
   categoryLinks: readonly PublicPageLink[];
   categoryNavigationLabel: string;
   emptyDescription: string;
@@ -224,6 +226,8 @@ export interface NewsArticleTocItemView {
 }
 
 export interface NewsArticlePageData {
+  /** True while the records behind this page are still placeholders. */
+  contentIsDemo: boolean;
   authorName: string | null;
   backLink: PublicPageLink;
   blocks: readonly PublicContentBlock[];

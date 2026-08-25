@@ -32,6 +32,18 @@ type StaticDefinition = {
   };
 };
 
+/**
+ * Static routes whose copy is still a placeholder. These stay `noindex` until
+ * the company supplies real policy and accessibility text; every other static
+ * route now carries approved content and must be indexable, so a blanket
+ * `isDemo: true` here would quietly keep the finished site out of search.
+ */
+const PLACEHOLDER_STATIC_PAGES = new Set<DemoStaticPage>([
+  "privacy",
+  "terms",
+  "accessibility",
+]);
+
 const STATIC_DEFINITIONS: Record<DemoStaticPage, StaticDefinition> = {
   accessibility: {
     path: "/accessibility",
@@ -129,7 +141,7 @@ export async function getDemoStaticPageMetadata(
     title: copy.title,
     description: copy.description,
     siteName: dictionary.meta.siteTitle,
-    isDemo: true,
+    isDemo: PLACEHOLDER_STATIC_PAGES.has(page),
     indexable,
   });
 }
