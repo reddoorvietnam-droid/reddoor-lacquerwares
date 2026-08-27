@@ -39,6 +39,7 @@ export default async function NewArticlePage({
         tags: "",
         authorLabel: "",
         coverUrl: null,
+        blocks: [],
         translations: {},
       }}
     />

@@ -115,6 +115,12 @@ export interface ApprovalRepository {
     resourceId: string,
     subject: ApprovalSubject,
   ): Promise<ApprovalRequest | null>;
+  /** Most recent approved decision, for the state machines' `assertApproved`. */
+  findApprovedForResource(
+    resourceType: string,
+    resourceId: string,
+    subject: ApprovalSubject,
+  ): Promise<ApprovalRequest | null>;
   listPending(
     businessUnitIds: readonly string[] | null,
   ): Promise<ApprovalRequest[]>;

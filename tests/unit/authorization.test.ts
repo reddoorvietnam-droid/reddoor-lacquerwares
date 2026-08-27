@@ -131,6 +131,31 @@ describe("content permission evaluation", () => {
     expect(denied).toEqual({ allowed: false, code: "PERMISSION_DENIED" });
   });
 
+  it("widens a unit-scoped permission to every unit under a global grant", () => {
+    // A null business unit is a deliberately global grant: the role names the
+    // capability (`assignedBusinessUnits`), the grant names its reach (all).
+    expect(
+      evaluateContentPermission({
+        session,
+        snapshot: snapshot({
+          permission: "content.update",
+          scope: "assignedBusinessUnits",
+          businessUnitId: null,
+        }),
+        permission: "content.update",
+        target: {
+          resourceId: "content-1",
+          businessUnitIds: ["66c84b2d12ad6a75f9400010"],
+        },
+        requestId: "request-global-grant",
+        now,
+      }),
+    ).toMatchObject({
+      allowed: true,
+      context: { permissions: [{ scope: "all" }] },
+    });
+  });
+
   it("does not let an own grant in one unit cross into another unit", () => {
     expect(
       evaluateContentPermission({

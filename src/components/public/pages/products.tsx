@@ -499,7 +499,7 @@ export function ProductDetailPage({
         <div className="grid gap-6 lg:grid-cols-3">
           <article className="border-burgundy/12 rounded-[var(--radius-lg)] border bg-white/55 p-6 shadow-[var(--shadow-soft)] sm:p-8">
             {data.contentIsDemo ? (
-              <p className="eyebrow">{dictionary.common.demoLabel}</p>
+              <p className="eyebrow">{dictionary.common.updatingLabel}</p>
             ) : null}
             <h2 className="text-burgundy mt-4 font-serif text-3xl">
               {dictionary.product.video}
@@ -534,7 +534,7 @@ export function ProductDetailPage({
 
           <article className="border-burgundy/12 rounded-[var(--radius-lg)] border bg-white/55 p-6 shadow-[var(--shadow-soft)] sm:p-8">
             {data.contentIsDemo ? (
-              <p className="eyebrow">{dictionary.common.demoLabel}</p>
+              <p className="eyebrow">{dictionary.common.updatingLabel}</p>
             ) : null}
             <h2 className="text-burgundy mt-4 font-serif text-3xl">
               {dictionary.product.variants}
@@ -561,7 +561,7 @@ export function ProductDetailPage({
 
           <article className="border-burgundy/12 rounded-[var(--radius-lg)] border bg-white/55 p-6 shadow-[var(--shadow-soft)] sm:p-8">
             {data.contentIsDemo ? (
-              <p className="eyebrow">{dictionary.common.demoLabel}</p>
+              <p className="eyebrow">{dictionary.common.updatingLabel}</p>
             ) : null}
             <h2 className="text-burgundy mt-4 font-serif text-3xl">
               {dictionary.product.process}

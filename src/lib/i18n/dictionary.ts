@@ -1,3 +1,9 @@
+/** One titled passage of a legal document. */
+export type LegalSectionCopy = {
+  title: string;
+  body: string;
+};
+
 export type PublicDictionary = {
   meta: {
     /**
@@ -10,7 +16,8 @@ export type PublicDictionary = {
     siteDescription: string;
   };
   common: {
-    demoLabel: string;
+    /** Neutral status label for records whose media or copy is still coming. */
+    updatingLabel: string;
     skipToContent: string;
     learnMore: string;
     explore: string;
@@ -27,7 +34,7 @@ export type PublicDictionary = {
     featured: string;
     /** Play button on the poster frame of an embedded film. */
     playVideo: string;
-    replaceContentNotice: string;
+    updatingNotice: string;
   };
   nav: {
     home: string;
@@ -71,21 +78,24 @@ export type PublicDictionary = {
     accessibilityTitle: string;
   };
   about: {
-    contentStatusLabel: string;
-    contentStatusValue: string;
-    claimsStatusLabel: string;
-    claimsStatusValue: string;
-    assetStatusLabel: string;
-    assetStatusValue: string;
-    principlesDescription: string;
-    principleKicker: string;
-    verifiedStoryTitle: string;
-    verifiedStoryDescription: string;
-    approvedCapabilitiesTitle: string;
-    approvedCapabilitiesDescription: string;
-    documentedPeopleTitle: string;
-    documentedPeopleDescription: string;
-    archiveNotice: string;
+    /**
+     * The three fact cards beside the company overview. Every value here is a
+     * verifiable statement about the workshop — village, testing, markets.
+     */
+    highlightVillageLabel: string;
+    highlightVillageValue: string;
+    highlightComplianceLabel: string;
+    highlightComplianceValue: string;
+    highlightMarketsLabel: string;
+    highlightMarketsValue: string;
+    pillarKicker: string;
+    pillarsDescription: string;
+    pillarCraftTitle: string;
+    pillarCraftDescription: string;
+    pillarMaterialTitle: string;
+    pillarMaterialDescription: string;
+    pillarStandardTitle: string;
+    pillarStandardDescription: string;
   };
   product: {
     category: string;
@@ -93,6 +103,7 @@ export type PublicDictionary = {
     material: string;
     finish: string;
     dimensions: string;
+    care: string;
     leadTime: string;
     madeToOrder: string;
     story: string;
@@ -145,6 +156,7 @@ export type PublicDictionary = {
     interests: string;
     quantity: string;
     deadline: string;
+    deadlineHelp: string;
     notes: string;
     attachment: string;
     attachmentHelp: string;
@@ -154,12 +166,24 @@ export type PublicDictionary = {
     mapUnavailable: string;
     openInMaps: string;
     consent: string;
+    consentHelp: string;
     submit: string;
-    demoNotice: string;
+    /** Status banner while online submission is not yet wired up. */
+    formNoticeTitle: string;
+    formNotice: string;
     fax: string;
     officeAddress: string;
     factoryAddress: string;
     warehouseAddress: string;
+  };
+  legal: {
+    lastUpdated: string;
+    privacyIntro: string;
+    privacySections: readonly LegalSectionCopy[];
+    termsIntro: string;
+    termsSections: readonly LegalSectionCopy[];
+    accessibilityIntro: string;
+    accessibilitySections: readonly LegalSectionCopy[];
   };
   footer: {
     description: string;

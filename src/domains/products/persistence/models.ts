@@ -190,8 +190,8 @@ export const productVersionSchema = new Schema(
     showPrice: { type: Boolean, required: true, default: false },
     publicPrice: {
       type: moneySchema,
-      required: function () {
-        return this.showPrice;
+      required: function (this: { showPrice?: boolean }): boolean {
+        return Boolean(this.showPrice);
       },
     },
     relatedProductIds: {

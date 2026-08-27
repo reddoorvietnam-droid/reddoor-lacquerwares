@@ -9,7 +9,7 @@ import {
 } from "@/lib/public/demo-page-data";
 
 describe("Phase 1 public content safeguards", () => {
-  it("fills About highlights and principles with localized DEMO-safe copy", async () => {
+  it("fills About highlights and principles with localized copy", async () => {
     for (const locale of locales) {
       const dictionary = await getDictionary(locale);
       const page = await getDemoAboutHistoryPageData(locale, dictionary);
@@ -19,7 +19,8 @@ describe("Phase 1 public content safeguards", () => {
       expect(
         page.principles.every((principle) => principle.media === null),
       ).toBe(true);
-      expect(page.archiveNote).toBe(dictionary.about.archiveNotice);
+      // The timeline stands on published milestones alone; no advisory note.
+      expect(page.archiveNote).toBeNull();
     }
   });
 

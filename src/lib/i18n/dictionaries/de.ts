@@ -3,12 +3,12 @@ import type { PublicDictionary } from "../dictionary";
 const dictionary = {
   meta: {
     siteName: "Red Door",
-    siteTitle: "Red Door — Handgefertigte Lackkunst aus Vietnam",
+    siteTitle: "Red Door — Lackkunst aus Ha Thai, Vietnam",
     siteDescription:
-      "Red Door fertigt Lackwaren in Hanoi: Tabletts, Schalen, Gefäße, Schatullen und Dekorobjekte, in Schichten lackiert, nass geschliffen und von Hand poliert. Weltweiter Export.",
+      "Red Door fertigt handgemachte Lackwaren im Handwerksdorf Ha Thai bei Hanoi: Tabletts, Schatullen, Untersetzer und Dekorobjekte, in Schichten lackiert, nass geschliffen und von Hand poliert. SGS-geprüft nach europäischen Standards, exportiert in die USA und nach Europa.",
   },
   common: {
-    demoLabel: "DEMO-Inhalt",
+    updatingLabel: "Wird aktualisiert",
     skipToContent: "Zum Hauptinhalt springen",
     learnMore: "Mehr erfahren",
     explore: "Entdecken",
@@ -24,8 +24,8 @@ const dictionary = {
     readStory: "Geschichte lesen",
     featured: "Im Fokus",
     playVideo: "Video abspielen",
-    replaceContentNotice:
-      "DEMO-Inhalt — durch vom Unternehmen freigegebene Texte und Medien ersetzen.",
+    updatingNotice:
+      "Dieser Abschnitt wird derzeit von der Werkstatt fertiggestellt.",
   },
   nav: {
     home: "Startseite",
@@ -37,66 +37,64 @@ const dictionary = {
     contact: "Kontakt",
   },
   home: {
-    eyebrow: "RED DOOR — LEBENDIGER LACK",
+    eyebrow: "RED DOOR — LACK AUS HA THAI",
     title: "Eine lebendige Oberfläche,",
     titleAccent: "von Hand geformt",
     craftTitle: "Eine Materialgeschichte in Schichten",
     craftBody:
-      "Ein DEMO-Redaktionstext als Platz für freigegebene Werkstattbilder, Prozessnotizen und Produktgeschichten.",
-    historyTitle: "Unternehmensgeschichte",
+      "Vom ersten grundierten Kern bis zur letzten Schicht durchläuft jedes Red-Door-Stück Dutzende Arbeitsschritte und Wochen natürlicher Trocknung. Wir lackieren, schleifen nass und lackieren erneut — bis die Oberfläche die Tiefe stillen Wassers trägt.",
+    historyTitle: "Der Weg der Werkstatt",
     featuredTitle: "Ausgewählte Produkte",
     collectionsTitle: "Kollektionen",
     processTitle: "Das Lackverfahren",
     newsTitle: "Werkstattnotizen",
     contactTitle: "Ein Gespräch beginnen",
     contactBody:
-      "Beschreiben Sie, wonach Sie suchen. Das endgültige Formular leitet Ihre Anfrage an das zuständige Team weiter.",
+      "Sagen Sie uns, was Sie suchen — eine verfügbare Kollektion, einen eigenen Entwurf oder einen Exportauftrag. Das Red-Door-Team antwortet so schnell wie möglich.",
   },
   pages: {
     aboutTitle: "Über uns",
     aboutIntro:
-      "Ein DEMO-Rahmen für die geprüfte Unternehmensgeschichte sowie bestätigte Angaben zu Werten, Menschen und Werkstatt.",
+      "Red Door ist eine Lackwerkstatt im Handwerksdorf Ha Thai bei Hanoi, wo das Handwerk seit Generationen weitergegeben wird. Wir verbinden traditionelle Technik mit zeitgenössischem Design und bringen vietnamesische Lackkunst in Wohnräume auf der ganzen Welt.",
     productsTitle: "Produkte",
     productsIntro:
-      "Entdecken Sie DEMO-Produktdatensätze, die durch freigegebene Katalogdaten ersetzt werden.",
+      "Tabletts, Schatullen, Untersetzer, Gefäße und Dekorobjekte — jedes Stück entsteht von Hand in der Werkstatt Ha Thai, in Schichten lackiert, nass geschliffen und von Hand poliert.",
     collectionsTitle: "Kollektionen",
     collectionsIntro:
-      "Öffnen Sie DEMO-Kunstbuchcover, während freigegebene Jahre, PDFs und Kollektionsgeschichten vorbereitet werden.",
+      "Jedes Jahr stellt Red Door eine neue Kollektion vor — Ergebnis der fortlaufenden Arbeit der Werkstatt an Material, Farbe und Oberfläche. Öffnen Sie jeden Katalog für das gesamte Sortiment.",
     processTitle: "Lackverfahren",
     processIntro:
-      "Eine DEMO-Abfolge, die durch geprüfte Materialien, Arbeitsschritte und Werkstattpraktiken des Unternehmens ersetzt werden muss.",
+      "Ein fertiges Lackstück durchläuft Dutzende Arbeitsschritte: Kernaufbau, Grundierung, Lackschichten, Nassschliff und Politur. Keiner davon lässt sich beschleunigen.",
     newsTitle: "Neuigkeiten und Geschichten",
     newsIntro:
-      "DEMO-Beiträge schaffen die Struktur für künftige freigegebene Mitteilungen und Geschichten.",
+      "Notizen aus der Werkstatt Ha Thai: neue Kollektionen, internationale Messen und die Geschichten hinter jeder lackierten Oberfläche.",
     contactTitle: "Kontakt und Angebotsanfrage",
     contactIntro:
-      "Schildern Sie Ihr Anliegen. In der Entwicklung angezeigte Kontaktdaten sind Platzhalter, sofern sie nicht als geprüft gekennzeichnet sind.",
+      "Kontaktieren Sie Red Door für einen Katalog, ein Angebot oder ein Gespräch über einen Sonderauftrag. Wir arbeiten direkt mit Händlern, Designern und Marken weltweit.",
     searchTitle: "Suchen",
     privacyTitle: "Datenschutzerklärung",
     termsTitle: "Nutzungsbedingungen",
     accessibilityTitle: "Erklärung zur Barrierefreiheit",
   },
   about: {
-    contentStatusLabel: "Inhaltsstatus",
-    contentStatusValue: "DEMO — Freigabe durch das Unternehmen ausstehend",
-    claimsStatusLabel: "Tatsachenangaben",
-    claimsStatusValue: "Keine Veröffentlichung ohne Prüfung",
-    assetStatusLabel: "Markenmaterial",
-    assetStatusValue: "Freigegebene Fotografie ausstehend",
-    principlesDescription:
-      "Diese DEMO-Karten benennen die Nachweise, die vor der Veröffentlichung von Unternehmensangaben erforderlich sind.",
-    principleKicker: "Redaktionelle Absicherung",
-    verifiedStoryTitle: "Eine geprüfte Unternehmensgeschichte",
-    verifiedStoryDescription:
-      "Gründungsdaten, Meilensteine, Kunden, Auszeichnungen und Zertifizierungen bleiben Platzhalter, bis eine befugte Quelle sie bestätigt.",
-    approvedCapabilitiesTitle: "Freigegebene Leistungsangaben",
-    approvedCapabilitiesDescription:
-      "Aussagen zu Materialien, Techniken, Kapazitäten und Lieferzeiten erscheinen erst nach Bereitstellung und Freigabe durch das Unternehmen.",
-    documentedPeopleTitle: "Dokumentierte Menschen und Werkstatt",
-    documentedPeopleDescription:
-      "Profile, Werkstattbilder, Namen und Rollen benötigen vor der Veröffentlichung Einwilligungen und freigegebenes Quellenmaterial.",
-    archiveNotice:
-      "Alle Kapitel der Zeitleiste sind als DEMO gekennzeichnet und verzichten auf ungeprüfte Jahre, Auszeichnungen, Kunden oder Zertifizierungen.",
+    highlightVillageLabel: "Handwerksdorf",
+    highlightVillageValue: "Ha Thai, Hanoi",
+    highlightComplianceLabel: "Prüfung",
+    highlightComplianceValue: "SGS — EU-Standards",
+    highlightMarketsLabel: "Märkte",
+    highlightMarketsValue: "USA und Europa",
+    pillarKicker: "Grundwerte",
+    pillarsDescription:
+      "Drei Dinge, die sich bei keinem Stück ändern, das die Red-Door-Werkstatt verlässt.",
+    pillarCraftTitle: "Vollständig handgemacht",
+    pillarCraftDescription:
+      "Jedes Stück entsteht von Hand: Schicht um Schicht Lack, Nassschliff zwischen den Lagen, dann Politur bis zur gewünschten Tiefe. Keine zwei Stücke sind identisch.",
+    pillarMaterialTitle: "Von der Natur inspiriert",
+    pillarMaterialDescription:
+      "Die Natur lebt in den Farben, den Materialien und der Art, wie jede Oberfläche das Licht fängt. Wir wollen langlebige, nützliche Objekte, die mit den Jahren schöner werden.",
+    pillarStandardTitle: "Internationale Standards",
+    pillarStandardDescription:
+      "Red-Door-Produkte werden von SGS nach den europäischen Vorschriften zur Chemikalien- und Materialsicherheit geprüft — bereit für die anspruchsvollsten Märkte.",
   },
   product: {
     category: "Kategorie",
@@ -104,6 +102,7 @@ const dictionary = {
     material: "Material",
     finish: "Oberfläche",
     dimensions: "Abmessungen",
+    care: "Pflege",
     leadTime: "Produktionszeit",
     madeToOrder: "Auf Bestellung gefertigt",
     story: "Produktgeschichte",
@@ -119,22 +118,19 @@ const dictionary = {
     zoomImage: "Bild in voller Größe ansehen",
     zoomUnavailable: "Bild in voller Größe steht noch aus",
     video: "Produktvideo",
-    videoUnavailable:
-      "In dieser DEMO ist kein freigegebenes Produktvideo verfügbar.",
+    videoUnavailable: "Das Video zu diesem Produkt entsteht gerade.",
     variants: "Varianten",
-    variantsUnavailable:
-      "In dieser DEMO sind keine freigegebenen Varianten verfügbar.",
+    variantsUnavailable: "Dieses Produkt hat derzeit keine weiteren Varianten.",
     process: "Herstellungsprozess",
     processUnavailable:
-      "In dieser DEMO sind keine freigegebenen Herstellungsnotizen verfügbar.",
+      "Die Herstellungsnotizen zu diesem Produkt werden gerade verfasst.",
     noPrice: "Preis auf Anfrage",
   },
   collection: {
     openBook: "Kunstbuch öffnen",
     viewProducts: "Produkte ansehen",
     download: "PDF herunterladen",
-    downloadDisabled:
-      "Für diese DEMO-Kollektion ist kein PDF-Download verfügbar",
+    downloadDisabled: "Das PDF dieser Kollektion erscheint in Kürze",
   },
   news: {
     published: "Veröffentlicht",
@@ -160,10 +156,12 @@ const dictionary = {
     interests: "Produkte oder Kollektionen von Interesse",
     quantity: "Geschätzte Menge",
     deadline: "Gewünschter Termin",
+    deadlineHelp:
+      "Nennen Sie uns Ihren Wunschtermin, damit die Werkstatt die Produktion planen kann.",
     notes: "Anmerkungen",
     attachment: "Optionaler Anhang",
     attachmentHelp:
-      "Nur DEMO — Dateiauswahl und Upload sind deaktiviert. Nach Aktivierung werden PDF, JPG, PNG oder WebP bis 10 MB akzeptiert; bitte keine sensiblen personenbezogenen Daten anhängen.",
+      "PDF, JPG, PNG oder WebP bis 10 MB. Bitte keine sensiblen personenbezogenen Daten anhängen.",
     mapTitle: "Karte",
     mapDescription:
       "Die Karte lädt erst auf Ihren Wunsch, damit die Seite von sich aus keine Drittanbieter-Anfrage stellt.",
@@ -173,23 +171,78 @@ const dictionary = {
     openInMaps: "In Google Maps öffnen",
     consent:
       "Ich stimme zu, dass meine Angaben zur Beantwortung dieser Anfrage verwendet werden.",
+    consentHelp:
+      "Ihre Angaben werden ausschließlich zur Beantwortung dieser Anfrage verwendet.",
     submit: "Anfrage senden",
-    demoNotice:
-      "DEMO-Formular — Speicherung und Benachrichtigungen werden in einer späteren Phase aktiviert.",
+    formNoticeTitle: "Das Online-Formular wird gerade fertiggestellt",
+    formNotice:
+      "Bitte senden Sie Ihre Anfrage in der Zwischenzeit direkt per E-Mail oder Telefon — wir antworten innerhalb von ein bis zwei Werktagen.",
     fax: "Fax",
     officeAddress: "Büro",
     factoryAddress: "Werkstatt",
     warehouseAddress: "Lager",
   },
+  legal: {
+    lastUpdated: "Stand: August 2026",
+    privacyIntro:
+      "Red Door respektiert die Privatsphäre seiner Besucher. Diese Erklärung beschreibt, welche Informationen wir bei der Nutzung von lacquerware.vn erheben und wie wir sie verwenden.",
+    privacySections: [
+      {
+        title: "Welche Daten wir erheben",
+        body: "Wir erheben nur die Informationen, die Sie uns bei einer Kontaktaufnahme oder Angebotsanfrage selbst mitteilen: Name, Unternehmen, E-Mail-Adresse, Telefonnummer und den Inhalt Ihrer Anfrage. Die Website verwendet keine Werbe-Cookies und keine Tracker von Drittanbietern.",
+      },
+      {
+        title: "Wie wir sie verwenden",
+        body: "Ihre Kontaktdaten dienen ausschließlich der Beantwortung Ihrer Anfrage und der Abstimmung Ihres Auftrags. Wir verkaufen, vermieten oder teilen Ihre Daten nicht zu Marketingzwecken mit Dritten.",
+      },
+      {
+        title: "Ihre Rechte",
+        body: "Wenn Sie übermittelte Informationen einsehen, berichtigen oder löschen möchten, schreiben Sie an sales@reddoor.vn — wir kümmern uns umgehend darum.",
+      },
+    ],
+    termsIntro:
+      "Die folgenden Bedingungen gelten für den Zugriff auf und die Nutzung von lacquerware.vn, betrieben von der RED DOOR Co., Ltd.",
+    termsSections: [
+      {
+        title: "Geistiges Eigentum",
+        body: "Sämtliche Bilder, Kataloge, Texte und Entwürfe dieser Website gehören der RED DOOR Co., Ltd. Bitte vervielfältigen oder verwenden Sie sie nicht kommerziell ohne schriftliche Zustimmung.",
+      },
+      {
+        title: "Produktangaben",
+        body: "Da Lackwaren von Hand gefertigt werden, kann jedes Stück in Farbe und Oberflächenzeichnung leicht von den Fotografien abweichen — eine natürliche Eigenschaft des Handwerks, kein Mangel. Spezifikationen, Preise und Lieferzeiten werden im offiziellen Angebot bestätigt.",
+      },
+      {
+        title: "Angebote und Bestellungen",
+        body: "Die Inhalte dieser Website dienen der Information und stellen kein bindendes Angebot dar. Aufträge kommen durch direkte Abstimmung und schriftliche Auftragsbestätigung zustande.",
+      },
+    ],
+    accessibilityIntro:
+      "Red Door möchte, dass alle Besucher diese Website bequem nutzen können — auch mit Screenreader oder Tastatur.",
+    accessibilitySections: [
+      {
+        title: "Unser Anspruch",
+        body: "Die Website folgt den WCAG-2.1-Richtlinien der Stufe AA: klare Überschriftenstruktur, ausreichende Kontraste, Tastaturnavigation und Alternativtexte für Bilder.",
+      },
+      {
+        title: "Bekannte Einschränkungen",
+        body: "Einzelne Inhalte wie die blätterbaren Kataloge sind für assistive Technologien noch nicht vollständig optimiert. Wir verbessern dieses Erlebnis fortlaufend.",
+      },
+      {
+        title: "Rückmeldungen",
+        body: "Wenn Sie etwas auf dieser Website behindert, schreiben Sie uns an sales@reddoor.vn — wir beheben es.",
+      },
+    ],
+  },
   footer: {
     description:
-      "Ein DEMO-Markenerlebnis für Red Door Vietnam. Vor dem Start sind alle Platzhaltertexte und Kontaktdaten zu ersetzen.",
+      "Red Door fertigt handgemachte Lackwaren im Dorf Ha Thai bei Hanoi — jede Schicht wird von Hand aufgetragen, nass geschliffen und poliert, für Wohnräume auf der ganzen Welt.",
     navigate: "Navigation",
     legal: "Rechtliches",
     privacy: "Datenschutz",
     terms: "Bedingungen",
     accessibility: "Barrierefreiheit",
-    copyright: "© Red Door Vietnam. Alle Rechte vorbehalten.",
+    copyright:
+      "© RED DOOR Co., Ltd — Handwerksdorf Ha Thai, Hanoi. Alle Rechte vorbehalten.",
   },
 } satisfies PublicDictionary;
 

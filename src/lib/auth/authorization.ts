@@ -92,10 +92,20 @@ function candidatesForPermission(
       return [];
     }
 
+    // The narrower of grant breadth and role ceiling wins in both directions:
+    // a unit-bound grant narrows a role's `all` to that unit, and a
+    // deliberately global grant (null business unit, issued only by a role
+    // manager) widens `assignedBusinessUnits` to every unit — the role names
+    // the capability, the grant names its reach. Globally scoped permissions
+    // (`requiresGlobalGrant`) are unaffected: they are never seeded below
+    // `all`, and `scopeCoversTarget` still demands the explicit global grant.
     const scope =
       grant.businessUnitId && rolePermission.scope === "all"
         ? "assignedBusinessUnits"
-        : rolePermission.scope;
+        : !grant.businessUnitId &&
+            rolePermission.scope === "assignedBusinessUnits"
+          ? "all"
+          : rolePermission.scope;
 
     return [
       {
@@ -109,6 +119,36 @@ function candidatesForPermission(
 
 function unique(values: readonly string[]): string[] {
   return [...new Set(values)];
+}
+
+/**
+ * The business units an actor's active grants attach to a permission, plus
+ * whether any grant satisfies it globally.
+ *
+ * List reads follow the RBAC convention that the repository narrows the query
+ * before it runs. A caller uses this to name the units it is about to read and
+ * passes them as the guard target, so the evaluator judges exactly the set the
+ * repository will filter by, and the audit trail records it.
+ */
+export function grantCoverageForPermission(
+  snapshot: AuthorizationSnapshot,
+  permission: Permission,
+  now: Date,
+): { global: boolean; businessUnitIds: readonly string[] } {
+  const candidates = candidatesForPermission(snapshot, permission, now);
+
+  return {
+    global: candidates.some(
+      ({ scope, businessUnitId }) => scope === "all" && businessUnitId === null,
+    ),
+    businessUnitIds: unique(
+      candidates.flatMap(({ scope, businessUnitId }) =>
+        scope === "assignedBusinessUnits" && businessUnitId
+          ? [businessUnitId]
+          : [],
+      ),
+    ),
+  };
 }
 
 function effectivePermission(

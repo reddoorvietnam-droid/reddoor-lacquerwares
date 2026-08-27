@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { AccessibilityPage } from "@/components/public/pages";
 import { isLocale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
-import { getDemoLegalDocumentPageData } from "@/lib/public/demo-page-data";
+import { getLegalDocumentPageData } from "@/lib/public/demo-page-data";
 import { getDemoStaticPageMetadata } from "@/lib/seo/route-metadata";
 
 type AccessibilityRouteProps = {
@@ -25,7 +25,7 @@ export default async function AccessibilityRoute({
   }
 
   const dictionary = await getDictionary(locale);
-  const data = getDemoLegalDocumentPageData(dictionary);
+  const data = getLegalDocumentPageData(locale, dictionary, "accessibility");
 
-  return <AccessibilityPage data={data} dictionary={dictionary} isDemo />;
+  return <AccessibilityPage data={data} dictionary={dictionary} isDemo={false} />;
 }

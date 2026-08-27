@@ -71,9 +71,10 @@ own  <  assignedBusinessUnits  <  all
 | `assignedBusinessUnits` | Bản ghi thuộc đơn vị kinh doanh mà người đó được cấp grant. Tạo mới: mọi đơn vị yêu cầu phải được phủ. Sửa nhiều đơn vị: mọi đơn vị bị ảnh hưởng phải được phủ. Chuyển kho liên đơn vị: cả nơi đi và nơi đến đều phải được phủ. Danh sách/đọc: repository áp bộ lọc đơn vị **trước** khi truy vấn; bộ lọc từ client chỉ được thu hẹp, không được mở rộng. |
 | `all`                   | Không giới hạn theo đơn vị kinh doanh. `all` **không** vượt qua được quyền trường nhạy cảm, luồng trạng thái, quy tắc phê duyệt hay yêu cầu ghi audit.                                                                                                                                                                                                    |
 
-Hai cơ chế hạ cấp quan trọng, cài trong `authorization.ts`:
+Ba cơ chế điều chỉnh quan trọng, cài trong `authorization.ts` — vai trò định nghĩa **năng lực**, grant định nghĩa **độ phủ**, và bên hẹp hơn thắng theo cả hai chiều:
 
 - Nếu định nghĩa vai trò cho phạm vi `all` nhưng grant lại gắn với một đơn vị kinh doanh cụ thể, phạm vi hiệu lực **bị hạ xuống** `assignedBusinessUnits`. Grant hẹp luôn thắng.
+- Ngược lại, một grant toàn cục có chủ đích (`businessUnitId = null`) trên quyền phạm vi `assignedBusinessUnits` phủ **mọi** đơn vị — "đơn vị được cấp" của một grant toàn cục là tất cả. (Bổ sung 2026-08-27, chốt bằng test trong `tests/unit/authorization.test.ts`.)
 - Các quyền trong danh sách "bắt buộc toàn cục" chỉ được thỏa mãn bởi grant `all` với `businessUnitId = null`. Grant gắn đơn vị không bao giờ đủ, kể cả khi vai trò có tên quyền đó.
 
 ### Quyền bắt buộc phạm vi toàn cục

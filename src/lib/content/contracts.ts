@@ -96,11 +96,28 @@ export const imageBlockSchema = z
   .object({
     blockId: blockIdSchema,
     type: z.literal("image"),
-    mediaId: objectIdStringSchema,
+    /** Media-library reference, once that pipeline exists. */
+    mediaId: objectIdStringSchema.optional(),
+    /**
+     * Direct CDN delivery URL, restricted to the one host the site serves
+     * photographs from. Minted server-side after a signed upload; the pair
+     * with `mediaId` is one-of.
+     */
+    src: z
+      .string()
+      .trim()
+      .regex(/^https:\/\/res\.cloudinary\.com\/[a-z0-9_-]+\/image\/upload\//)
+      .max(2_048)
+      .optional(),
+    width: z.number().int().min(1).max(20_000).optional(),
+    height: z.number().int().min(1).max(20_000).optional(),
     alt: z.string().trim().min(1).max(300),
     caption: z.string().trim().min(1).max(500).optional(),
   })
-  .strict();
+  .strict()
+  .refine((value) => value.mediaId !== undefined || value.src !== undefined, {
+    message: "An image block needs a media reference or a delivery URL.",
+  });
 
 export const quoteBlockSchema = z
   .object({
@@ -129,6 +146,22 @@ export const callToActionBlockSchema = z
   })
   .strict();
 
+export const dividerBlockSchema = z
+  .object({
+    blockId: blockIdSchema,
+    type: z.literal("divider"),
+  })
+  .strict();
+
+/** An embedded page — today that means a YouTube film. */
+export const embedBlockSchema = z
+  .object({
+    blockId: blockIdSchema,
+    type: z.literal("embed"),
+    href: publicUrlSchema,
+  })
+  .strict();
+
 export const structuredBlockSchema = z.discriminatedUnion("type", [
   headingBlockSchema,
   paragraphBlockSchema,
@@ -137,6 +170,8 @@ export const structuredBlockSchema = z.discriminatedUnion("type", [
   quoteBlockSchema,
   listBlockSchema,
   callToActionBlockSchema,
+  dividerBlockSchema,
+  embedBlockSchema,
 ]);
 
 export const structuredBlocksSchema = z.array(structuredBlockSchema).max(250);

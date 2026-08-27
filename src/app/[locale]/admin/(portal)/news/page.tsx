@@ -2,6 +2,8 @@ import type { Route } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { deleteArticleAction } from "@/app/[locale]/admin/(portal)/news/actions";
+import { RowDeleteButton } from "@/components/admin/row-delete-button";
 import { splitCategoryFromTags } from "@/domains/news/categories";
 import { articleCommandService } from "@/domains/news/runtime";
 import { ContentAccessDeniedError, requireContentPermission } from "@/lib/auth";
@@ -23,6 +25,9 @@ const copy = {
     colStatus: "Trạng thái",
     colUpdated: "Cập nhật",
     edit: "Biên tập",
+    remove: "Xóa",
+    removeConfirm: "Chắc chắn?",
+    removing: "Đang xóa…",
     published: "Đã xuất bản",
     draft: "Bản nháp",
     inReview: "Chờ duyệt",
@@ -41,6 +46,9 @@ const copy = {
     colStatus: "Status",
     colUpdated: "Updated",
     edit: "Edit",
+    remove: "Delete",
+    removeConfirm: "Sure?",
+    removing: "Deleting…",
     published: "Published",
     draft: "Draft",
     inReview: "In review",
@@ -160,6 +168,14 @@ export default async function AdminNewsPage({
                   >
                     {text.edit}
                   </Link>
+                  <RowDeleteButton
+                    label={text.remove}
+                    confirmLabel={text.removeConfirm}
+                    pendingLabel={text.removing}
+                    action={deleteArticleAction.bind(null, {
+                      articleId: item.article.id,
+                    })}
+                  />
                 </li>
               );
             })}

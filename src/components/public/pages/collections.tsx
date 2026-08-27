@@ -55,15 +55,15 @@ function CollectionCard({
 }) {
   const body = (
     <>
-      <div className="bg-lacquer relative overflow-hidden rounded-[var(--radius-md)] p-[9%] shadow-[0_1rem_2.5rem_rgb(61_13_16/0.16)] transition-all duration-[var(--duration-medium)] ease-[var(--ease-brand)] group-hover:-translate-y-1.5 group-hover:shadow-[0_1.75rem_3.5rem_rgb(61_13_16/0.26)]">
-        <div
-          aria-hidden="true"
-          className="absolute inset-0 bg-[radial-gradient(circle_at_18%_12%,rgb(255_255_255/0.14),transparent_42%),radial-gradient(circle_at_85%_90%,rgb(0_0_0/0.22),transparent_48%)]"
-        />
+      {/*
+        The cover IS the card: full-bleed, nothing framing it. The catalogue
+        artwork carries its own composition.
+      */}
+      <div className="relative overflow-hidden rounded-[var(--radius-md)] shadow-[0_1rem_2.5rem_rgb(61_13_16/0.18)] transition-all duration-[var(--duration-medium)] ease-[var(--ease-brand)] group-hover:-translate-y-1.5 group-hover:shadow-[0_1.75rem_3.5rem_rgb(61_13_16/0.28)]">
         <MediaFrame
           media={collection.cover}
           sizes="(min-width: 1280px) 28vw, (min-width: 640px) 45vw, 90vw"
-          className="relative aspect-3/4 rounded-[2px] border-0 shadow-[0_0.5rem_1.5rem_rgb(0_0_0/0.35)]"
+          className="aspect-3/4 rounded-none border-0"
         />
       </div>
       <div className="mt-5 flex items-baseline justify-between gap-4 px-1">

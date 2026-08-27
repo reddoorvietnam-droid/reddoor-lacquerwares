@@ -7,7 +7,11 @@ import {
   AdminSetupRequired,
   AdminShell,
 } from "@/components/admin";
-import { ContentAccessDeniedError, requireContentPermission } from "@/lib/auth";
+import {
+  ContentAccessDeniedError,
+  requireContentPermission,
+  requireListAccess,
+} from "@/lib/auth";
 import { inspectAuthEnv, inspectMongoEnv } from "@/lib/env/server";
 import { isLocale } from "@/lib/i18n/config";
 import { resolveAdminLocale } from "@/lib/i18n/admin";
@@ -36,8 +40,22 @@ export default async function ProtectedAdminLayout({
     );
   }
 
+  // The portal admits anyone holding at least one admin-facing read: content
+  // staff enter through `content.read`, operational roles through their
+  // shared operational reads. Each page still guards its own permission.
   try {
-    await requireContentPermission("content.read");
+    try {
+      await requireContentPermission("content.read");
+    } catch (error) {
+      if (
+        error instanceof ContentAccessDeniedError &&
+        error.code === "PERMISSION_DENIED"
+      ) {
+        await requireListAccess("orders.read");
+      } else {
+        throw error;
+      }
+    }
   } catch (error) {
     if (!(error instanceof ContentAccessDeniedError)) throw error;
 

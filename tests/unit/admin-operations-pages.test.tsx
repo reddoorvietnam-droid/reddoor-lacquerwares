@@ -23,11 +23,15 @@ import {
 async function render(
   page: (props: {
     params: Promise<{ locale: string }>;
+    searchParams: Promise<Record<string, never>>;
   }) => Promise<React.JSX.Element>,
   locale: string,
 ): Promise<string> {
   return renderToStaticMarkup(
-    await page({ params: Promise.resolve({ locale }) }),
+    await page({
+      params: Promise.resolve({ locale }),
+      searchParams: Promise.resolve({}),
+    }),
   );
 }
 

@@ -174,6 +174,7 @@ The resource intersects a unit from one or more active grants. Rules differ by o
 - List/read: the repository applies a unit predicate before querying. A client filter may narrow but never widen it.
 - Cross-unit inventory transfer: both source and destination units must be covered, even when the actor has `inventory.transferCrossUnit`.
 - Aggregated financial data spanning units requires coverage of every included unit or an `all` grant.
+- A deliberately global grant (null business unit, issued only by a role manager) covers every unit: the role names the capability, the grant names its reach. Encoded in `candidatesForPermission` and pinned by `tests/unit/authorization.test.ts`.
 
 ### `all`
 

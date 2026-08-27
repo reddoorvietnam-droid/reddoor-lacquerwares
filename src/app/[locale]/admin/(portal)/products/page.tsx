@@ -2,6 +2,8 @@ import type { Route } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { deleteProductAction } from "@/app/[locale]/admin/(portal)/products/actions";
+import { RowDeleteButton } from "@/components/admin/row-delete-button";
 import { productCommandService } from "@/domains/products/runtime";
 import { ContentAccessDeniedError, requireContentPermission } from "@/lib/auth";
 import { findImagesForEntities } from "@/lib/media/entity-images";
@@ -21,6 +23,9 @@ const copy = {
     create: "Thêm sản phẩm",
     empty: "Chưa có sản phẩm nào.",
     edit: "Biên tập",
+    remove: "Xóa",
+    removeConfirm: "Chắc chắn?",
+    removing: "Đang xóa…",
     published: "Đã xuất bản",
     draft: "Bản nháp",
     inReview: "Chờ duyệt",
@@ -36,6 +41,9 @@ const copy = {
     create: "Add product",
     empty: "No products yet.",
     edit: "Edit",
+    remove: "Delete",
+    removeConfirm: "Sure?",
+    removing: "Deleting…",
     published: "Published",
     draft: "Draft",
     inReview: "In review",
@@ -190,6 +198,14 @@ export default async function AdminProductsPage({
                   >
                     {text.edit}
                   </Link>
+                  <RowDeleteButton
+                    label={text.remove}
+                    confirmLabel={text.removeConfirm}
+                    pendingLabel={text.removing}
+                    action={deleteProductAction.bind(null, {
+                      productId: item.product.id,
+                    })}
+                  />
                 </li>
               );
             })}

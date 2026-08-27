@@ -27,7 +27,58 @@ export interface PublicNewsParagraph {
   readonly text: string;
 }
 
-export type PublicNewsContentBlock = PublicNewsParagraph;
+export interface PublicNewsHeading {
+  readonly type: "heading";
+  readonly level: 2 | 3;
+  readonly text: string;
+}
+
+export interface PublicNewsQuote {
+  readonly type: "quote";
+  readonly text: string;
+  readonly attribution: string | null;
+}
+
+export interface PublicNewsList {
+  readonly type: "list";
+  readonly style: "ordered" | "unordered";
+  readonly items: readonly string[];
+}
+
+export interface PublicNewsInlineImage {
+  readonly type: "image";
+  readonly src: string;
+  readonly alt: string;
+  readonly caption: string | null;
+  readonly width: number;
+  readonly height: number;
+}
+
+export interface PublicNewsDivider {
+  readonly type: "divider";
+}
+
+export interface PublicNewsEmbed {
+  readonly type: "embed";
+  /** YouTube video id, extracted from the stored link. */
+  readonly youtubeId: string;
+}
+
+export interface PublicNewsCallToAction {
+  readonly type: "callToAction";
+  readonly label: string;
+  readonly href: string;
+}
+
+export type PublicNewsContentBlock =
+  | PublicNewsParagraph
+  | PublicNewsHeading
+  | PublicNewsQuote
+  | PublicNewsList
+  | PublicNewsInlineImage
+  | PublicNewsDivider
+  | PublicNewsEmbed
+  | PublicNewsCallToAction;
 
 export interface PublicNewsArticle {
   readonly id: string;

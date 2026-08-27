@@ -11,7 +11,7 @@ import {
 import { articleCommandService } from "@/domains/news/runtime";
 import type { ArticleTranslationDto } from "@/domains/news/persistence/dto";
 import { ContentAccessDeniedError, requireContentPermission } from "@/lib/auth";
-import { blocksToEditorText } from "@/lib/content/editor-text";
+import { storedToEditorBlocks } from "@/lib/content/article-editor-blocks";
 import { findImagesForEntities } from "@/lib/media/entity-images";
 import { CloudinaryMediaStorage } from "@/lib/media/cloudinary-storage";
 import { isLocale } from "@/lib/i18n/config";
@@ -26,7 +26,6 @@ function toEditorTranslation(
     title: translation.title,
     slug: translation.slug,
     summary: translation.summary,
-    bodyText: blocksToEditorText(translation.body),
     seoTitle: translation.seo.title ?? "",
     seoDescription: translation.seo.description ?? "",
     noIndex: translation.seo.noIndex,
@@ -67,6 +66,12 @@ export default async function EditArticlePage({
     aggregate.article.tagKeys ?? [],
   );
 
+  const viBody =
+    bundle?.translations.find(({ locale: l }) => l === "vi")?.body ?? [];
+  const enBody =
+    bundle?.translations.find(({ locale: l }) => l === "en")?.body ?? [];
+  const editorBlocks = storedToEditorBlocks(viBody, enBody);
+
   const imagesByEntity = await findImagesForEntities("article", [articleId]);
   const cover = imagesByEntity.get(articleId)?.[0] ?? null;
   let coverUrl: string | null = null;
@@ -97,6 +102,7 @@ export default async function EditArticlePage({
         tags: tags.join(", "),
         authorLabel: aggregate.article.authorLabel ?? "",
         coverUrl,
+        blocks: editorBlocks,
         translations,
       }}
     />

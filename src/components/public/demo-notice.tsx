@@ -18,9 +18,9 @@ export function DemoNotice({ common, className }: DemoNoticeProps) {
       role="note"
     >
       <Badge variant="gold" className="shrink-0">
-        {common.demoLabel}
+        {common.updatingLabel}
       </Badge>
-      <p className="text-sm leading-6">{common.replaceContentNotice}</p>
+      <p className="text-sm leading-6">{common.updatingNotice}</p>
     </aside>
   );
 }

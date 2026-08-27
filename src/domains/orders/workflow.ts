@@ -360,6 +360,19 @@ export function assertTransition(context: OrderTransitionContext): void {
   }
 }
 
+/**
+ * Whether a move must record a reason, mirroring the branch inside
+ * `assertTransition` so a form can require the field before submitting.
+ */
+export function transitionNeedsReason(
+  from: OrderStage,
+  to: OrderStage,
+): boolean {
+  return (
+    to === "cancelled" || (from === "qualityControl" && to === "inProduction")
+  );
+}
+
 /** Ordered stages for progress display, excluding the terminal branches. */
 export const orderProgressStages = orderStages.filter(
   (stage) => !isTerminalStage(stage),

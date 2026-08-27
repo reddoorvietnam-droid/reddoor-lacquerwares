@@ -38,8 +38,9 @@ import { pendingImage, pickTranslation } from "@/lib/public/published-mapping";
  *   · process stages — entries of type `processStage`; `placement` is the
  *     step label (for example "01 · Làm vóc") and orders the list.
  *   · history milestones — entries of type `section` whose `placement`
- *     starts with `history` (for example "history.1998"); the text after the
- *     dot is the period label shown beside the milestone.
+ *     starts with `history` (for example "history.01 · Làng nghề"); after
+ *     stripping the prefix and the ordering digits, the remainder is the
+ *     period label shown beside the milestone.
  */
 
 type LeanEntry = {
@@ -182,6 +183,12 @@ async function getSettings(locale: Locale): Promise<PublicSiteSettings> {
     })
     .filter((link): link is PublicSocialLink => link !== null);
 
+  // The map is derived from the published address rather than stored
+  // separately: a keyless Google Maps query needs nothing but the address
+  // text, so the two can never drift apart.
+  const address = settings?.translation.addressLabel ?? null;
+  const mapQuery = address ? encodeURIComponent(address) : null;
+
   return {
     id: settings?.id ?? "site-settings",
     marker: null,
@@ -192,7 +199,11 @@ async function getSettings(locale: Locale): Promise<PublicSiteSettings> {
       ...emptyContact(),
       email: settings?.publicEmail ?? null,
       phone: settings?.publicPhone ?? null,
-      address: settings?.translation.addressLabel ?? null,
+      address,
+      mapUrl: mapQuery ? `https://www.google.com/maps?q=${mapQuery}` : null,
+      mapEmbedUrl: mapQuery
+        ? `https://maps.google.com/maps?q=${mapQuery}&output=embed`
+        : null,
     },
     socialLinks,
     quoteSubmissionEnabled: false,
@@ -228,7 +239,12 @@ async function listHistory(
       marker: null,
       isDemo: false,
       sortOrder: index,
-      periodLabel: entry.placement.replace(/^history[.\s-]*/, ""),
+      // "history.01 · Làng nghề" → "Làng nghề": the digits exist only to
+      // order the timeline; the visitor sees the era label alone.
+      periodLabel: entry.placement.replace(
+        /^history[\s.·-]*(?:\d+[\s.·-]*)?/,
+        "",
+      ),
       title: entry.title,
       summary: entry.summary,
       image: pendingImage(`history-${entry.code}`, entry.title, 1000, 750),

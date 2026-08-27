@@ -3,7 +3,7 @@ import { ImageResponse } from "next/og";
 import { defaultLocale, isLocale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
 
-export const alt = "Red Door Lacquerwares — DEMO";
+export const alt = "Red Door — Ha Thai Lacquerware, Vietnam";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -48,7 +48,7 @@ export default async function OpenGraphImage({
           marginBottom: 30,
         }}
       >
-        RED DOOR · DEMO
+        RED DOOR · HANOI, VIETNAM
       </div>
       <div
         style={{

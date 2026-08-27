@@ -2,6 +2,7 @@ import Image from "next/image";
 import type { ReactNode } from "react";
 
 import type { PublicDictionary } from "@/lib/i18n/dictionary";
+import { VideoEmbed } from "@/components/public/video-embed";
 import { cn } from "@/lib/utils/cn";
 
 export interface PublicPageMedia {
@@ -62,6 +63,24 @@ export type PublicContentBlock =
       id: string;
       media: PublicPageMedia;
       type: "media";
+    }
+  | {
+      id: string;
+      type: "divider";
+    }
+  | {
+      id: string;
+      type: "embed";
+      /** YouTube video id, extracted server-side from the pasted link. */
+      youtubeId: string;
+      title: string;
+      playLabel: string;
+    }
+  | {
+      id: string;
+      type: "callToAction";
+      label: string;
+      href: string;
     };
 
 interface PageFrameProps {
@@ -97,14 +116,14 @@ export function PageNotices({ dictionary, isDemo, notices }: PageNoticesProps) {
   return (
     <div
       className="mx-auto grid w-full max-w-7xl gap-3 px-[var(--space-page)] pt-5"
-      aria-label={isDemo ? dictionary.common.demoLabel : notices?.[0]?.label}
+      aria-label={isDemo ? dictionary.common.updatingLabel : notices?.[0]?.label}
     >
       {isDemo ? (
         <aside className="border-gold/35 bg-gold/10 text-burgundy flex items-start gap-3 rounded-[var(--radius-md)] border px-4 py-3 text-sm leading-6">
           <span className="bg-gold text-burgundy mt-0.5 shrink-0 rounded-full px-2 py-0.5 text-[0.68rem] font-bold tracking-[0.16em] whitespace-nowrap uppercase">
-            {dictionary.common.demoLabel}
+            {dictionary.common.updatingLabel}
           </span>
-          <p>{dictionary.common.replaceContentNotice}</p>
+          <p>{dictionary.common.updatingNotice}</p>
         </aside>
       ) : null}
 
@@ -351,13 +370,57 @@ export function RichContent({ blocks }: RichContentProps) {
           );
         }
 
-        return (
-          <MediaFrame
-            key={block.id}
-            media={block.media}
-            sizes="(min-width: 1024px) 760px, 100vw"
-          />
-        );
+        if (block.type === "media") {
+          return (
+            <figure key={block.id} className="my-10">
+              <MediaFrame
+                media={block.media}
+                sizes="(min-width: 1024px) 760px, 100vw"
+              />
+              {block.caption ? (
+                <figcaption className="text-charcoal/55 mt-3 text-center text-sm">
+                  {block.caption}
+                </figcaption>
+              ) : null}
+            </figure>
+          );
+        }
+
+        if (block.type === "divider") {
+          return (
+            <hr
+              key={block.id}
+              className="border-gold/40 mx-auto my-12 w-24 border-t"
+            />
+          );
+        }
+
+        if (block.type === "embed") {
+          return (
+            <div key={block.id} className="my-10">
+              <VideoEmbed
+                videoId={block.youtubeId}
+                title={block.title}
+                playLabel={block.playLabel}
+              />
+            </div>
+          );
+        }
+
+        if (block.type === "callToAction") {
+          return (
+            <p key={block.id} className="my-10">
+              <a
+                href={block.href}
+                className="bg-gold text-burgundy inline-flex min-h-12 items-center rounded-full px-7 text-sm font-semibold no-underline hover:brightness-105"
+              >
+                {block.label}
+              </a>
+            </p>
+          );
+        }
+
+        return null;
       })}
     </div>
   );

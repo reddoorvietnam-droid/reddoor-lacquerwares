@@ -1,5 +1,6 @@
 import { ArrowRight, ArrowUpRight } from "lucide-react";
 import type { Route } from "next";
+import Image from "next/image";
 import Link from "next/link";
 
 import type { PublicCollection } from "@/domains/collections/public-contract";
@@ -271,41 +272,64 @@ export function HomePage({
             </Link>
           </div>
           <div className="mt-16 grid gap-10 sm:grid-cols-2 lg:mt-20 lg:grid-cols-3">
-            {collections.map((collection, index) => (
-              <MotionReveal key={collection.id} delay={index * 0.07}>
-                <Link
-                  href={href(`/collections/${collection.slug}`)}
-                  className="group block focus-visible:outline-offset-8"
-                >
-                  <div className="border-gold/35 relative mx-auto aspect-[3/4] max-w-sm rounded-r-xl border-y border-r bg-[#541015] p-3 shadow-[1.5rem_2rem_4rem_rgb(0_0_0/0.28)] transition duration-[var(--duration-medium)] group-hover:-translate-y-1 group-hover:rotate-[0.5deg] before:absolute before:inset-y-0 before:left-0 before:w-4 before:bg-gradient-to-r before:from-black/45 before:to-transparent">
-                    <div className="border-gold/30 flex size-full flex-col justify-between border p-7 text-center">
-                      <p className="text-gold text-[0.62rem] tracking-[0.25em] uppercase">
-                        {content.company.displayName}
-                        {collection.marker ? ` · ${collection.marker}` : ""}
-                      </p>
-                      <div>
-                        <p className="text-ivory font-serif text-3xl leading-none">
-                          {collection.title}
-                        </p>
-                        <div
-                          className="border-gold/45 mx-auto my-5 size-12 rotate-45 border"
-                          aria-hidden="true"
-                        />
-                        <p className="text-ivory/55 text-xs tracking-[0.18em] uppercase">
-                          {collection.editionLabel}
-                        </p>
+            {collections.map((collection, index) => {
+              const hasCatalogue =
+                collection.flipbook.pageCount !== null &&
+                collection.flipbook.pageCount > 0;
+              return (
+                <MotionReveal key={collection.id} delay={index * 0.07}>
+                  <Link
+                    href={
+                      hasCatalogue
+                        ? href(`/collections/${collection.slug}/catalogue`)
+                        : href("/collections")
+                    }
+                    className="group block focus-visible:outline-offset-8"
+                  >
+                    {/*
+                      The same presentation as the collections page: the real
+                      first page of the catalogue on a lacquer mat. The cover
+                      is the object — no copy competes with it.
+                    */}
+                    <div className="relative mx-auto max-w-sm overflow-hidden rounded-[var(--radius-md)] shadow-[0_1rem_2.5rem_rgb(0_0_0/0.4)] transition-all duration-[var(--duration-medium)] ease-[var(--ease-brand)] group-hover:-translate-y-1.5 group-hover:shadow-[0_1.75rem_3.5rem_rgb(0_0_0/0.55)]">
+                      <div className="relative aspect-3/4 overflow-hidden">
+                        {collection.cover.src ? (
+                          <Image
+                            src={collection.cover.src}
+                            alt={collection.cover.alt}
+                            fill
+                            sizes="(min-width: 1024px) 30vw, (min-width: 640px) 45vw, 90vw"
+                            className="object-cover"
+                          />
+                        ) : (
+                          <div className="bg-burgundy border-gold/30 flex size-full flex-col items-center justify-center gap-4 border p-6 text-center">
+                            <p className="text-ivory font-serif text-2xl leading-tight">
+                              {collection.title}
+                            </p>
+                            <p className="text-gold/80 text-xs tracking-[0.18em] uppercase">
+                              {collection.editionLabel}
+                            </p>
+                          </div>
+                        )}
                       </div>
-                      <p className="text-gold/80 text-xs">
-                        {collection.year ?? "—"}
-                      </p>
                     </div>
-                  </div>
-                  <p className="text-ivory/60 mx-auto mt-6 max-w-sm text-sm leading-7">
-                    {collection.summary}
-                  </p>
-                </Link>
-              </MotionReveal>
-            ))}
+                    <div className="mx-auto mt-5 flex max-w-sm items-baseline justify-between gap-4 px-1">
+                      <h3 className="text-ivory group-hover:text-gold-light font-serif text-2xl leading-tight tracking-[-0.02em] transition-colors">
+                        {collection.title}
+                      </h3>
+                      <span className="text-gold shrink-0 text-sm font-semibold tracking-[0.08em]">
+                        {collection.editionLabel}
+                      </span>
+                    </div>
+                    {hasCatalogue ? (
+                      <p className="text-ivory/45 mx-auto mt-1 max-w-sm px-1 text-xs tracking-[0.06em]">
+                        {dictionary.collection.openBook}
+                      </p>
+                    ) : null}
+                  </Link>
+                </MotionReveal>
+              );
+            })}
           </div>
         </Container>
 

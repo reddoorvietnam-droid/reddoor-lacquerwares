@@ -18,6 +18,10 @@ export function AdminShell({ locale, children, userLabel }: AdminShellProps) {
   const navigation = [
     { href: basePath, label: copy.navigation.overview },
     {
+      href: `${basePath}/orders` as Route,
+      label: copy.navigation.orders,
+    },
+    {
       href: `${basePath}/operations` as Route,
       label: copy.navigation.operations,
     },

@@ -24,7 +24,10 @@ import type {
   SearchPageData,
   SearchResultView,
 } from "@/components/public/pages/search";
-import type { PublicPageMedia } from "@/components/public/pages/shared";
+import type {
+  PublicContentBlock,
+  PublicPageMedia,
+} from "@/components/public/pages/shared";
 import type {
   PublicCollection,
   PublicCollectionCover,
@@ -170,12 +173,12 @@ function formatPublishedDate(
   value: string | null,
 ): { dateTime: string; label: string } {
   if (!value) {
-    return { dateTime: "", label: dictionary.common.demoLabel };
+    return { dateTime: "", label: dictionary.common.updatingLabel };
   }
 
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) {
-    return { dateTime: "", label: dictionary.common.demoLabel };
+    return { dateTime: "", label: dictionary.common.updatingLabel };
   }
 
   return {
@@ -280,7 +283,7 @@ export async function getDemoAboutHistoryPageData(
 
   return {
     contentIsDemo: content.isDemo,
-    archiveNote: dictionary.about.archiveNotice,
+    archiveNote: null,
     closingLink: {
       href: `${localePath(locale, "/contact")}#request-quote`,
       label: dictionary.common.requestQuote,
@@ -289,21 +292,23 @@ export async function getDemoAboutHistoryPageData(
     closingTitle: dictionary.home.contactTitle,
     heroEyebrow: content.company.eyebrow,
     heroMedia: toPageMedia(content.company.heroImage),
+    // Verifiable facts about the workshop: where it works, how the products
+    // are tested, and where they ship.
     highlights: [
       {
-        id: "content-status",
-        label: dictionary.about.contentStatusLabel,
-        value: dictionary.about.contentStatusValue,
+        id: "village",
+        label: dictionary.about.highlightVillageLabel,
+        value: dictionary.about.highlightVillageValue,
       },
       {
-        id: "claims-status",
-        label: dictionary.about.claimsStatusLabel,
-        value: dictionary.about.claimsStatusValue,
+        id: "compliance",
+        label: dictionary.about.highlightComplianceLabel,
+        value: dictionary.about.highlightComplianceValue,
       },
       {
-        id: "asset-status",
-        label: dictionary.about.assetStatusLabel,
-        value: dictionary.about.assetStatusValue,
+        id: "markets",
+        label: dictionary.about.highlightMarketsLabel,
+        value: dictionary.about.highlightMarketsValue,
       },
     ],
     historyDescription: dictionary.pages.aboutIntro,
@@ -319,28 +324,28 @@ export async function getDemoAboutHistoryPageData(
     overviewParagraphs: [content.company.summary],
     principles: [
       {
-        id: "verified-story",
-        kicker: dictionary.about.principleKicker,
-        title: dictionary.about.verifiedStoryTitle,
-        description: dictionary.about.verifiedStoryDescription,
+        id: "craft",
+        kicker: dictionary.about.pillarKicker,
+        title: dictionary.about.pillarCraftTitle,
+        description: dictionary.about.pillarCraftDescription,
         media: null,
       },
       {
-        id: "approved-capabilities",
-        kicker: dictionary.about.principleKicker,
-        title: dictionary.about.approvedCapabilitiesTitle,
-        description: dictionary.about.approvedCapabilitiesDescription,
+        id: "material",
+        kicker: dictionary.about.pillarKicker,
+        title: dictionary.about.pillarMaterialTitle,
+        description: dictionary.about.pillarMaterialDescription,
         media: null,
       },
       {
-        id: "documented-people",
-        kicker: dictionary.about.principleKicker,
-        title: dictionary.about.documentedPeopleTitle,
-        description: dictionary.about.documentedPeopleDescription,
+        id: "standard",
+        kicker: dictionary.about.pillarKicker,
+        title: dictionary.about.pillarStandardTitle,
+        description: dictionary.about.pillarStandardDescription,
         media: null,
       },
     ],
-    principlesDescription: dictionary.about.principlesDescription,
+    principlesDescription: dictionary.about.pillarsDescription,
     principlesEyebrow: dictionary.home.eyebrow,
     principlesTitle: dictionary.home.craftTitle,
   };
@@ -609,6 +614,15 @@ export async function getDemoProductDetailPageData(
       value: product.leadTime,
     });
   }
+  // Care instructions entered in the CMS surface with the other facts; a
+  // dedicated section can take over if the detail page grows one.
+  product.careNotes.forEach((note, index) => {
+    specifications.push({
+      id: `care-${index + 1}`,
+      label: dictionary.product.care,
+      value: note,
+    });
+  });
 
   return {
     contentIsDemo: product.isDemo,
@@ -803,11 +817,61 @@ export async function getDemoNewsArticlePageData(
       href: localePath(locale, "/news"),
       label: dictionary.pages.newsTitle,
     },
-    blocks: article.content.map((block, index) => ({
-      id: `${article.id}-block-${index + 1}`,
-      type: "paragraph" as const,
-      text: block.text,
-    })),
+    blocks: article.content.flatMap((block, index): PublicContentBlock[] => {
+      const id = `${article.id}-block-${index + 1}`;
+      switch (block.type) {
+        case "paragraph":
+          return [{ id, type: "paragraph", text: block.text }];
+        case "heading":
+          return [
+            { id, type: "heading", level: block.level, text: block.text },
+          ];
+        case "quote":
+          return [
+            {
+              id,
+              type: "quote",
+              text: block.text,
+              attribution: block.attribution,
+            },
+          ];
+        case "list":
+          return [{ id, type: "list", style: block.style, items: block.items }];
+        case "image":
+          return [
+            {
+              id,
+              type: "media",
+              caption: block.caption,
+              media: {
+                id,
+                src: block.src,
+                alt: block.alt,
+                width: block.width,
+                height: block.height,
+              },
+            },
+          ];
+        case "divider":
+          return [{ id, type: "divider" }];
+        case "embed":
+          return [
+            {
+              id,
+              type: "embed",
+              youtubeId: block.youtubeId,
+              title: article.title,
+              playLabel: dictionary.common.playVideo,
+            },
+          ];
+        case "callToAction":
+          return [
+            { id, type: "callToAction", label: block.label, href: block.href },
+          ];
+        default:
+          return [];
+      }
+    }),
     categoryLabel: article.categoryLabel,
     excerpt: article.excerpt,
     heroMedia: toPageMedia(article.image),
@@ -916,12 +980,14 @@ export async function getDemoContactRequestQuotePageData(
     contentIsDemo: content.isDemo,
     acceptedAttachmentTypes: ".pdf,.jpg,.jpeg,.png,.webp",
     attachmentHelp: dictionary.contact.attachmentHelp,
-    consentDescription: dictionary.contact.demoNotice,
+    consentDescription: dictionary.contact.consentHelp,
     consentLink: {
       href: localePath(locale, "/privacy"),
       label: dictionary.footer.privacy,
     },
-    contactDescription: contact.notice,
+    // The hero already carries the page intro; the contact-points column
+    // introduces the company itself instead of repeating it.
+    contactDescription: content.company.summary,
     contactEyebrow: content.company.eyebrow,
     contactPoints,
     contactTitle: dictionary.pages.contactTitle,
@@ -929,10 +995,10 @@ export async function getDemoContactRequestQuotePageData(
       ...countryOptions,
       { value: "OTHER", label: dictionary.contact.countryOther },
     ],
-    deadlineHelp: dictionary.contact.demoNotice,
-    formDescription: dictionary.contact.demoNotice,
+    deadlineHelp: dictionary.contact.deadlineHelp,
+    formDescription: dictionary.home.contactBody,
     formEyebrow: dictionary.common.requestQuote,
-    formTitle: dictionary.pages.contactTitle,
+    formTitle: dictionary.home.contactTitle,
     heroEyebrow: content.company.eyebrow,
     heroMedia: toPageMedia(content.company.heroImage),
     interestOptions: products.map((product) => ({
@@ -953,8 +1019,8 @@ export async function getDemoContactRequestQuotePageData(
       unavailableDescription: dictionary.contact.mapUnavailable,
     },
     quantityPlaceholder: dictionary.contact.quantity,
-    submissionUnavailableDescription: contact.notice,
-    submissionUnavailableTitle: dictionary.contact.demoNotice,
+    submissionUnavailableDescription: dictionary.contact.formNotice,
+    submissionUnavailableTitle: dictionary.contact.formNoticeTitle,
   };
 }
 
@@ -1091,28 +1157,52 @@ export async function getDemoSearchPageData(
   };
 }
 
-export function getDemoLegalDocumentPageData(
+export type LegalDocumentKind = "privacy" | "terms" | "accessibility";
+
+export function getLegalDocumentPageData(
+  locale: Locale,
   dictionary: PublicDictionary,
+  kind: LegalDocumentKind,
 ): LegalDocumentPageData {
+  const document = {
+    privacy: {
+      intro: dictionary.legal.privacyIntro,
+      sections: dictionary.legal.privacySections,
+    },
+    terms: {
+      intro: dictionary.legal.termsIntro,
+      sections: dictionary.legal.termsSections,
+    },
+    accessibility: {
+      intro: dictionary.legal.accessibilityIntro,
+      sections: dictionary.legal.accessibilitySections,
+    },
+  }[kind];
+
   return {
-    contactPanel: null,
-    contentsLabel: dictionary.footer.legal,
-    eyebrow: dictionary.common.demoLabel,
-    intro: dictionary.common.replaceContentNotice,
-    lastUpdatedLabel: dictionary.common.demoLabel,
-    sections: [
-      {
-        id: "demo-content",
-        title: dictionary.common.demoLabel,
-        blocks: [
-          {
-            id: "demo-content-notice",
-            type: "paragraph",
-            text: dictionary.common.replaceContentNotice,
-          },
-        ],
+    contactPanel: {
+      title: dictionary.home.contactTitle,
+      description: dictionary.home.contactBody,
+      link: {
+        href: `${localePath(locale, "/contact")}#request-quote`,
+        label: dictionary.common.requestQuote,
       },
-    ],
+    },
+    contentsLabel: dictionary.footer.legal,
+    eyebrow: dictionary.footer.legal,
+    intro: document.intro,
+    lastUpdatedLabel: dictionary.legal.lastUpdated,
+    sections: document.sections.map((section, index) => ({
+      id: `${kind}-section-${index + 1}`,
+      title: section.title,
+      blocks: [
+        {
+          id: `${kind}-section-${index + 1}-body`,
+          type: "paragraph",
+          text: section.body,
+        },
+      ],
+    })),
   };
 }
 

@@ -10,6 +10,7 @@ type AdminCopy = {
   navigationLabel: string;
   navigation: {
     overview: string;
+    orders: string;
     operations: string;
     approvals: string;
     organization: string;
@@ -201,6 +202,7 @@ const adminDictionaries = {
     navigationLabel: "Điều hướng quản trị",
     navigation: {
       overview: "Tổng quan",
+      orders: "Sổ đơn hàng",
       operations: "Quy trình đơn hàng",
       approvals: "Phê duyệt",
       organization: "Cơ cấu tổ chức",
@@ -439,6 +441,7 @@ const adminDictionaries = {
     navigationLabel: "Administration navigation",
     navigation: {
       overview: "Overview",
+      orders: "Order book",
       operations: "Order process",
       approvals: "Approvals",
       organization: "Organisation",

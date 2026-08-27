@@ -3,12 +3,12 @@ import type { PublicDictionary } from "../dictionary";
 const dictionary = {
   meta: {
     siteName: "Red Door",
-    siteTitle: "Red Door — Sơn mài thủ công Việt Nam",
+    siteTitle: "Red Door — Sơn mài Hạ Thái, Việt Nam",
     siteDescription:
-      "Cửa Đỏ là nhà sản xuất sơn mài thủ công tại Hà Nội: khay, bát, bình, hộp và đồ trang trí phủ nhiều lớp, mài nước và đánh bóng bằng tay. Xuất khẩu quốc tế.",
+      "Red Door chế tác đồ sơn mài thủ công tại làng nghề Hạ Thái, Hà Nội: khay, hộp, lót ly và đồ trang trí nội thất được phủ nhiều lớp sơn, mài nước và đánh bóng bằng tay. Sản phẩm kiểm định SGS theo tiêu chuẩn châu Âu, xuất khẩu đi Mỹ và châu Âu.",
   },
   common: {
-    demoLabel: "Nội dung DEMO",
+    updatingLabel: "Đang cập nhật",
     skipToContent: "Chuyển đến nội dung chính",
     learnMore: "Tìm hiểu thêm",
     explore: "Khám phá",
@@ -24,8 +24,7 @@ const dictionary = {
     readStory: "Đọc câu chuyện",
     featured: "Nổi bật",
     playVideo: "Phát video",
-    replaceContentNotice:
-      "Nội dung DEMO — hãy thay bằng nội dung và hình ảnh đã được doanh nghiệp phê duyệt.",
+    updatingNotice: "Nội dung của mục này đang được xưởng hoàn thiện.",
   },
   nav: {
     home: "Trang chủ",
@@ -37,66 +36,64 @@ const dictionary = {
     contact: "Liên hệ",
   },
   home: {
-    eyebrow: "CỬA ĐỎ — SƠN MÀI SỐNG",
+    eyebrow: "CỬA ĐỎ — SƠN MÀI HẠ THÁI",
     title: "Bề mặt sống động,",
     titleAccent: "được tạo tác thủ công",
     craftTitle: "Câu chuyện vật liệu qua từng lớp",
     craftBody:
-      "Đoạn nội dung biên tập DEMO dành cho hình ảnh xưởng, ghi chú quy trình và câu chuyện sản phẩm đã duyệt.",
-    historyTitle: "Lịch sử công ty",
+      "Từ tấm vóc đầu tiên đến lớp sơn cuối cùng, mỗi món đồ Red Door đi qua hàng chục công đoạn và nhiều tuần chờ sơn khô tự nhiên. Chúng tôi phủ, mài nước rồi lại phủ — cho đến khi mặt sơn sâu và trong như mặt nước lặng.",
+    historyTitle: "Hành trình của xưởng",
     featuredTitle: "Sản phẩm nổi bật",
     collectionsTitle: "Bộ sưu tập",
     processTitle: "Kỹ thuật sơn mài",
     newsTitle: "Ghi chép từ xưởng",
     contactTitle: "Bắt đầu cuộc trò chuyện",
     contactBody:
-      "Hãy chia sẻ điều bạn đang tìm kiếm. Biểu mẫu chính thức sẽ chuyển yêu cầu đến bộ phận phù hợp.",
+      "Hãy cho chúng tôi biết bạn đang tìm kiếm điều gì — một bộ sưu tập có sẵn, một thiết kế riêng hay một đơn hàng xuất khẩu. Đội ngũ Red Door sẽ phản hồi sớm nhất có thể.",
   },
   pages: {
     aboutTitle: "Về chúng tôi",
     aboutIntro:
-      "Khung nội dung DEMO dành cho câu chuyện, giá trị, con người và thông tin xưởng đã được xác minh.",
+      "Red Door là xưởng sơn mài đặt tại làng nghề Hạ Thái, Hà Nội — nơi nghề sơn mài được trao truyền qua nhiều thế hệ. Chúng tôi kết hợp kỹ thuật cổ truyền với thiết kế đương đại để đưa sơn mài Việt Nam đến những không gian sống trên khắp thế giới.",
     productsTitle: "Sản phẩm",
     productsIntro:
-      "Khám phá các bản ghi sản phẩm DEMO đang chờ được thay bằng dữ liệu catalogue đã duyệt.",
+      "Khay, hộp, lót ly, bình và đồ trang trí nội thất — mỗi sản phẩm được chế tác thủ công tại xưởng Hạ Thái, phủ nhiều lớp sơn, mài nước và đánh bóng bằng tay.",
     collectionsTitle: "Bộ sưu tập",
     collectionsIntro:
-      "Mở các bìa sách nghệ thuật DEMO trong khi năm phát hành, PDF và câu chuyện chính thức đang được chuẩn bị.",
+      "Mỗi năm, Red Door giới thiệu một bộ sưu tập mới — kết quả của quá trình nghiên cứu vật liệu, màu sắc và kỹ thuật bề mặt tại xưởng. Mở từng cuốn catalogue để xem trọn bộ.",
     processTitle: "Kỹ thuật sơn mài",
     processIntro:
-      "Trình tự DEMO cần được thay bằng vật liệu, công đoạn và thực hành tại xưởng đã được doanh nghiệp xác minh.",
+      "Một món đồ sơn mài hoàn chỉnh đi qua hàng chục công đoạn: làm vóc, bó hom, phủ sơn, mài nước và đánh bóng. Không công đoạn nào có thể vội.",
     newsTitle: "Tin tức và câu chuyện",
     newsIntro:
-      "Các bài biên tập DEMO tạo cấu trúc cho thông báo và câu chuyện được phê duyệt trong tương lai.",
+      "Ghi chép từ xưởng Hạ Thái: bộ sưu tập mới, hội chợ quốc tế và những câu chuyện phía sau từng bề mặt sơn.",
     contactTitle: "Liên hệ và yêu cầu báo giá",
     contactIntro:
-      "Hãy chia sẻ nội dung chính của yêu cầu. Thông tin liên hệ trong giai đoạn phát triển là dữ liệu mẫu nếu chưa được đánh dấu xác minh.",
+      "Liên hệ với Red Door để nhận catalogue, báo giá hoặc trao đổi về đơn hàng riêng. Chúng tôi làm việc trực tiếp với các nhà bán lẻ, nhà thiết kế và thương hiệu trên toàn thế giới.",
     searchTitle: "Tìm kiếm",
     privacyTitle: "Chính sách quyền riêng tư",
     termsTitle: "Điều khoản sử dụng",
     accessibilityTitle: "Tuyên bố về khả năng tiếp cận",
   },
   about: {
-    contentStatusLabel: "Trạng thái nội dung",
-    contentStatusValue: "DEMO — đang chờ doanh nghiệp phê duyệt",
-    claimsStatusLabel: "Thông tin thực tế",
-    claimsStatusValue: "Không công bố khi chưa xác minh",
-    assetStatusLabel: "Tài sản thương hiệu",
-    assetStatusValue: "Đang chờ hình ảnh được phê duyệt",
-    principlesDescription:
-      "Các thẻ DEMO này xác định bằng chứng cần có trước khi công bố thông tin về doanh nghiệp.",
-    principleKicker: "Nguyên tắc xuất bản",
-    verifiedStoryTitle: "Câu chuyện doanh nghiệp đã xác minh",
-    verifiedStoryDescription:
-      "Ngày thành lập, cột mốc, khách hàng, giải thưởng và chứng nhận vẫn là nội dung chờ cho đến khi được nguồn có thẩm quyền xác nhận.",
-    approvedCapabilitiesTitle: "Tuyên bố năng lực đã phê duyệt",
-    approvedCapabilitiesDescription:
-      "Thông tin về vật liệu, kỹ thuật, công suất và thời gian sản xuất chỉ xuất hiện sau khi doanh nghiệp cung cấp và phê duyệt.",
-    documentedPeopleTitle: "Con người và xưởng được ghi nhận",
-    documentedPeopleDescription:
-      "Hồ sơ nghệ nhân, hình ảnh xưởng, tên và vai trò cần có sự đồng ý cùng nguồn tư liệu được phê duyệt trước khi xuất bản.",
-    archiveNotice:
-      "Mọi chương trong dòng thời gian đều được ghi nhãn DEMO và không sử dụng năm, giải thưởng, khách hàng hoặc chứng nhận chưa xác minh.",
+    highlightVillageLabel: "Làng nghề",
+    highlightVillageValue: "Hạ Thái, Hà Nội",
+    highlightComplianceLabel: "Kiểm định",
+    highlightComplianceValue: "SGS — tiêu chuẩn EU",
+    highlightMarketsLabel: "Thị trường",
+    highlightMarketsValue: "Mỹ và châu Âu",
+    pillarKicker: "Giá trị cốt lõi",
+    pillarsDescription:
+      "Ba điều không đổi trong từng món đồ rời xưởng Red Door.",
+    pillarCraftTitle: "Thủ công trọn vẹn",
+    pillarCraftDescription:
+      "Mỗi sản phẩm được làm hoàn toàn bằng tay: phủ từng lớp sơn, mài nước giữa các lớp và đánh bóng đến độ sâu mong muốn. Không có hai món đồ giống hệt nhau.",
+    pillarMaterialTitle: "Cảm hứng tự nhiên",
+    pillarMaterialDescription:
+      "Thiên nhiên có mặt trong màu sắc, chất liệu và cách bề mặt bắt sáng của từng thiết kế. Chúng tôi hướng đến những món đồ bền vững, dùng được và đẹp lên qua nhiều năm.",
+    pillarStandardTitle: "Chuẩn mực quốc tế",
+    pillarStandardDescription:
+      "Sản phẩm Red Door được kiểm định bởi SGS theo các quy định của châu Âu về an toàn hóa chất và vật liệu, sẵn sàng cho những thị trường khắt khe nhất.",
   },
   product: {
     category: "Danh mục",
@@ -104,6 +101,7 @@ const dictionary = {
     material: "Vật liệu",
     finish: "Bề mặt hoàn thiện",
     dimensions: "Kích thước",
+    care: "Bảo quản",
     leadTime: "Thời gian sản xuất",
     madeToOrder: "Sản xuất theo yêu cầu",
     story: "Câu chuyện sản phẩm",
@@ -119,20 +117,19 @@ const dictionary = {
     zoomImage: "Xem ảnh kích thước đầy đủ",
     zoomUnavailable: "Ảnh kích thước đầy đủ đang chờ bổ sung",
     video: "Video sản phẩm",
-    videoUnavailable: "Chưa có video sản phẩm được duyệt trong bản DEMO này.",
+    videoUnavailable: "Video của sản phẩm này đang được thực hiện.",
     variants: "Biến thể",
-    variantsUnavailable:
-      "Chưa có biến thể sản phẩm được duyệt trong bản DEMO này.",
+    variantsUnavailable: "Sản phẩm này hiện chưa có biến thể nào khác.",
     process: "Quy trình chế tác",
     processUnavailable:
-      "Chưa có ghi chú quy trình chế tác được duyệt trong bản DEMO này.",
+      "Ghi chú chế tác cho sản phẩm này đang được biên soạn.",
     noPrice: "Liên hệ để nhận báo giá",
   },
   collection: {
     openBook: "Mở sách nghệ thuật",
     viewProducts: "Xem sản phẩm",
     download: "Tải PDF",
-    downloadDisabled: "Chưa thể tải PDF cho bộ sưu tập DEMO này",
+    downloadDisabled: "Bản PDF của bộ sưu tập này sẽ sớm được cập nhật",
   },
   news: {
     published: "Đăng ngày",
@@ -158,10 +155,12 @@ const dictionary = {
     interests: "Sản phẩm hoặc bộ sưu tập quan tâm",
     quantity: "Số lượng dự kiến",
     deadline: "Thời hạn mong muốn",
+    deadlineHelp:
+      "Cho chúng tôi biết thời điểm bạn cần nhận hàng để xưởng sắp xếp lịch sản xuất.",
     notes: "Ghi chú",
     attachment: "Tệp đính kèm không bắt buộc",
     attachmentHelp:
-      "Chỉ dành cho DEMO — chức năng chọn và tải tệp đang tắt. Khi được bật, hệ thống sẽ nhận PDF, JPG, PNG hoặc WebP tối đa 10 MB; không gửi dữ liệu cá nhân nhạy cảm.",
+      "Nhận tệp PDF, JPG, PNG hoặc WebP, tối đa 10 MB. Vui lòng không đính kèm dữ liệu cá nhân nhạy cảm.",
     mapTitle: "Bản đồ",
     mapDescription:
       "Bản đồ chỉ tải khi bạn bấm, để trang không phải gọi tới máy chủ bên thứ ba ngay từ đầu.",
@@ -171,23 +170,77 @@ const dictionary = {
     openInMaps: "Mở trong Google Maps",
     consent:
       "Tôi đồng ý để thông tin của mình được sử dụng nhằm phản hồi yêu cầu này.",
+    consentHelp:
+      "Thông tin bạn cung cấp chỉ được dùng để phản hồi yêu cầu này.",
     submit: "Gửi yêu cầu",
-    demoNotice:
-      "Biểu mẫu DEMO — quy trình lưu yêu cầu và gửi thông báo sẽ được kích hoạt ở phase sau.",
+    formNoticeTitle: "Biểu mẫu trực tuyến đang được hoàn thiện",
+    formNotice:
+      "Trong thời gian này, vui lòng gửi yêu cầu trực tiếp qua email hoặc điện thoại — chúng tôi sẽ phản hồi trong vòng 1–2 ngày làm việc.",
     fax: "Fax",
     officeAddress: "Văn phòng",
     factoryAddress: "Nhà máy",
     warehouseAddress: "Kho hàng",
   },
+  legal: {
+    lastUpdated: "Cập nhật: tháng 8, 2026",
+    privacyIntro:
+      "Red Door tôn trọng quyền riêng tư của khách truy cập. Chính sách này mô tả những thông tin chúng tôi thu thập khi bạn sử dụng lacquerware.vn và cách chúng tôi sử dụng chúng.",
+    privacySections: [
+      {
+        title: "Thông tin chúng tôi thu thập",
+        body: "Chúng tôi chỉ thu thập thông tin bạn chủ động cung cấp khi liên hệ hoặc yêu cầu báo giá: họ tên, công ty, địa chỉ email, số điện thoại và nội dung yêu cầu. Website không sử dụng cookie quảng cáo hay công cụ theo dõi của bên thứ ba.",
+      },
+      {
+        title: "Cách chúng tôi sử dụng thông tin",
+        body: "Thông tin liên hệ chỉ được dùng để phản hồi yêu cầu của bạn và trao đổi về đơn hàng. Chúng tôi không bán, cho thuê hay chia sẻ dữ liệu của bạn cho bên thứ ba vì mục đích tiếp thị.",
+      },
+      {
+        title: "Liên hệ về quyền riêng tư",
+        body: "Nếu bạn muốn xem, chỉnh sửa hoặc xóa thông tin đã cung cấp, vui lòng gửi email tới sales@reddoor.vn — chúng tôi sẽ xử lý trong thời gian sớm nhất.",
+      },
+    ],
+    termsIntro:
+      "Các điều khoản dưới đây áp dụng cho việc truy cập và sử dụng website lacquerware.vn của Công ty TNHH Red Door.",
+    termsSections: [
+      {
+        title: "Sở hữu trí tuệ",
+        body: "Toàn bộ hình ảnh, catalogue, văn bản và thiết kế trên website thuộc về Công ty TNHH Red Door. Vui lòng không sao chép hoặc sử dụng lại cho mục đích thương mại khi chưa có sự đồng ý bằng văn bản.",
+      },
+      {
+        title: "Thông tin sản phẩm",
+        body: "Sản phẩm sơn mài được chế tác thủ công nên mỗi món đồ có thể khác biệt nhẹ về màu sắc và vân bề mặt so với hình ảnh — đó là đặc tính tự nhiên của nghề, không phải lỗi sản phẩm. Thông số, giá và thời gian sản xuất được xác nhận trong báo giá chính thức.",
+      },
+      {
+        title: "Báo giá và đặt hàng",
+        body: "Nội dung trên website mang tính giới thiệu, không phải chào bán ràng buộc. Mọi đơn hàng được xác lập qua trao đổi trực tiếp và xác nhận đặt hàng bằng văn bản.",
+      },
+    ],
+    accessibilityIntro:
+      "Red Door mong muốn mọi khách truy cập đều có thể sử dụng website này một cách thuận tiện, bao gồm người dùng trình đọc màn hình và bàn phím.",
+    accessibilitySections: [
+      {
+        title: "Cam kết của chúng tôi",
+        body: "Website được xây dựng theo hướng dẫn WCAG 2.1 mức AA: cấu trúc tiêu đề rõ ràng, độ tương phản đủ, hỗ trợ điều hướng bằng bàn phím và văn bản thay thế cho hình ảnh.",
+      },
+      {
+        title: "Những điểm đang hoàn thiện",
+        body: "Một số nội dung như catalogue dạng sách lật có thể chưa tối ưu cho công nghệ hỗ trợ. Chúng tôi đang tiếp tục cải thiện trải nghiệm này trong các bản cập nhật tới.",
+      },
+      {
+        title: "Phản hồi",
+        body: "Nếu bạn gặp trở ngại khi sử dụng website, hãy cho chúng tôi biết qua sales@reddoor.vn để chúng tôi khắc phục.",
+      },
+    ],
+  },
   footer: {
     description:
-      "Trải nghiệm thương hiệu DEMO cho Cửa Đỏ Việt Nam. Hãy thay toàn bộ nội dung và thông tin liên hệ mẫu trước khi ra mắt.",
+      "Red Door chế tác đồ sơn mài thủ công tại làng nghề Hạ Thái, Hà Nội — từng lớp sơn được phủ, mài nước và đánh bóng bằng tay cho những không gian sống trên khắp thế giới.",
     navigate: "Điều hướng",
     legal: "Pháp lý",
     privacy: "Quyền riêng tư",
     terms: "Điều khoản",
     accessibility: "Khả năng tiếp cận",
-    copyright: "© Cửa Đỏ Việt Nam. Bảo lưu mọi quyền.",
+    copyright: "© Công ty TNHH Red Door — làng nghề Hạ Thái, Hà Nội. Bảo lưu mọi quyền.",
   },
 } satisfies PublicDictionary;
 

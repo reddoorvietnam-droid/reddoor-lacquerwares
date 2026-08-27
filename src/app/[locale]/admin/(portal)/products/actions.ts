@@ -219,11 +219,14 @@ export async function saveProductAction(
       };
     }
 
-    const context = await requireContentPermission("content.update");
-    const aggregate = await productCommandService.read(context, {
+    // Contexts are bound to exactly one permission: reading the aggregate
+    // and mutating the draft each get their own.
+    const readContext = await requireContentPermission("content.read");
+    const aggregate = await productCommandService.read(readContext, {
       productId: parsed.productId,
     });
     if (!aggregate) return { status: "error", message: "NOT_FOUND" };
+    const context = await requireContentPermission("content.update");
 
     if (!aggregate.draft) {
       const revised = await productCommandService.createRevisionDraft(context, {

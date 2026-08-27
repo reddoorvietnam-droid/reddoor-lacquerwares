@@ -144,13 +144,16 @@ Holding `orders.confirm` does not confirm an order. Holding `packing.complete` d
 
 ## 6. Implementation status
 
-`src/domains/orders/workflow.ts` is a pure definition and guard module: stage table, transition guard, error type, and two helpers. It is covered by `tests/unit/order-workflow.test.ts`, and the approval policy it depends on by `tests/unit/approvals-policy.test.ts`.
+The workflow is live (2026-08-27). `src/domains/orders/workflow.ts` remains the pure definition and guard module, covered by `tests/unit/order-workflow.test.ts`; around it now sit:
 
-There is no order model, no repository, no service, and no caller of `assertTransition` anywhere in the application. The approval gate is contracts and pure policy only; `ApprovalRepository` is an interface with no implementation, so no approval request can be raised or decided.
+- `src/domains/orders/persistence/` — the `SalesOrder` model (optimistic-concurrency `revision`, redactable `sellingPrice`, stage history) and a Mongo store whose transition, QC, and price writes are conditional on the revision the actor judged.
+- `src/domains/orders/service.ts` — `OrderCommandService`, the single caller of `assertTransition`: it re-asserts the current stage's advance permission against the access context, demands an `assertApproved` Director decision for the four gated stages, resets the QC flag on entering production or quality control, redacts the selling price for readers without `orders.readSellingPrice`, and audits every mutation. Unit-tested with fake stores in `tests/unit/order-command-service.test.ts`.
+- `src/domains/approvals/model.ts`, `mongo-repository.ts`, `service.ts` — the approval gate's persistence and orchestration. A partial unique index enforces the single-pending rule at the database, and `decide` is a conditional update so concurrent deciders cannot both win.
+- `/admin/orders`, `/admin/orders/new`, `/admin/orders/[orderId]` — the order board, intake form, and detail screen (stage rail, transition forms with mandatory reason fields, QC card, price card, approval gate). `/admin/approvals` now renders the live pending queue with approve/reject above the reference table.
 
-`/admin/operations` renders the stage table and `/admin/approvals` renders the approval subjects with their decision permissions. Both are read-only reference pages over the static definition modules, carry an explicit not-implemented notice, and are not an order board or an approval queue.
+Verified end-to-end on 2026-08-27: a 34-step Playwright walk against live MongoDB created an order and drove it `received` → `closed` through all three Director gates on this path, confirming `APPROVAL_MISSING`, `SELF_APPROVAL`, and `QC_NOT_PASSED` block as specified and that the Order Manager sees no selling price.
 
-`docs/IMPLEMENTATION_STATUS.md` records the exact state; nothing here should be read as a claim that an order can currently be created or advanced in the running system.
+Not yet built: the five order-file documents of the printed chart (detailed production plan, cost report, delivery file, profit report), cancellation/rework UI polish beyond the reason-gated forms, approval withdrawal, and any grant-administration screen. `docs/IMPLEMENTATION_STATUS.md` records the exact state.
 
 ### Resolved: every stage owner holds its advance permission
 

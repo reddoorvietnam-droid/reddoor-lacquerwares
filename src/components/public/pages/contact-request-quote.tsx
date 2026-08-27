@@ -418,7 +418,7 @@ export function ContactRequestQuotePage({
                 {dictionary.contact.submit}
               </button>
               <p className="text-charcoal/64 max-w-xl text-xs leading-5">
-                {dictionary.contact.demoNotice}
+                {dictionary.contact.formNotice}
               </p>
             </div>
           </form>

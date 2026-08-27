@@ -21,10 +21,11 @@ import {
 } from "@/lib/media/entity-images";
 import type { Locale } from "@/lib/i18n/config";
 import {
-  blocksToParagraphs,
   pendingImage,
   pickTranslation,
+  stripHtml,
 } from "@/lib/public/published-mapping";
+import { extractYouTubeId } from "@/lib/utils/youtube";
 
 /**
  * Reads the articles the newsroom workflow has published: root record,
@@ -79,6 +80,119 @@ function coverImage(
   return pendingImage(`news-${slug}-01`, title, 1600, 1000);
 }
 
+type StoredBlock = {
+  type?: string;
+  text?: string | null;
+  html?: string | null;
+  level?: number;
+  attribution?: string | null;
+  style?: string;
+  items?: readonly (string | null)[] | null;
+  src?: string | null;
+  alt?: string | null;
+  caption?: string | null;
+  width?: number | null;
+  height?: number | null;
+  label?: string | null;
+  href?: string | null;
+};
+
+/**
+ * Stored structured blocks → the public reading contract. Anything the
+ * public page cannot render honestly (a media-library reference with no
+ * delivery URL, an embed that is not a recognizable YouTube link) is
+ * dropped rather than rendered broken.
+ */
+function mapBodyBlocks(
+  blocks: readonly StoredBlock[] | null | undefined,
+): PublicNewsArticle["content"] {
+  if (!blocks) return [];
+
+  const mapped: PublicNewsArticle["content"][number][] = [];
+  for (const block of blocks) {
+    switch (block.type) {
+      case "paragraph": {
+        if (block.text?.trim())
+          mapped.push({ type: "paragraph", text: block.text.trim() });
+        break;
+      }
+      case "richText": {
+        const text = block.html ? stripHtml(block.html) : "";
+        if (text) mapped.push({ type: "paragraph", text });
+        break;
+      }
+      case "heading": {
+        if (block.text?.trim()) {
+          mapped.push({
+            type: "heading",
+            level: block.level === 3 || block.level === 4 ? 3 : 2,
+            text: block.text.trim(),
+          });
+        }
+        break;
+      }
+      case "quote": {
+        if (block.text?.trim()) {
+          mapped.push({
+            type: "quote",
+            text: block.text.trim(),
+            attribution: block.attribution?.trim() || null,
+          });
+        }
+        break;
+      }
+      case "list": {
+        const items = (block.items ?? [])
+          .map((item) => item?.trim() ?? "")
+          .filter(Boolean);
+        if (items.length > 0) {
+          mapped.push({
+            type: "list",
+            style: block.style === "ordered" ? "ordered" : "unordered",
+            items,
+          });
+        }
+        break;
+      }
+      case "image": {
+        if (block.src) {
+          mapped.push({
+            type: "image",
+            src: block.src,
+            alt: block.alt ?? "",
+            caption: block.caption?.trim() || null,
+            width: block.width ?? 1600,
+            height: block.height ?? 1000,
+          });
+        }
+        break;
+      }
+      case "divider": {
+        mapped.push({ type: "divider" });
+        break;
+      }
+      case "embed": {
+        const youtubeId = block.href ? extractYouTubeId(block.href) : null;
+        if (youtubeId) mapped.push({ type: "embed", youtubeId });
+        break;
+      }
+      case "callToAction": {
+        if (block.label && block.href) {
+          mapped.push({
+            type: "callToAction",
+            label: block.label,
+            href: block.href,
+          });
+        }
+        break;
+      }
+      default:
+        break;
+    }
+  }
+  return mapped;
+}
+
 function mapArticle(
   article: LeanArticle,
   translation: LeanTranslation,
@@ -95,10 +209,7 @@ function mapArticle(
     slug: translation.slug,
     title: translation.title,
     excerpt: translation.summary,
-    content: blocksToParagraphs(translation.body as never[]).map((text) => ({
-      type: "paragraph" as const,
-      text,
-    })),
+    content: mapBodyBlocks(translation.body as StoredBlock[] | undefined),
     categorySlug: category?.slug ?? "",
     categoryLabel: category?.labels[locale] ?? "",
     tags,

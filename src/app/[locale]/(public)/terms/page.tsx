@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { TermsPage } from "@/components/public/pages";
 import { isLocale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
-import { getDemoLegalDocumentPageData } from "@/lib/public/demo-page-data";
+import { getLegalDocumentPageData } from "@/lib/public/demo-page-data";
 import { getDemoStaticPageMetadata } from "@/lib/seo/route-metadata";
 
 type TermsRouteProps = {
@@ -23,7 +23,7 @@ export default async function TermsRoute({ params }: TermsRouteProps) {
   }
 
   const dictionary = await getDictionary(locale);
-  const data = getDemoLegalDocumentPageData(dictionary);
+  const data = getLegalDocumentPageData(locale, dictionary, "terms");
 
-  return <TermsPage data={data} dictionary={dictionary} isDemo />;
+  return <TermsPage data={data} dictionary={dictionary} isDemo={false} />;
 }

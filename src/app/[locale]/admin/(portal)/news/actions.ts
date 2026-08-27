@@ -16,6 +16,11 @@ import { getCloudinaryEnv } from "@/lib/env/server";
 import { connectToDatabase } from "@/lib/db/mongoose";
 import { getEntityImagesModel } from "@/lib/media/entity-images";
 import { locales } from "@/lib/i18n/config";
+import {
+  editorBlockToStored,
+  type ArticleEditorBlock,
+} from "@/lib/content/article-editor-blocks";
+import { CloudinaryMediaStorage } from "@/lib/media/cloudinary-storage";
 import { slugify } from "@/lib/utils/slug";
 
 /**
@@ -59,11 +64,43 @@ const translationInputSchema = z.object({
   title: z.string().trim().min(1).max(300),
   slug: z.string().trim().max(160),
   summary: z.string().trim().min(1).max(1000),
-  /** Plain text; blank lines separate paragraphs. */
-  bodyText: z.string().max(50_000),
   seoTitle: z.string().trim().max(70).optional(),
   seoDescription: z.string().trim().max(180).optional(),
   noIndex: z.boolean().default(false),
+});
+
+/** The editor block payload; conversion to stored blocks happens here. */
+const editorBlockSchema = z.object({
+  id: z
+    .string()
+    .trim()
+    .min(1)
+    .max(60)
+    .regex(/^[a-zA-Z0-9_-]+$/),
+  type: z.enum([
+    "heading",
+    "paragraph",
+    "quote",
+    "list",
+    "image",
+    "divider",
+    "embed",
+    "callToAction",
+  ]),
+  vi: z.string().max(20_000).default(""),
+  en: z.string().max(20_000).default(""),
+  level: z.union([z.literal(2), z.literal(3)]).default(2),
+  attribution: z.string().max(300).default(""),
+  href: z.string().max(2_048).default(""),
+  alt: z.string().max(300).default(""),
+  image: z
+    .object({
+      publicId: z.string().min(1).max(500),
+      assetVersion: z.coerce.number().int().min(1),
+      width: z.coerce.number().int().min(1),
+      height: z.coerce.number().int().min(1),
+    })
+    .nullish(),
 });
 
 const savePayloadSchema = z.object({
@@ -74,19 +111,49 @@ const savePayloadSchema = z.object({
   categorySlug: z.string().trim().max(80).nullish(),
   tags: z.string().trim().max(1000).default(""),
   authorLabel: z.string().trim().max(200).nullish(),
+  blocks: z.array(editorBlockSchema).max(120).default([]),
   translations: z.array(translationInputSchema).min(1).max(locales.length),
 });
 
-function paragraphBlocks(text: string, prefix: string) {
-  return text
-    .split(/\r?\n\s*\r?\n/)
-    .map((paragraph) => paragraph.trim().replace(/\s*\r?\n\s*/g, " "))
-    .filter(Boolean)
-    .map((paragraph, index) => ({
-      blockId: `${prefix}-${index + 1}`,
-      type: "paragraph" as const,
-      text: paragraph,
-    }));
+/**
+ * Editor blocks, one locale's stored body. Image blocks must point inside
+ * this article's own signed folder; their delivery URLs are minted here,
+ * server-side, never accepted from the browser.
+ */
+function buildBody(
+  blocks: readonly z.output<typeof editorBlockSchema>[],
+  locale: "vi" | "en",
+  articleId: string | null,
+): Record<string, unknown>[] {
+  let storage: CloudinaryMediaStorage | null = null;
+  try {
+    storage = CloudinaryMediaStorage.fromEnvironment();
+  } catch {
+    storage = null;
+  }
+  let uploadFolder: string | null = null;
+  try {
+    uploadFolder = getCloudinaryEnv().CLOUDINARY_UPLOAD_FOLDER;
+  } catch {
+    uploadFolder = null;
+  }
+
+  const body: Record<string, unknown>[] = [];
+  for (const block of blocks) {
+    if (block.type === "image") {
+      if (!block.image || !storage || !uploadFolder || !articleId) continue;
+      const expectedPrefix = `${uploadFolder}/articles/${articleId}/`;
+      if (!block.image.publicId.startsWith(expectedPrefix)) continue;
+    }
+    const stored = editorBlockToStored(
+      { ...block, image: block.image ?? null } as ArticleEditorBlock,
+      locale,
+      (publicId, assetVersion) =>
+        storage ? storage.buildImageUrl(publicId, assetVersion, 1600) : "",
+    );
+    if (stored) body.push(stored);
+  }
+  return body;
 }
 
 function parseTags(raw: string): string[] {
@@ -102,6 +169,7 @@ function parseTags(raw: string): string[] {
 
 function toServiceTranslation(
   input: z.output<typeof translationInputSchema>,
+  body: Record<string, unknown>[],
   expectedRevision?: number,
 ) {
   const slug = slugify(input.slug || input.title);
@@ -110,7 +178,7 @@ function toServiceTranslation(
     slug,
     title: input.title,
     summary: input.summary,
-    body: paragraphBlocks(input.bodyText, `p-${input.locale}`),
+    body,
     seo: {
       ...(input.seoTitle ? { title: input.seoTitle } : {}),
       ...(input.seoDescription ? { description: input.seoDescription } : {}),
@@ -152,7 +220,14 @@ export async function saveArticleAction(
         metadata,
         revision,
         translations: parsed.translations.map((translation) =>
-          toServiceTranslation(translation),
+          toServiceTranslation(
+            translation,
+            buildBody(
+              parsed.blocks,
+              translation.locale === "en" ? "en" : "vi",
+              null,
+            ),
+          ),
         ),
       });
       revalidatePath("/", "layout");
@@ -163,11 +238,14 @@ export async function saveArticleAction(
       };
     }
 
-    const context = await requireContentPermission("content.update");
-    const aggregate = await articleCommandService.read(context, {
+    // Contexts are bound to exactly one permission: reading the aggregate
+    // and mutating the draft each get their own.
+    const readContext = await requireContentPermission("content.read");
+    const aggregate = await articleCommandService.read(readContext, {
       articleId: parsed.articleId,
     });
     if (!aggregate) return { status: "error", message: "NOT_FOUND" };
+    const context = await requireContentPermission("content.update");
 
     // A published article without an open draft gets a fresh revision first;
     // editing never mutates what the public is currently reading.
@@ -177,7 +255,14 @@ export async function saveArticleAction(
         expectedArticleRevision: aggregate.article.revision,
         revision,
         translations: parsed.translations.map((translation) =>
-          toServiceTranslation(translation),
+          toServiceTranslation(
+            translation,
+            buildBody(
+              parsed.blocks,
+              translation.locale === "en" ? "en" : "vi",
+              parsed.articleId ?? null,
+            ),
+          ),
         ),
       });
       revalidatePath("/", "layout");
@@ -207,6 +292,11 @@ export async function saveArticleAction(
       translations: parsed.translations.map((translation) =>
         toServiceTranslation(
           translation,
+          buildBody(
+            parsed.blocks,
+            translation.locale === "en" ? "en" : "vi",
+            parsed.articleId ?? null,
+          ),
           byLocale.get(translation.locale)?.revision,
         ),
       ),
@@ -352,6 +442,66 @@ export async function attachArticleCoverAction(
     revalidateTag("articles:public", "max");
     revalidatePath("/", "layout");
     return { status: "success", message: "COVER_ATTACHED" };
+  } catch (error) {
+    return failure(error);
+  }
+}
+
+const bodyImagePayloadSchema = z.object({
+  articleId: z.string().regex(/^[a-f0-9]{24}$/),
+  publicId: z.string().min(1).max(500),
+  assetVersion: z.coerce.number().int().min(1),
+  width: z.coerce.number().int().min(1),
+  height: z.coerce.number().int().min(1),
+  bytes: z.coerce.number().int().min(1),
+});
+
+/**
+ * Records a body photograph in the sidecar so deleting the article can later
+ * destroy every photograph it ever uploaded, body images included.
+ */
+export async function registerArticleBodyImageAction(
+  input: unknown,
+): Promise<NewsActionState> {
+  try {
+    const context = await requireContentPermission("content.update");
+    const parsed = bodyImagePayloadSchema.parse(input);
+
+    const cloudinaryEnv = getCloudinaryEnv();
+    const expectedPrefix = `${cloudinaryEnv.CLOUDINARY_UPLOAD_FOLDER}/articles/${parsed.articleId}/`;
+    if (!parsed.publicId.startsWith(expectedPrefix)) {
+      return { status: "error", message: "INVALID_INPUT" };
+    }
+
+    await connectToDatabase();
+    await getEntityImagesModel()
+      .findOneAndUpdate(
+        {
+          entityType: "article",
+          entityId: new Types.ObjectId(parsed.articleId),
+        },
+        {
+          $push: {
+            images: {
+              publicId: parsed.publicId,
+              assetVersion: parsed.assetVersion,
+              width: parsed.width,
+              height: parsed.height,
+              bytes: parsed.bytes,
+            },
+          },
+          $set: { updatedBy: new Types.ObjectId(context.userId) },
+          $setOnInsert: {
+            entityType: "article",
+            entityId: new Types.ObjectId(parsed.articleId),
+            createdBy: new Types.ObjectId(context.userId),
+          },
+        },
+        { upsert: true, setDefaultsOnInsert: true },
+      )
+      .exec();
+
+    return { status: "success", message: "IMAGE_REGISTERED" };
   } catch (error) {
     return failure(error);
   }

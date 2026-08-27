@@ -38,24 +38,12 @@ type StaticDefinition = {
   };
 };
 
-/**
- * Static routes whose copy is still a placeholder. These stay `noindex` until
- * the company supplies real policy and accessibility text; every other static
- * route now carries approved content and must be indexable, so a blanket
- * `isDemo: true` here would quietly keep the finished site out of search.
- */
-const PLACEHOLDER_STATIC_PAGES = new Set<DemoStaticPage>([
-  "privacy",
-  "terms",
-  "accessibility",
-]);
-
 const STATIC_DEFINITIONS: Record<DemoStaticPage, StaticDefinition> = {
   accessibility: {
     path: "/accessibility",
     copy: (dictionary) => ({
       title: dictionary.pages.accessibilityTitle,
-      description: dictionary.common.replaceContentNotice,
+      description: dictionary.legal.accessibilityIntro,
     }),
   },
   about: {
@@ -97,7 +85,7 @@ const STATIC_DEFINITIONS: Record<DemoStaticPage, StaticDefinition> = {
     path: "/privacy",
     copy: (dictionary) => ({
       title: dictionary.pages.privacyTitle,
-      description: dictionary.common.replaceContentNotice,
+      description: dictionary.legal.privacyIntro,
     }),
   },
   process: {
@@ -125,7 +113,7 @@ const STATIC_DEFINITIONS: Record<DemoStaticPage, StaticDefinition> = {
     path: "/terms",
     copy: (dictionary) => ({
       title: dictionary.pages.termsTitle,
-      description: dictionary.common.replaceContentNotice,
+      description: dictionary.legal.termsIntro,
     }),
   },
 };
@@ -147,7 +135,8 @@ export async function getDemoStaticPageMetadata(
     title: copy.title,
     description: copy.description,
     siteName: dictionary.meta.siteName,
-    isDemo: PLACEHOLDER_STATIC_PAGES.has(page),
+    // Every static route now carries approved copy, legal pages included.
+    isDemo: false,
     indexable,
   });
 }
