@@ -1,6 +1,6 @@
 # Implementation Status
 
-Last updated: 2026-08-25
+Last updated: 2026-08-27
 
 This document is the source of truth for implementation progress against the Red Door / Lacquerwares master prompt. A dependency being installed, a route being scaffolded, or a UI being rendered with placeholder data does **not** mean the related business capability is implemented.
 
@@ -58,6 +58,16 @@ New documents: `docs/ORGANIZATION.md` (positions and operational forms) and `doc
 - Phase 2 SEO and persisted content architecture. Its locale-routing and typed-dictionary foundation already exists; content persistence, publishing, complete metadata, and protected CMS workflows do not.
 - Phase 4 authentication and RBAC. The permission catalog, generalized permission guard, role definition seeds, and an idempotent seed script exist, and the guard is enforced at the content call sites; grant administration, the invite/suspend lifecycle UI, and non-content call sites do not.
 - Phase 5 order domain and Phase 7 money domain, at the pure-logic layer only, as described in the table above.
+
+### Public data path (updated 2026-08-27)
+
+The public site no longer imports the DEMO repositories directly. Every public route, the sitemap, and route metadata resolve their repositories through `src/lib/public/repositories.ts`, which follows `resolvePublicDataSource()`: with MongoDB configured the site renders only what the CMS has published (Mongo-backed public readers exist for content/site settings, products, news, and collections under `src/domains/*/public-mongo-repository.ts`); the DEMO fixtures serve only when MongoDB is absent or `DATA_SOURCE=demo`. Published-state reads are cached via `unstable_cache` on the same tags the command services revalidate (`content:public`, `products:public`, `articles:public`, `collections:public`).
+
+Known mapping gaps, deliberate and visible in code comments: no media pipeline (images render as reserved slots), no product/article category taxonomy, no featured flag (featured rails show the newest published records). Editorial UI copy in `src/lib/i18n/dictionaries` (for example the home hero and craft quote) is code-owned and unaffected by the data source.
+
+### Collections catalogue pipeline (added 2026-08-27)
+
+The first complete role-driven content pipeline is live for collections: `/admin/collections` (guarded by the content permission family — Content Editor drafts and submits, Director publishes) creates a collection through `CollectionCommandService`, uploads its catalogue PDF from the browser straight to Cloudinary against a server-issued signature (`resource_type: image`, so page renditions derive), records it in the `CollectionCatalogue` model, and publishes through the draft → review → publish workflow. The public listing renders the real first PDF page as each cover; `/collections/[slug]/catalogue` serves the flipbook through `CloudinaryPageSource` with server-minted page-image URLs. Verified end to end against live MongoDB and Cloudinary on 2026-08-27. Note: `max_bytes` was removed from the upload signature — Cloudinary excludes it from its string-to-sign (it is a preset setting), so signing it produced a live 401; the ceiling is enforced client-side and re-checked in the attach action.
 
 ### Demo or placeholder only
 

@@ -1,14 +1,21 @@
 import type { MetadataRoute } from "next";
 
-import { demoCollectionRepository } from "@/domains/collections/demo-repository";
-import { demoContentRepository } from "@/domains/content/demo-repository";
-import { demoNewsRepository } from "@/domains/news/demo-repository";
-import { demoProductRepository } from "@/domains/products/demo-repository";
 import { locales } from "@/lib/i18n/config";
 import {
   buildPublicSitemap,
   type PublicSitemapSource,
 } from "@/lib/seo/sitemap";
+import {
+  getPublicCollectionRepository,
+  getPublicContentRepository,
+  getPublicNewsRepository,
+  getPublicProductRepository,
+} from "@/lib/public/repositories";
+
+const collectionRepository = getPublicCollectionRepository();
+const contentRepository = getPublicContentRepository();
+const newsRepository = getPublicNewsRepository();
+const productRepository = getPublicProductRepository();
 
 const STATIC_PUBLIC_PATHS = [
   "",
@@ -27,10 +34,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const localizedSources = await Promise.all(
     locales.map(async (locale): Promise<PublicSitemapSource[]> => {
       const [content, products, collections, articles] = await Promise.all([
-        demoContentRepository.getSnapshot(locale),
-        demoProductRepository.list(locale),
-        demoCollectionRepository.list(locale),
-        demoNewsRepository.list(locale),
+        contentRepository.getSnapshot(locale),
+        productRepository.list(locale),
+        collectionRepository.list(locale),
+        newsRepository.list(locale),
       ]);
 
       return [
@@ -48,13 +55,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           isDemo: product.isDemo,
           status: "published" as const,
         })),
-        ...collections.map((collection) => ({
-          key: `collection:${collection.id}`,
-          locale,
-          path: `/collections/${collection.slug}`,
-          isDemo: collection.isDemo,
-          status: "published" as const,
-        })),
+        ...collections
+          .filter(
+            (collection) =>
+              collection.flipbook.pageCount !== null &&
+              collection.flipbook.pageCount > 0,
+          )
+          .map((collection) => ({
+            key: `collection:${collection.id}`,
+            locale,
+            path: `/collections/${collection.slug}/catalogue`,
+            isDemo: collection.isDemo,
+            status: "published" as const,
+          })),
         ...articles.map((article) => ({
           key: `article:${article.id}`,
           locale,

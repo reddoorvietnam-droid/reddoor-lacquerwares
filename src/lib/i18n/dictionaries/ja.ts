@@ -2,9 +2,10 @@ import type { PublicDictionary } from "../dictionary";
 
 const dictionary = {
   meta: {
-    siteTitle: "Red Door Vietnam｜息づく漆",
+    siteName: "Red Door",
+    siteTitle: "Red Door — ベトナムの手仕事の漆",
     siteDescription:
-      "Red Door Vietnam の漆製品を紹介する公開サイトのデモ版です。仮の文章と画像は、承認済みのブランド素材に差し替えてください。",
+      "レッドドアはハノイの漆器メーカーです。トレイ、ボウル、花器、箱、装飾品を塗り重ね、水研ぎし、手作業で磨き上げます。海外へ輸出しています。",
   },
   common: {
     demoLabel: "デモコンテンツ",
@@ -13,7 +14,6 @@ const dictionary = {
     explore: "探る",
     viewAll: "すべて見る",
     close: "閉じる",
-    skipIntro: "イントロをスキップ",
     previous: "前へ",
     next: "次へ",
     openMenu: "メニューを開く",
@@ -23,6 +23,7 @@ const dictionary = {
     requestQuote: "見積もりを依頼",
     readStory: "物語を読む",
     featured: "注目",
+    playVideo: "動画を再生",
     replaceContentNotice:
       "デモコンテンツです。会社が承認した文章と画像に差し替えてください。",
   },
@@ -39,8 +40,6 @@ const dictionary = {
     eyebrow: "RED DOOR — 息づく漆",
     title: "手から生まれる、",
     titleAccent: "息づく表情",
-    intro:
-      "このデモ紹介文は、承認済みの Red Door Vietnam ブランドストーリーを掲載するための仮枠です。",
     craftTitle: "層が紡ぐ素材の物語",
     craftBody:
       "承認済みの工房写真、工程解説、製品ストーリーを掲載するためのデモ文章です。",
@@ -54,7 +53,7 @@ const dictionary = {
       "ご希望の概要をお知らせください。正式版のフォームでは、内容に応じて担当チームへ送信します。",
   },
   pages: {
-    aboutTitle: "Red Door について",
+    aboutTitle: "私たちについて",
     aboutIntro:
       "確認済みの会社沿革、価値観、人々、工房情報を掲載するためのデモ構成です。",
     productsTitle: "製品",

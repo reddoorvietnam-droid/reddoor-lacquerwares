@@ -2,9 +2,10 @@ import type { PublicDictionary } from "../dictionary";
 
 const dictionary = {
   meta: {
-    siteTitle: "Red Door Vietnam | La laque vivante",
+    siteName: "Red Door",
+    siteTitle: "Red Door — Laque artisanale du Vietnam",
     siteDescription:
-      "Aperçu DÉMO de l'expérience publique de Red Door Vietnam consacrée aux objets en laque. Remplacez les textes et médias temporaires par des contenus approuvés.",
+      "Red Door est un fabricant de laque à Hanoï : plateaux, bols, vases, coffrets et objets décoratifs, laqués en couches, poncés à l'eau et polis à la main. Export international.",
   },
   common: {
     demoLabel: "Contenu DÉMO",
@@ -13,7 +14,6 @@ const dictionary = {
     explore: "Explorer",
     viewAll: "Tout voir",
     close: "Fermer",
-    skipIntro: "Passer l’introduction",
     previous: "Précédent",
     next: "Suivant",
     openMenu: "Ouvrir le menu",
@@ -23,6 +23,7 @@ const dictionary = {
     requestQuote: "Demander un devis",
     readStory: "Lire l'histoire",
     featured: "À la une",
+    playVideo: "Lire la vidéo",
     replaceContentNotice:
       "Contenu DÉMO — à remplacer par les textes et médias approuvés par l'entreprise.",
   },
@@ -39,8 +40,6 @@ const dictionary = {
     eyebrow: "RED DOOR — LA LAQUE VIVANTE",
     title: "Une surface vivante,",
     titleAccent: "façonnée à la main",
-    intro:
-      "Cette introduction DÉMO réserve un espace au récit de marque approuvé de Red Door Vietnam.",
     craftTitle: "Un récit de matière, couche après couche",
     craftBody:
       "Un passage éditorial DÉMO destiné aux images d'atelier, aux notes de fabrication et aux récits produits approuvés.",
@@ -54,7 +53,7 @@ const dictionary = {
       "Décrivez votre recherche. Le formulaire définitif transmettra votre demande à l'équipe concernée.",
   },
   pages: {
-    aboutTitle: "À propos de Red Door",
+    aboutTitle: "À propos",
     aboutIntro:
       "Une structure DÉMO pour le récit, les valeurs, les personnes et les informations d'atelier vérifiés.",
     productsTitle: "Produits",

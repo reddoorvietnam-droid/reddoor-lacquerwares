@@ -45,7 +45,9 @@ export class PageFlipEngine implements FlipbookEngine {
         minHeight: 320,
         maxHeight: 2200,
         drawShadow: options.animate,
-        flippingTime: options.animate ? 700 : 0,
+        // 550ms: long enough to read as a page, short enough that the
+        // fold's vertical excursion does not hang in the air.
+        flippingTime: options.animate ? 550 : 0,
         // Portrait keeps a phone on one readable page rather than forcing two
         // tiny ones side by side.
         usePortrait: true,

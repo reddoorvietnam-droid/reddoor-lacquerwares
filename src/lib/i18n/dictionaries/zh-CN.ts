@@ -2,9 +2,10 @@ import type { PublicDictionary } from "../dictionary";
 
 const dictionary = {
   meta: {
-    siteTitle: "Red Door Vietnam｜生动漆艺",
+    siteName: "Red Door",
+    siteTitle: "Red Door — 越南手工漆艺",
     siteDescription:
-      "Red Door Vietnam 漆器公共体验的演示预览。请用经批准的品牌文案和媒体替换占位内容。",
+      "红门是位于河内的漆器制造商，制作托盘、碗、器皿、盒具与装饰摆件：层层髹涂、水磨、手工推光，产品远销海外。",
   },
   common: {
     demoLabel: "演示内容",
@@ -13,7 +14,6 @@ const dictionary = {
     explore: "探索",
     viewAll: "查看全部",
     close: "关闭",
-    skipIntro: "跳过开场",
     previous: "上一项",
     next: "下一项",
     openMenu: "打开菜单",
@@ -23,6 +23,7 @@ const dictionary = {
     requestQuote: "申请报价",
     readStory: "阅读故事",
     featured: "精选",
+    playVideo: "播放视频",
     replaceContentNotice: "演示内容——请替换为公司批准的文案和媒体。",
   },
   nav: {
@@ -38,7 +39,6 @@ const dictionary = {
     eyebrow: "RED DOOR — 生动漆艺",
     title: "生动的表面，",
     titleAccent: "由手工塑造",
-    intro: "这段演示介绍为经批准的 Red Door Vietnam 品牌故事预留位置。",
     craftTitle: "层层展开的材料故事",
     craftBody: "用于放置经批准的工坊图片、工序说明和产品故事的演示编辑文字。",
     historyTitle: "公司历程",
@@ -50,7 +50,7 @@ const dictionary = {
     contactBody: "请告诉我们您的需求。正式表单会将咨询转交给合适的团队。",
   },
   pages: {
-    aboutTitle: "关于 Red Door",
+    aboutTitle: "关于我们",
     aboutIntro: "用于呈现经核实的公司故事、价值观、团队和工坊信息的演示框架。",
     productsTitle: "产品",
     productsIntro: "浏览演示产品记录；这些内容将由经批准的目录数据替换。",

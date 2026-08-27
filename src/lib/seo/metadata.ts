@@ -90,7 +90,10 @@ export function buildPublicMetadata({
 
   return {
     metadataBase: siteUrl,
-    title: title === siteName ? { absolute: title } : title,
+    // A title that already carries the brand is emitted verbatim; letting the
+    // layout template append the brand again produced tabs such as
+    // "Red Door — Vietnamese Handcrafted Lacquer | Red Door".
+    title: title.startsWith(siteName) ? { absolute: title } : title,
     description,
     alternates: {
       canonical,

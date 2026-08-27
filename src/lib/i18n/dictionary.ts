@@ -1,5 +1,11 @@
 export type PublicDictionary = {
   meta: {
+    /**
+     * Short brand name used in the browser tab and the title template. Not
+     * translated: the mark reads "Red Door" in every market.
+     */
+    siteName: string;
+    /** Full home-page title, brand plus tagline. */
     siteTitle: string;
     siteDescription: string;
   };
@@ -10,7 +16,6 @@ export type PublicDictionary = {
     explore: string;
     viewAll: string;
     close: string;
-    skipIntro: string;
     previous: string;
     next: string;
     openMenu: string;
@@ -20,6 +25,8 @@ export type PublicDictionary = {
     requestQuote: string;
     readStory: string;
     featured: string;
+    /** Play button on the poster frame of an embedded film. */
+    playVideo: string;
     replaceContentNotice: string;
   };
   nav: {
@@ -35,7 +42,6 @@ export type PublicDictionary = {
     eyebrow: string;
     title: string;
     titleAccent: string;
-    intro: string;
     craftTitle: string;
     craftBody: string;
     historyTitle: string;

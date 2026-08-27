@@ -2,6 +2,7 @@ import type { Route } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { AccessSummary } from "@/components/admin";
 import { isLocale } from "@/lib/i18n/config";
 import { getAdminDictionary, resolveAdminLocale } from "@/lib/i18n/admin";
 
@@ -57,6 +58,7 @@ export default async function AdminOverviewPage({
           </section>
         ))}
       </div>
+      <AccessSummary locale={locale} />
       <Link
         href={`/${locale}/admin/content` as Route}
         className="bg-lacquer text-ivory hover:bg-burgundy mt-8 inline-flex min-h-12 items-center rounded-full px-7 text-sm font-semibold shadow-[0_0.75rem_2rem_rgb(61_13_16/0.18)]"

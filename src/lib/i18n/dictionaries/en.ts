@@ -2,9 +2,10 @@ import type { PublicDictionary } from "../dictionary";
 
 const dictionary = {
   meta: {
-    siteTitle: "Red Door Vietnam | Living Lacquer",
+    siteName: "Red Door",
+    siteTitle: "Red Door — Vietnamese Handcrafted Lacquer",
     siteDescription:
-      "A DEMO preview of Red Door Vietnam's public lacquerware experience. Replace placeholder copy and media with approved brand content.",
+      "Red Door is a Hanoi lacquerware manufacturer: trays, bowls, vessels, boxes and decorative objects, coated in layers, wet-sanded and hand-polished. Exporting worldwide.",
   },
   common: {
     demoLabel: "DEMO content",
@@ -13,7 +14,6 @@ const dictionary = {
     explore: "Explore",
     viewAll: "View all",
     close: "Close",
-    skipIntro: "Skip intro",
     previous: "Previous",
     next: "Next",
     openMenu: "Open menu",
@@ -23,6 +23,7 @@ const dictionary = {
     requestQuote: "Request a quote",
     readStory: "Read the story",
     featured: "Featured",
+    playVideo: "Play video",
     replaceContentNotice:
       "DEMO content — replace with copy and media approved by the company.",
   },
@@ -39,8 +40,6 @@ const dictionary = {
     eyebrow: "RED DOOR — LIVING LACQUER",
     title: "A living surface,",
     titleAccent: "shaped by hand",
-    intro:
-      "This DEMO introduction reserves space for Red Door Vietnam's approved brand story.",
     craftTitle: "A material story in layers",
     craftBody:
       "A DEMO editorial passage for approved workshop imagery, process notes, and product stories.",
@@ -54,7 +53,7 @@ const dictionary = {
       "Tell us what you are looking for. The production form will route an enquiry to the appropriate team.",
   },
   pages: {
-    aboutTitle: "About Red Door",
+    aboutTitle: "About us",
     aboutIntro:
       "A DEMO framework for the verified company story, values, people, and workshop information.",
     productsTitle: "Products",

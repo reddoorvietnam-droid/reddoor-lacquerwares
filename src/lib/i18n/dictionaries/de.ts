@@ -2,9 +2,10 @@ import type { PublicDictionary } from "../dictionary";
 
 const dictionary = {
   meta: {
-    siteTitle: "Red Door Vietnam | Lebendiger Lack",
+    siteName: "Red Door",
+    siteTitle: "Red Door — Handgefertigte Lackkunst aus Vietnam",
     siteDescription:
-      "Eine DEMO-Vorschau auf das öffentliche Lackwaren-Erlebnis von Red Door Vietnam. Platzhaltertexte und -medien sind durch freigegebene Markeninhalte zu ersetzen.",
+      "Red Door fertigt Lackwaren in Hanoi: Tabletts, Schalen, Gefäße, Schatullen und Dekorobjekte, in Schichten lackiert, nass geschliffen und von Hand poliert. Weltweiter Export.",
   },
   common: {
     demoLabel: "DEMO-Inhalt",
@@ -13,7 +14,6 @@ const dictionary = {
     explore: "Entdecken",
     viewAll: "Alle anzeigen",
     close: "Schließen",
-    skipIntro: "Intro überspringen",
     previous: "Zurück",
     next: "Weiter",
     openMenu: "Menü öffnen",
@@ -23,6 +23,7 @@ const dictionary = {
     requestQuote: "Angebot anfragen",
     readStory: "Geschichte lesen",
     featured: "Im Fokus",
+    playVideo: "Video abspielen",
     replaceContentNotice:
       "DEMO-Inhalt — durch vom Unternehmen freigegebene Texte und Medien ersetzen.",
   },
@@ -39,8 +40,6 @@ const dictionary = {
     eyebrow: "RED DOOR — LEBENDIGER LACK",
     title: "Eine lebendige Oberfläche,",
     titleAccent: "von Hand geformt",
-    intro:
-      "Diese DEMO-Einleitung hält Raum für die freigegebene Markengeschichte von Red Door Vietnam bereit.",
     craftTitle: "Eine Materialgeschichte in Schichten",
     craftBody:
       "Ein DEMO-Redaktionstext als Platz für freigegebene Werkstattbilder, Prozessnotizen und Produktgeschichten.",
@@ -54,7 +53,7 @@ const dictionary = {
       "Beschreiben Sie, wonach Sie suchen. Das endgültige Formular leitet Ihre Anfrage an das zuständige Team weiter.",
   },
   pages: {
-    aboutTitle: "Über Red Door",
+    aboutTitle: "Über uns",
     aboutIntro:
       "Ein DEMO-Rahmen für die geprüfte Unternehmensgeschichte sowie bestätigte Angaben zu Werten, Menschen und Werkstatt.",
     productsTitle: "Produkte",

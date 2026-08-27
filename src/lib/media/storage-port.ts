@@ -66,6 +66,12 @@ export interface MediaStoragePort {
   /** Delivery URL for one rendered page of a stored PDF. */
   buildPageImageUrl(request: PageImageRequest): string;
 
+  /**
+   * Delivery URL for a stored photograph (not a PDF page): width-capped,
+   * format and quality negotiated by the CDN per browser.
+   */
+  buildImageUrl(publicId: string, version: number, width: number): string;
+
   /** Delivery URL for a small thumbnail of one page. */
   buildThumbnailUrl(request: Omit<PageImageRequest, "width">): string;
 

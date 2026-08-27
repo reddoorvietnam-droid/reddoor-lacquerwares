@@ -24,14 +24,52 @@ const mongoSchema = baseSchema.extend({
     .min(1, "MONGODB_URI is required for MongoDB features"),
 });
 
-const authSchema = baseSchema.extend({
-  AUTH_SECRET: z
-    .string()
-    .min(32, "AUTH_SECRET must contain at least 32 characters"),
-  AUTH_GOOGLE_ID: z.string().trim().min(1),
-  AUTH_GOOGLE_SECRET: z.string().trim().min(1),
-  ADMIN_EMAILS: optionalText,
-});
+/**
+ * Google credentials are optional as a PAIR: the working group previews the
+ * portal through the dev sign-in before the director's Google OAuth client
+ * exists. Auth still requires at least one usable provider, so a secret with
+ * neither Google nor a dev password remains unconfigured, and one Google key
+ * without the other names the missing half instead of half-configuring.
+ */
+const authSchema = baseSchema
+  .extend({
+    AUTH_SECRET: z
+      .string()
+      .min(32, "AUTH_SECRET must contain at least 32 characters"),
+    AUTH_GOOGLE_ID: optionalText,
+    AUTH_GOOGLE_SECRET: optionalText,
+    ADMIN_EMAILS: optionalText,
+    /**
+     * Enables the local role-preview sign-in and sets its shared password.
+     * Development only: leave unset in any deployed environment, where Google
+     * sign-in is the sole way in.
+     */
+    DEV_LOGIN_PASSWORD: optionalText,
+  })
+  .check((ctx) => {
+    const { AUTH_GOOGLE_ID, AUTH_GOOGLE_SECRET, DEV_LOGIN_PASSWORD } =
+      ctx.value;
+
+    if (Boolean(AUTH_GOOGLE_ID) !== Boolean(AUTH_GOOGLE_SECRET)) {
+      const missing = AUTH_GOOGLE_ID ? "AUTH_GOOGLE_SECRET" : "AUTH_GOOGLE_ID";
+      ctx.issues.push({
+        code: "custom",
+        message: `${missing} is required when its counterpart is set`,
+        path: [missing],
+        input: ctx.value,
+      });
+    }
+
+    if (!AUTH_GOOGLE_ID && !AUTH_GOOGLE_SECRET && !DEV_LOGIN_PASSWORD) {
+      ctx.issues.push({
+        code: "custom",
+        message:
+          "Configure AUTH_GOOGLE_ID and AUTH_GOOGLE_SECRET, or DEV_LOGIN_PASSWORD for local development",
+        path: ["AUTH_GOOGLE_ID"],
+        input: ctx.value,
+      });
+    }
+  });
 
 const cloudinarySchema = baseSchema.extend({
   NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: z.string().trim().min(1),

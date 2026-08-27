@@ -14,4 +14,7 @@ export {
   type MobileNavigationProps,
 } from "./mobile-navigation";
 export { MotionReveal, type MotionRevealProps } from "./motion-reveal";
+export { MotionRule, type MotionRuleProps } from "./motion-rule";
 export type { PublicNavigationItem } from "./navigation";
+export { ScrollParallax, type ScrollParallaxProps } from "./scroll-parallax";
+export { VideoEmbed, type VideoEmbedProps } from "./video-embed";

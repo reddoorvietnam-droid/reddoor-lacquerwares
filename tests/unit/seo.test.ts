@@ -241,9 +241,19 @@ describe("robots and sitemap", () => {
         ).toBe(true);
       }
       for (const collection of collections) {
+        // The landing page is retired: a collection is listed as its
+        // catalogue reader, and only once a catalogue exists to read.
+        const hasCatalogue =
+          collection.flipbook.pageCount !== null &&
+          collection.flipbook.pageCount > 0;
+        expect(
+          urls.has(
+            localizedUrl(locale, `/collections/${collection.slug}/catalogue`),
+          ),
+        ).toBe(hasCatalogue);
         expect(
           urls.has(localizedUrl(locale, `/collections/${collection.slug}`)),
-        ).toBe(true);
+        ).toBe(false);
       }
       for (const article of articles) {
         expect(urls.has(localizedUrl(locale, `/news/${article.slug}`))).toBe(

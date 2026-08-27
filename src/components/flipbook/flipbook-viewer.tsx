@@ -275,10 +275,17 @@ export function FlipbookViewer({
       )}
       aria-describedby={statusId}
     >
+      {/*
+        The engine stage is deliberately NOT overflow-hidden: the fold
+        animation projects the turning page up to ~30% beyond the book box,
+        and clipping that excursion flat at the stage edge is what made cover
+        flips read as an ugly jump. Left visible, the page lifts over the
+        surface the way a real page does, and the drop shadow sells it.
+      */}
       <div
         className={cn(
           "relative min-h-0 flex-1",
-          useFallback ? "overflow-auto p-3 sm:p-6" : "overflow-hidden py-2",
+          useFallback ? "overflow-auto p-3 sm:p-6" : "py-2",
         )}
       >
         {useFallback ? (
@@ -334,7 +341,12 @@ export function FlipbookViewer({
         ) : null}
       </div>
 
-      <div className="flex shrink-0 flex-wrap items-center justify-center gap-2 px-4 pt-4 pb-1">
+      {/*
+        Raised above the stage: with the stage unclipped, a turning page can
+        sweep across this row mid-flip, and the controls must stay usable
+        rather than disappear under the animation.
+      */}
+      <div className="bg-ivory relative z-10 flex shrink-0 flex-wrap items-center justify-center gap-2 px-4 pt-4 pb-1">
         <button
           type="button"
           onClick={goPrevious}

@@ -3,25 +3,34 @@
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 
-import { Button } from "../ui/button";
 import { BrandPlaque } from "./logo";
+
+/*
+ * The choreography, in one place because the four values only make sense
+ * against each other: the plaque holds alone for a beat, the doors start
+ * while it is still lit and finish as it finishes fading, and the overlay
+ * lingers half a second on the opened page before it goes. Move one and the
+ * others need moving with it.
+ */
+const PLAQUE_SECONDS = 2.5;
+const DOORS_DELAY_SECONDS = 1.2;
+const DOORS_SECONDS = 1.4;
+const EXIT_SECONDS = 0.35;
+const DISMISS_AFTER_MS = 2700;
 
 export type DoorIntroProps = {
   brandName: string;
   title: string;
-  skipLabel: string;
   storageKey?: string;
 };
 
 export function DoorIntro({
   brandName,
   title,
-  skipLabel,
   storageKey = "reddoor:door-intro:v1",
 }: DoorIntroProps) {
   const [isOpen, setIsOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
-  const skipButtonRef = useRef<HTMLButtonElement>(null);
   const titleId = useId();
 
   const dismiss = useCallback(() => setIsOpen(false), []);
@@ -47,7 +56,7 @@ export function DoorIntro({
   useEffect(() => {
     if (!isOpen) return;
 
-    const timer = window.setTimeout(dismiss, 2500);
+    const timer = window.setTimeout(dismiss, DISMISS_AFTER_MS);
     return () => window.clearTimeout(timer);
   }, [dismiss, isOpen]);
 
@@ -60,7 +69,10 @@ export function DoorIntro({
         : null;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    skipButtonRef.current?.focus();
+    // Nothing inside is focusable now that the skip control is gone, so the
+    // dialog takes focus itself: that is what makes a screen reader announce
+    // it, and it keeps focus from sitting on the page behind the overlay.
+    panelRef.current?.focus();
 
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
@@ -108,18 +120,19 @@ export function DoorIntro({
           role="dialog"
           aria-modal="true"
           aria-labelledby={titleId}
+          tabIndex={-1}
           initial={{ opacity: 1 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.28 }}
+          transition={{ duration: EXIT_SECONDS }}
         >
           <motion.div
             className="bg-burgundy absolute inset-y-0 left-0 w-[50.5%] border-r border-white/10 shadow-[1rem_0_4rem_rgb(27_7_8/0.35)]"
             initial={{ x: "0%" }}
             animate={{ x: "-103%" }}
             transition={{
-              delay: 0.58,
-              duration: 1.3,
+              delay: DOORS_DELAY_SECONDS,
+              duration: DOORS_SECONDS,
               ease: [0.2, 0.72, 0.2, 1],
             }}
           >
@@ -130,8 +143,8 @@ export function DoorIntro({
             initial={{ x: "0%" }}
             animate={{ x: "103%" }}
             transition={{
-              delay: 0.58,
-              duration: 1.3,
+              delay: DOORS_DELAY_SECONDS,
+              duration: DOORS_SECONDS,
               ease: [0.2, 0.72, 0.2, 1],
             }}
           >
@@ -141,11 +154,19 @@ export function DoorIntro({
           <motion.div
             className="text-ivory pointer-events-none relative z-10 flex h-full flex-col items-center justify-center px-6 text-center"
             initial={{ opacity: 0, scale: 0.98 }}
-            animate={{ opacity: [0, 1, 1, 0], scale: [0.98, 1, 1, 1.01] }}
+            animate={{ opacity: [0, 1, 1, 0], scale: [0.98, 1, 1, 1.02] }}
+            /*
+              One easing per segment, not one for the whole run. A single
+              cubic-bezier is applied across the entire keyframe sequence and
+              warps `times` with it: [0.2, 0.72, 0.2, 1] reaches 72% of its
+              progress in its first fifth, so the plaque started fading at
+              0.7s instead of holding to 2.5s. Segment easings leave `times`
+              meaning what it says.
+            */
             transition={{
-              duration: 2,
-              times: [0, 0.18, 0.55, 1],
-              ease: [0.2, 0.72, 0.2, 1],
+              duration: PLAQUE_SECONDS,
+              times: [0, 0.14, 0.56, 1],
+              ease: [[0.2, 0.72, 0.2, 1], "linear", [0.2, 0.72, 0.2, 1]],
             }}
           >
             <BrandPlaque
@@ -163,16 +184,6 @@ export function DoorIntro({
               {title}
             </p>
           </motion.div>
-
-          <Button
-            ref={skipButtonRef}
-            variant="inverse"
-            size="sm"
-            className="absolute top-5 right-5 z-20 sm:top-8 sm:right-8"
-            onClick={dismiss}
-          >
-            {skipLabel}
-          </Button>
         </motion.div>
       ) : null}
     </AnimatePresence>

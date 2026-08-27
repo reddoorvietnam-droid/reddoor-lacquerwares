@@ -2,14 +2,20 @@ import "server-only";
 
 import type { Metadata } from "next";
 
-import { demoCollectionRepository } from "@/domains/collections/demo-repository";
-import { demoNewsRepository } from "@/domains/news/demo-repository";
-import { demoProductRepository } from "@/domains/products/demo-repository";
 import { isLocale } from "@/lib/i18n/config";
 import type { PublicDictionary } from "@/lib/i18n/dictionary";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { buildPublicMetadata } from "@/lib/seo/metadata";
 import { encodeSeoSlug } from "@/lib/seo/urls";
+import {
+  getPublicCollectionRepository,
+  getPublicNewsRepository,
+  getPublicProductRepository,
+} from "@/lib/public/repositories";
+
+const collectionRepository = getPublicCollectionRepository();
+const newsRepository = getPublicNewsRepository();
+const productRepository = getPublicProductRepository();
 
 export type DemoStaticPage =
   | "accessibility"
@@ -140,7 +146,7 @@ export async function getDemoStaticPageMetadata(
     path: definition.path,
     title: copy.title,
     description: copy.description,
-    siteName: dictionary.meta.siteTitle,
+    siteName: dictionary.meta.siteName,
     isDemo: PLACEHOLDER_STATIC_PAGES.has(page),
     indexable,
   });
@@ -154,7 +160,7 @@ export async function getDemoProductMetadata(
 
   const [dictionary, product] = await Promise.all([
     getDictionary(localeValue),
-    demoProductRepository.getBySlug(localeValue, slug),
+    productRepository.getBySlug(localeValue, slug),
   ]);
   if (!product) return {};
 
@@ -163,7 +169,7 @@ export async function getDemoProductMetadata(
     path: `/products/${encodeSeoSlug(product.slug)}`,
     title: product.name,
     description: product.summary,
-    siteName: dictionary.meta.siteTitle,
+    siteName: dictionary.meta.siteName,
     isDemo: product.isDemo,
   });
 }
@@ -176,16 +182,16 @@ export async function getDemoCollectionMetadata(
 
   const [dictionary, collection] = await Promise.all([
     getDictionary(localeValue),
-    demoCollectionRepository.getBySlug(localeValue, slug),
+    collectionRepository.getBySlug(localeValue, slug),
   ]);
   if (!collection) return {};
 
   return buildPublicMetadata({
     locale: localeValue,
-    path: `/collections/${encodeSeoSlug(collection.slug)}`,
+    path: `/collections/${encodeSeoSlug(collection.slug)}/catalogue`,
     title: collection.title,
     description: collection.summary,
-    siteName: dictionary.meta.siteTitle,
+    siteName: dictionary.meta.siteName,
     isDemo: collection.isDemo,
   });
 }
@@ -198,7 +204,7 @@ export async function getDemoNewsMetadata(
 
   const [dictionary, article] = await Promise.all([
     getDictionary(localeValue),
-    demoNewsRepository.getBySlug(localeValue, slug),
+    newsRepository.getBySlug(localeValue, slug),
   ]);
   if (!article) return {};
 
@@ -207,7 +213,7 @@ export async function getDemoNewsMetadata(
     path: `/news/${encodeSeoSlug(article.slug)}`,
     title: article.title,
     description: article.excerpt,
-    siteName: dictionary.meta.siteTitle,
+    siteName: dictionary.meta.siteName,
     isDemo: article.isDemo,
     kind: "article",
   });

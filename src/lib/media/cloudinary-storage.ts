@@ -126,13 +126,15 @@ export class CloudinaryMediaStorage implements MediaStoragePort {
 
     // Every one of these is covered by the signature, so the browser cannot
     // raise the size limit, change the folder, or widen the accepted formats.
+    // `max_bytes` is deliberately absent: it is an upload-preset setting,
+    // not an upload API parameter — Cloudinary drops it from its own
+    // string-to-sign, so signing it guarantees a signature mismatch. The
+    // size ceiling is enforced by the caller before upload and re-checked
+    // when the upload is recorded.
     const signedParameters: Record<string, string | number> = {
       folder: request.folder,
       timestamp,
       allowed_formats: request.allowedFormats.join(","),
-      // Cloudinary rejects the upload itself once this is exceeded, so an
-      // oversized file never consumes storage.
-      max_bytes: request.maxBytes,
       // A deterministic id would let one upload overwrite another.
       unique_filename: "true",
       overwrite: "false",
@@ -199,6 +201,20 @@ export class CloudinaryMediaStorage implements MediaStoragePort {
       `${request.publicId}.jpg`,
       request.version,
       `pg_${request.pageNumber},w_${request.width},c_limit,f_auto,q_auto`,
+    );
+  }
+
+  buildImageUrl(publicId: string, version: number, width: number): string {
+    if (!Number.isInteger(width) || width < 16 || width > 3_200) {
+      throw new MediaStorageError(
+        "INVALID_REQUEST",
+        "That image width is not permitted.",
+      );
+    }
+    return this.#deliveryUrl(
+      publicId,
+      version,
+      `w_${width},c_limit,f_auto,q_auto`,
     );
   }
 

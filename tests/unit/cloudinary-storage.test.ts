@@ -76,11 +76,15 @@ describe("signed upload instruction", () => {
     );
   });
 
-  it("binds the folder, size ceiling and accepted format into the signature", async () => {
+  it("binds the folder and accepted format into the signature", async () => {
     const instruction = await storage().createSignedUpload(uploadRequest);
 
     expect(instruction.fields.folder).toBe("reddoor/collections/2026/vi");
-    expect(instruction.fields.max_bytes).toBe(String(10 * 1024 * 1024));
+    // `max_bytes` must NOT be signed: it is an upload-preset setting, not an
+    // upload API parameter — Cloudinary omits it from its own string-to-sign,
+    // so signing it produces a live 401 Invalid Signature. The ceiling is
+    // enforced by the callers instead.
+    expect(instruction.fields.max_bytes).toBeUndefined();
     expect(instruction.fields.allowed_formats).toBe("pdf");
     expect(instruction.fields.overwrite).toBe("false");
 

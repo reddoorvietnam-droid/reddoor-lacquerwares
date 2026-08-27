@@ -1,10 +1,12 @@
 import type { ReactNode } from "react";
 
 import { DoorIntro, PublicFooter, PublicHeader } from "@/components/public";
-import { demoContentRepository } from "@/domains/content/demo-repository";
 import { isLocale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { notFound } from "next/navigation";
+import { getPublicContentRepository } from "@/lib/public/repositories";
+
+const contentRepository = getPublicContentRepository();
 
 type PublicLayoutProps = {
   children: ReactNode;
@@ -23,7 +25,7 @@ export default async function PublicLayout({
 
   const [dictionary, content] = await Promise.all([
     getDictionary(locale),
-    demoContentRepository.getSnapshot(locale),
+    contentRepository.getSnapshot(locale),
   ]);
   const socialLinks = content.settings.socialLinks.flatMap((link) =>
     link.href ? [{ label: link.label, href: link.href, external: true }] : [],
@@ -34,7 +36,6 @@ export default async function PublicLayout({
       <DoorIntro
         brandName={content.company.displayName}
         title={`${dictionary.home.title} ${dictionary.home.titleAccent}`}
-        skipLabel={dictionary.common.skipIntro}
       />
       <PublicHeader
         locale={locale}

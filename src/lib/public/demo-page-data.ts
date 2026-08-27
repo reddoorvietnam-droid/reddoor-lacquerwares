@@ -3,9 +3,7 @@ import "server-only";
 import type { AboutHistoryPageData } from "@/components/public/pages/about-history";
 import type {
   CollectionCardView,
-  CollectionLandingPageData,
   CollectionListingPageData,
-  CollectionProductLinkView,
 } from "@/components/public/pages/collections";
 import type { ContactRequestQuotePageData } from "@/components/public/pages/contact-request-quote";
 import type { LacquerProcessPageData } from "@/components/public/pages/lacquer-process";
@@ -27,19 +25,15 @@ import type {
   SearchResultView,
 } from "@/components/public/pages/search";
 import type { PublicPageMedia } from "@/components/public/pages/shared";
-import { demoCollectionRepository } from "@/domains/collections/demo-repository";
 import type {
   PublicCollection,
   PublicCollectionCover,
 } from "@/domains/collections/public-contract";
-import { demoContentRepository } from "@/domains/content/demo-repository";
 import type { PublicImageAsset } from "@/domains/content/public-contract";
-import { demoNewsRepository } from "@/domains/news/demo-repository";
 import type {
   PublicNewsArticle,
   PublicNewsImage,
 } from "@/domains/news/public-contract";
-import { demoProductRepository } from "@/domains/products/demo-repository";
 import type {
   PublicProduct,
   PublicProductDimensions,
@@ -47,6 +41,17 @@ import type {
 } from "@/domains/products/public-contract";
 import { localePath, locales, type Locale } from "@/lib/i18n/config";
 import type { PublicDictionary } from "@/lib/i18n/dictionary";
+import {
+  getPublicCollectionRepository,
+  getPublicContentRepository,
+  getPublicNewsRepository,
+  getPublicProductRepository,
+} from "@/lib/public/repositories";
+
+const collectionRepository = getPublicCollectionRepository();
+const contentRepository = getPublicContentRepository();
+const newsRepository = getPublicNewsRepository();
+const productRepository = getPublicProductRepository();
 
 type DemoMediaSource =
   | PublicImageAsset
@@ -94,10 +99,6 @@ function productHref(locale: Locale, product: PublicProduct): string {
   return localePath(locale, `/products/${product.slug}`);
 }
 
-function collectionHref(locale: Locale, collection: PublicCollection): string {
-  return localePath(locale, `/collections/${collection.slug}`);
-}
-
 function newsHref(locale: Locale, article: PublicNewsArticle): string {
   return localePath(locale, `/news/${article.slug}`);
 }
@@ -143,15 +144,22 @@ function mapCollectionCard(
   dictionary: PublicDictionary,
   collection: PublicCollection,
 ): CollectionCardView {
+  const hasCatalogue =
+    collection.flipbook.pageCount !== null && collection.flipbook.pageCount > 0;
+
   return {
     id: collection.id,
-    href: collectionHref(locale, collection),
+    // The catalogue reader is the collection's only page now; until a PDF is
+    // attached the card announces the collection without linking anywhere.
+    href: hasCatalogue
+      ? localePath(locale, `/collections/${collection.slug}/catalogue`)
+      : null,
     title: collection.title,
     excerpt: collection.summary,
     cover: toPageMedia(collection.cover),
     yearLabel: collection.editionLabel,
     localeLabel: null,
-    pageCountLabel: null,
+    pageCountLabel: hasCatalogue ? dictionary.collection.openBook : null,
     statusLabel: null,
   };
 }
@@ -268,7 +276,7 @@ export async function getDemoAboutHistoryPageData(
   locale: Locale,
   dictionary: PublicDictionary,
 ): Promise<AboutHistoryPageData> {
-  const content = await demoContentRepository.getSnapshot(locale);
+  const content = await contentRepository.getSnapshot(locale);
 
   return {
     contentIsDemo: content.isDemo,
@@ -344,9 +352,9 @@ export async function getDemoProductListingPageData(
   options: DemoProductListingQuery,
 ): Promise<ProductListingPageData> {
   const [content, allProducts, collections] = await Promise.all([
-    demoContentRepository.getSnapshot(locale),
-    demoProductRepository.list(locale),
-    demoCollectionRepository.list(locale),
+    contentRepository.getSnapshot(locale),
+    productRepository.list(locale),
+    collectionRepository.list(locale),
   ]);
   const query = normalized(options.query, locale);
   const collectionTitles = new Map(
@@ -564,8 +572,8 @@ export async function getDemoProductDetailPageData(
   slug: string,
 ): Promise<ProductDetailPageData | null> {
   const [product, allProducts] = await Promise.all([
-    demoProductRepository.getBySlug(locale, slug),
-    demoProductRepository.list(locale),
+    productRepository.getBySlug(locale, slug),
+    productRepository.list(locale),
   ]);
   if (!product) return null;
 
@@ -666,8 +674,8 @@ export async function getDemoCollectionListingPageData(
   dictionary: PublicDictionary,
 ): Promise<CollectionListingPageData> {
   const [content, collections] = await Promise.all([
-    demoContentRepository.getSnapshot(locale),
-    demoCollectionRepository.list(locale),
+    contentRepository.getSnapshot(locale),
+    collectionRepository.list(locale),
   ]);
 
   return {
@@ -686,68 +694,11 @@ export async function getDemoCollectionListingPageData(
   };
 }
 
-export async function getDemoCollectionLandingPageData(
-  locale: Locale,
-  dictionary: PublicDictionary,
-  slug: string,
-): Promise<CollectionLandingPageData | null> {
-  const [collection, allProducts] = await Promise.all([
-    demoCollectionRepository.getBySlug(locale, slug),
-    demoProductRepository.list(locale),
-  ]);
-  if (!collection) return null;
-
-  const cover = toPageMedia(collection.cover);
-  const products: CollectionProductLinkView[] = allProducts
-    .filter((product) => collection.productIds.includes(product.id))
-    .map((product) => {
-      const image =
-        product.images.find((candidate) => candidate.isPrimary) ??
-        product.images[0];
-      if (!image) {
-        throw new Error(
-          `DEMO product ${product.id} is missing its media record.`,
-        );
-      }
-      return {
-        id: product.id,
-        href: productHref(locale, product),
-        title: product.name,
-        meta: product.categoryLabel,
-        media: toPageMedia(image),
-      };
-    });
-
-  return {
-    contentIsDemo: collection.isDemo,
-    backLink: {
-      href: localePath(locale, "/collections"),
-      label: dictionary.pages.collectionsTitle,
-    },
-    chapters: [],
-    chaptersLabel: dictionary.collection.openBook,
-    cover,
-    downloadLink: null,
-    facts: [],
-    fallbackDescription: collection.summary,
-    fallbackPages: [cover],
-    fallbackTitle: dictionary.collection.openBook,
-    flipbookDescription: collection.summary,
-    flipbookLink: null,
-    flipbookUnavailableLabel: dictionary.collection.downloadDisabled,
-    heroEyebrow: collection.editionLabel,
-    intro: collection.summary,
-    products,
-    productsDescription: collection.summary,
-    title: collection.title,
-  };
-}
-
 export async function getDemoLacquerProcessPageData(
   locale: Locale,
   dictionary: PublicDictionary,
 ): Promise<LacquerProcessPageData> {
-  const content = await demoContentRepository.getSnapshot(locale);
+  const content = await contentRepository.getSnapshot(locale);
 
   return {
     contentIsDemo: content.isDemo,
@@ -784,9 +735,9 @@ export async function getDemoNewsListingPageData(
   options: DemoNewsListingQuery,
 ): Promise<NewsListingPageData> {
   const [content, allArticles, articles] = await Promise.all([
-    demoContentRepository.getSnapshot(locale),
-    demoNewsRepository.list(locale),
-    demoNewsRepository.list(
+    contentRepository.getSnapshot(locale),
+    newsRepository.list(locale),
+    newsRepository.list(
       locale,
       options.category ? { categorySlug: options.category } : undefined,
     ),
@@ -834,8 +785,8 @@ export async function getDemoNewsArticlePageData(
   slug: string,
 ): Promise<NewsArticlePageData | null> {
   const [article, allArticles] = await Promise.all([
-    demoNewsRepository.getBySlug(locale, slug),
-    demoNewsRepository.list(locale),
+    newsRepository.getBySlug(locale, slug),
+    newsRepository.list(locale),
   ]);
   if (!article) return null;
 
@@ -877,8 +828,8 @@ export async function getDemoContactRequestQuotePageData(
   dictionary: PublicDictionary,
 ): Promise<ContactRequestQuotePageData> {
   const [content, products] = await Promise.all([
-    demoContentRepository.getSnapshot(locale),
-    demoProductRepository.list(locale),
+    contentRepository.getSnapshot(locale),
+    productRepository.list(locale),
   ]);
   const contact = content.settings.contact;
   const regionNames = new Intl.DisplayNames([locale], { type: "region" });
@@ -1013,9 +964,9 @@ export async function getDemoSearchPageData(
   options: DemoSearchQuery,
 ): Promise<SearchPageData> {
   const [products, collections, articles] = await Promise.all([
-    demoProductRepository.list(locale),
-    demoCollectionRepository.list(locale),
-    demoNewsRepository.list(locale),
+    productRepository.list(locale),
+    collectionRepository.list(locale),
+    newsRepository.list(locale),
   ]);
   const query = normalized(options.query, locale);
   const allowedScopes = new Set(["products", "collections", "news"]);
@@ -1061,7 +1012,11 @@ export async function getDemoSearchPageData(
         )
         .map((collection) => ({
           id: collection.id,
-          href: collectionHref(locale, collection),
+          href:
+            collection.flipbook.pageCount !== null &&
+            collection.flipbook.pageCount > 0
+              ? localePath(locale, `/collections/${collection.slug}/catalogue`)
+              : localePath(locale, "/collections"),
           title: collection.title,
           excerpt: collection.summary,
           typeLabel: dictionary.nav.collections,
@@ -1164,21 +1119,8 @@ export function getDemoLegalDocumentPageData(
 export async function getDemoProductStaticParams() {
   const records = await Promise.all(
     locales.map(async (locale) => {
-      const products = await demoProductRepository.list(locale);
+      const products = await productRepository.list(locale);
       return products.map((product) => ({ locale, slug: product.slug }));
-    }),
-  );
-  return records.flat();
-}
-
-export async function getDemoCollectionStaticParams() {
-  const records = await Promise.all(
-    locales.map(async (locale) => {
-      const collections = await demoCollectionRepository.list(locale);
-      return collections.map((collection) => ({
-        locale,
-        slug: collection.slug,
-      }));
     }),
   );
   return records.flat();
@@ -1187,7 +1129,7 @@ export async function getDemoCollectionStaticParams() {
 export async function getDemoNewsStaticParams() {
   const records = await Promise.all(
     locales.map(async (locale) => {
-      const articles = await demoNewsRepository.list(locale);
+      const articles = await newsRepository.list(locale);
       return articles.map((article) => ({ locale, slug: article.slug }));
     }),
   );

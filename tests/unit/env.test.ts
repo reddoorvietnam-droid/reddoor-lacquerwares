@@ -55,9 +55,35 @@ describe("lazy environment validation", () => {
     delete process.env.AUTH_GOOGLE_ID;
     delete process.env.AUTH_GOOGLE_SECRET;
 
+    // Field-level failures surface alone; the provider cross-check runs only
+    // once the fields themselves parse.
     expect(inspectAuthEnv()).toEqual({
       configured: false,
-      invalidKeys: ["AUTH_SECRET", "AUTH_GOOGLE_ID", "AUTH_GOOGLE_SECRET"],
+      invalidKeys: ["AUTH_SECRET"],
+    });
+  });
+
+  it("requires at least one sign-in provider once the secret is set", () => {
+    process.env.AUTH_SECRET = "0".repeat(48);
+    delete process.env.AUTH_GOOGLE_ID;
+    delete process.env.AUTH_GOOGLE_SECRET;
+    delete process.env.DEV_LOGIN_PASSWORD;
+
+    expect(inspectAuthEnv()).toEqual({
+      configured: false,
+      invalidKeys: ["AUTH_GOOGLE_ID"],
+    });
+  });
+
+  it("accepts the Google pair only as a pair", () => {
+    process.env.AUTH_SECRET = "0".repeat(48);
+    process.env.AUTH_GOOGLE_ID = "client-id";
+    delete process.env.AUTH_GOOGLE_SECRET;
+    delete process.env.DEV_LOGIN_PASSWORD;
+
+    expect(inspectAuthEnv()).toEqual({
+      configured: false,
+      invalidKeys: ["AUTH_GOOGLE_SECRET"],
     });
   });
 

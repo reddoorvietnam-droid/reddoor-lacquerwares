@@ -19,14 +19,26 @@ import { getCloudinaryEnv } from "@/lib/env/server";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const requestSchema = z.object({
-  /** Which catalogue the upload belongs to, used to build the folder. */
-  collectionId: z
-    .string()
-    .trim()
-    .regex(/^[a-f0-9]{24}$/, "A collection id is required."),
-  locale: z.enum(["vi", "en", "fr", "de", "ja", "zh-CN"]),
-});
+const objectIdSchema = z
+  .string()
+  .trim()
+  .regex(/^[a-f0-9]{24}$/, "An entity id is required.");
+
+/**
+ * One signing endpoint, three upload targets. The folder is always derived
+ * server-side from the validated target, and the accepted formats follow the
+ * target: a collection takes its catalogue PDF, an article or product takes
+ * photographs.
+ */
+const requestSchema = z.discriminatedUnion("kind", [
+  z.object({
+    kind: z.literal("collection"),
+    id: objectIdSchema,
+    locale: z.enum(["vi", "en", "fr", "de", "ja", "zh-CN"]),
+  }),
+  z.object({ kind: z.literal("article"), id: objectIdSchema }),
+  z.object({ kind: z.literal("product"), id: objectIdSchema }),
+]);
 
 function errorResponse(status: number, code: string) {
   // Deliberately bare: an unauthenticated caller learns nothing about whether
@@ -72,14 +84,25 @@ export async function POST(request: Request) {
   try {
     const storage = CloudinaryMediaStorage.fromEnvironment();
     const rootFolder = getCloudinaryEnv().CLOUDINARY_UPLOAD_FOLDER;
+    const target = parsed.data;
+
+    // Folder is derived server-side from validated input, never accepted
+    // from the client, so an upload cannot be aimed at another entity.
+    const folder =
+      target.kind === "collection"
+        ? `${rootFolder}/collections/${target.id}/${target.locale}`
+        : `${rootFolder}/${target.kind}s/${target.id}`;
 
     const instruction = await storage.createSignedUpload({
-      // Folder is derived server-side from validated input, never accepted
-      // from the client, so an upload cannot be aimed at another collection.
-      folder: `${rootFolder}/collections/${parsed.data.collectionId}/${parsed.data.locale}`,
-      resourceType: "raw",
+      folder,
+      // Always an image-type asset: photographs are images outright, and a
+      // catalogue PDF must be image-typed for page renditions (`pg_N`) — the
+      // cover and every flipbook page — to be derivable. A raw upload would
+      // store the bytes but could never render a page.
+      resourceType: "image",
       maxBytes,
-      allowedFormats: ["pdf"],
+      allowedFormats:
+        target.kind === "collection" ? ["pdf"] : ["jpg", "jpeg", "png", "webp"],
       requestedByUserId: actorUserId,
       issuedAt: new Date(),
     });

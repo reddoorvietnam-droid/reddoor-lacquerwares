@@ -2,9 +2,10 @@ import type { PublicDictionary } from "../dictionary";
 
 const dictionary = {
   meta: {
-    siteTitle: "Cửa Đỏ Việt Nam | Sơn mài sống",
+    siteName: "Red Door",
+    siteTitle: "Red Door — Sơn mài thủ công Việt Nam",
     siteDescription:
-      "Bản xem trước DEMO cho trải nghiệm sơn mài công khai của Cửa Đỏ Việt Nam. Hãy thay nội dung và hình ảnh mẫu bằng tài liệu thương hiệu đã duyệt.",
+      "Cửa Đỏ là nhà sản xuất sơn mài thủ công tại Hà Nội: khay, bát, bình, hộp và đồ trang trí phủ nhiều lớp, mài nước và đánh bóng bằng tay. Xuất khẩu quốc tế.",
   },
   common: {
     demoLabel: "Nội dung DEMO",
@@ -13,7 +14,6 @@ const dictionary = {
     explore: "Khám phá",
     viewAll: "Xem tất cả",
     close: "Đóng",
-    skipIntro: "Bỏ qua phần mở đầu",
     previous: "Trước",
     next: "Tiếp",
     openMenu: "Mở trình đơn",
@@ -23,6 +23,7 @@ const dictionary = {
     requestQuote: "Yêu cầu báo giá",
     readStory: "Đọc câu chuyện",
     featured: "Nổi bật",
+    playVideo: "Phát video",
     replaceContentNotice:
       "Nội dung DEMO — hãy thay bằng nội dung và hình ảnh đã được doanh nghiệp phê duyệt.",
   },
@@ -39,8 +40,6 @@ const dictionary = {
     eyebrow: "CỬA ĐỎ — SƠN MÀI SỐNG",
     title: "Bề mặt sống động,",
     titleAccent: "được tạo tác thủ công",
-    intro:
-      "Phần giới thiệu DEMO này dành chỗ cho câu chuyện thương hiệu Cửa Đỏ Việt Nam đã được phê duyệt.",
     craftTitle: "Câu chuyện vật liệu qua từng lớp",
     craftBody:
       "Đoạn nội dung biên tập DEMO dành cho hình ảnh xưởng, ghi chú quy trình và câu chuyện sản phẩm đã duyệt.",
@@ -54,7 +53,7 @@ const dictionary = {
       "Hãy chia sẻ điều bạn đang tìm kiếm. Biểu mẫu chính thức sẽ chuyển yêu cầu đến bộ phận phù hợp.",
   },
   pages: {
-    aboutTitle: "Về Cửa Đỏ",
+    aboutTitle: "Về chúng tôi",
     aboutIntro:
       "Khung nội dung DEMO dành cho câu chuyện, giá trị, con người và thông tin xưởng đã được xác minh.",
     productsTitle: "Sản phẩm",
