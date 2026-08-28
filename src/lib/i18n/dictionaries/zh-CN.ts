@@ -39,6 +39,8 @@ const dictionary = {
     eyebrow: "RED DOOR — 下泰村漆艺",
     title: "生动的表面，",
     titleAccent: "由手工塑造",
+    heroDescription:
+      "越南漆艺的精髓蕴于每一层涂刷——每件产品都是自然与匠人之手的和谐交融。",
     craftTitle: "层层展开的材料故事",
     craftBody:
       "从第一层底胎到最后一道漆，每一件 Red Door 作品都要经历数十道工序和数周的自然阴干。我们髹涂、水磨、再髹涂——直到漆面呈现出静水般的深邃。",

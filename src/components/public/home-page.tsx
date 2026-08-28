@@ -49,72 +49,67 @@ export function HomePage({
   return (
     <main id="main-content">
       {/*
-        On a phone the artwork sits behind the text rather than beside it, so
-        bottom-aligning the content inside a near-full-height section left a
-        large void above it. Small screens centre the content in a shorter
-        section; the editorial bottom alignment returns from `lg` up, where the
-        artwork occupies the right half and the space is no longer empty.
+        Hero with full-bleed background photograph. The image path lives in one
+        place ("/hinh_nen_rd.jpg") so it can be swapped later without touching
+        any layout code.
       */}
-      <section className="surface-deep seam-bottom text-ivory relative isolate flex min-h-[76svh] items-center overflow-hidden pt-12 pb-14 sm:pt-16 sm:pb-20 lg:min-h-[min(86svh,50rem)] lg:items-end lg:pt-24 lg:pb-20">
-        <div
-          className="pointer-events-none absolute inset-y-0 right-0 hidden w-1/2 opacity-75 lg:block"
+      <section className="relative isolate flex h-svh min-h-[36rem] max-h-[64rem] items-center overflow-hidden">
+        {/* Background photograph — swap src to change the image */}
+        <Image
+          src="/hinh_nen_rd1.jpg"
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover"
           aria-hidden="true"
-        >
-          <ScrollParallax distance={22} className="size-full">
-            <svg viewBox="0 0 720 900" className="size-full" fill="none">
-              <circle cx="470" cy="310" r="230" className="fill-gold/8" />
-              <circle cx="470" cy="310" r="178" className="stroke-gold/35" />
-              <path
-                d="M260 900V102h420v798M302 900V158h336v742"
-                className="stroke-gold/55"
-                strokeWidth="2"
-              />
-              <path
-                d="m302 158 336 742m0-742L302 900M470 158v742M302 529h336"
-                className="stroke-gold/18"
-              />
-            </svg>
-          </ScrollParallax>
-        </div>
-        <Container className="relative">
-          <div className="max-w-5xl">
+        />
+        {/*
+          Gradient scrim: opaque warm ivory on the left fading to transparent
+          on the right, keeping text legible over the photograph.
+        */}
+        <div
+          className="pointer-events-none absolute inset-0 z-[1]"
+          aria-hidden="true"
+          style={{
+            background:
+              "linear-gradient(to right, rgba(245,240,231,0.72) 0%, rgba(245,240,231,0.45) 28%, rgba(245,240,231,0.15) 45%, transparent 58%)",
+          }}
+        />
+        <Container className="relative z-[2]">
+          <div className="max-w-[54%] min-w-[22rem]">
             <MotionReveal distance={18}>
-              <p className="eyebrow eyebrow-inverse">{home.eyebrow}</p>
+              <p className="text-[0.72rem] font-semibold tracking-[0.2em] uppercase text-[#5a3a2a]">
+                {home.eyebrow}
+              </p>
             </MotionReveal>
-            {/*
-              Line height is looser than a Latin-only display setting would use:
-              Vietnamese stacks tone marks above already-accented vowels (ề, ố,
-              ộ), and a tighter leading collides them with the line above.
-            */}
             <MotionReveal delay={0.1} distance={34} blur={10}>
-              <h1 className="mt-7 font-serif text-[clamp(3.15rem,9.5vw,8.5rem)] leading-[0.92] font-normal tracking-[-0.045em] text-balance">
+              <h1 className="mt-5 font-serif text-[clamp(2.8rem,5.5vw,4.8rem)] leading-[1.05] font-normal tracking-[-0.035em] whitespace-pre-line text-[var(--lacquer-red)]">
                 {home.title}
-                <span className="text-gold mt-3 block translate-x-[0.18em] italic sm:mt-5">
+                <span className="text-gold mt-1 block translate-x-[0.08em] italic sm:mt-2">
                   {home.titleAccent}
                 </span>
               </h1>
             </MotionReveal>
-            <MotionReveal
-              delay={0.26}
-              className="border-ivory/15 mt-12 max-w-md border-t pt-8"
-            >
+            <MotionReveal delay={0.2} distance={18}>
+              <p className="text-charcoal/65 mt-7 max-w-[30rem] text-[0.95rem] leading-[1.75] italic">
+                {home.heroDescription}
+              </p>
+            </MotionReveal>
+            <MotionReveal delay={0.32} className="mt-8">
               <Link
                 href={href("/collections")}
-                className={buttonVariants({ variant: "gold", size: "lg" })}
+                className={buttonVariants({ variant: "primary", size: "md" })}
               >
                 {common.explore}
-                <ArrowRight aria-hidden="true" className="size-4" />
+                <ArrowRight aria-hidden="true" className="size-3.5" />
               </Link>
             </MotionReveal>
           </div>
         </Container>
-        {/*
-          Vertical writing mode rather than a rotation: rotating a horizontal
-          box about its bottom-right corner pushed most of the line below the
-          section, where `overflow-hidden` clipped all but the last word.
-        */}
+        {/* Vertical brand text on the right edge */}
         <p
-          className="text-ivory/35 absolute right-6 bottom-10 hidden rotate-180 text-[0.65rem] tracking-[0.28em] uppercase [writing-mode:vertical-rl] xl:block"
+          className="text-burgundy/25 absolute right-5 bottom-8 z-[2] hidden rotate-180 text-[0.58rem] tracking-[0.3em] uppercase [writing-mode:vertical-rl] xl:block"
           aria-hidden="true"
         >
           {content.company.displayName} · {content.company.tagline}
@@ -133,14 +128,15 @@ export function HomePage({
       <section className="bg-ivory overflow-hidden py-20 sm:py-28 lg:py-36">
         <Container className="grid items-center gap-14 lg:grid-cols-[0.9fr_1.1fr] lg:gap-24">
           <MotionReveal>
-            <ImageSlot
-              width={1000}
-              height={1250}
-              label={content.company.eyebrow}
-              assetKey="home-craft-01"
-              display
-              className="mx-auto max-w-lg lg:mx-0"
-            />
+            <div className="relative mx-auto aspect-[1000/1250] w-full max-w-lg overflow-hidden rounded-[var(--radius-display)] lg:mx-0">
+              <Image
+                src="/cau_chuyen.jpg"
+                alt={content.company.eyebrow}
+                fill
+                sizes="(min-width: 1024px) 500px, 100vw"
+                className="object-cover"
+              />
+            </div>
           </MotionReveal>
           <MotionReveal delay={0.08}>
             <SectionHeading

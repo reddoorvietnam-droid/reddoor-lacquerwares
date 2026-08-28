@@ -49,6 +49,7 @@ export type PublicDictionary = {
     eyebrow: string;
     title: string;
     titleAccent: string;
+    heroDescription: string;
     craftTitle: string;
     craftBody: string;
     historyTitle: string;

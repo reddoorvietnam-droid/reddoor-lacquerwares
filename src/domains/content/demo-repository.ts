@@ -75,10 +75,10 @@ function deepFreeze<T>(value: T): T {
 const SITE_CONTENT_COPY = deepFreeze({
   vi: {
     company: {
-      eyebrow: "Sơn mài thủ công · Hà Nội",
-      tagline: "Sơn mài thủ công Việt Nam",
+      eyebrow: "Nghệ thuật sơn mài Việt Nam",
+      tagline: "Nghệ thuật sơn mài Việt Nam",
       summary:
-        "Cửa Đỏ là nhà sản xuất sơn mài Việt Nam đặt tại Hà Nội. Chúng tôi làm khay, bát, bình, hộp và các vật dụng trang trí bằng kỹ thuật sơn mài truyền thống — phủ từng lớp, mài nước giữa các lớp, đánh bóng bằng tay cho tới khi bề mặt sâu và ấm. Xưởng của chúng tôi ở Long Biên; kho hàng đặt tại Hưng Yên, ngay trên trục quốc lộ 5 đi cảng Hải Phòng.",
+        "Red Door là nhà sản xuất sơn mài Việt Nam đặt tại Hà Nội. Chúng tôi làm khay, bát, bình, hộp và các vật dụng trang trí bằng kỹ thuật sơn mài truyền thống — phủ từng lớp, mài nước giữa các lớp, đánh bóng bằng tay cho tới khi bề mặt sâu và ấm. Xưởng của chúng tôi ở Long Biên; kho hàng đặt tại Hưng Yên, ngay trên trục quốc lộ 5 đi cảng Hải Phòng.",
       contentNotice: "",
       heroAlt:
         "Bề mặt sơn mài đỏ với vân sơn sâu, chụp nghiêng dưới ánh sáng ấm",
@@ -98,7 +98,7 @@ const SITE_CONTENT_COPY = deepFreeze({
         periodLabel: "Xuất khẩu",
         title: "Hàng đi thị trường quốc tế",
         summary:
-          "Sản phẩm của Cửa Đỏ xuất qua cảng Hải Phòng tới các thị trường quốc tế; riêng Hoa Kỳ có hồ sơ nhập khẩu công khai từ năm 2007. Chúng tôi tự làm chứng từ xuất nhập khẩu và tờ khai hải quan.",
+          "Sản phẩm của Red Door xuất qua cảng Hải Phòng tới các thị trường quốc tế; riêng Hoa Kỳ có hồ sơ nhập khẩu công khai từ năm 2007. Chúng tôi tự làm chứng từ xuất nhập khẩu và tờ khai hải quan.",
         imageAlt: "Sản phẩm sơn mài được đóng gói chuẩn bị xuất khẩu",
       },
       {
@@ -615,7 +615,7 @@ function makeSnapshot(locale: Locale): PublicContentSnapshot {
     marker: null,
     isDemo: false,
     displayName: "Red Door Vietnam",
-    legalName: "Công ty TNHH Cửa Đỏ",
+    legalName: "Công ty TNHH Red Door",
     eyebrow: copy.company.eyebrow,
     tagline: copy.company.tagline,
     summary: copy.company.summary,

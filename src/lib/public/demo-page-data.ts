@@ -291,7 +291,13 @@ export async function getDemoAboutHistoryPageData(
     closingText: dictionary.home.contactBody,
     closingTitle: dictionary.home.contactTitle,
     heroEyebrow: content.company.eyebrow,
-    heroMedia: toPageMedia(content.company.heroImage),
+    heroMedia: {
+      id: "about-hero",
+      src: "/nen_about_us_rd.jpg",
+      alt: content.company.eyebrow,
+      width: 1600,
+      height: 1000,
+    },
     // Verifiable facts about the workshop: where it works, how the products
     // are tested, and where they ship.
     highlights: [

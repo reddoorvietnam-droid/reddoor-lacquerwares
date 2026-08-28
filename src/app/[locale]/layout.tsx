@@ -108,7 +108,15 @@ export default async function LocaleLayout({
       className={`${displayFont.variable} ${bodyFont.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <body className="flex min-h-full flex-col">{children}</body>
+      {/*
+        suppressHydrationWarning: browser extensions (Grammarly and the like)
+        inject data-* attributes into <body> before React hydrates, which is
+        outside our control and harmless. Suppression is attribute-level only —
+        child-content mismatches still surface.
+      */}
+      <body className="flex min-h-full flex-col" suppressHydrationWarning>
+        {children}
+      </body>
     </html>
   );
 }

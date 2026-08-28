@@ -39,6 +39,8 @@ const dictionary = {
     eyebrow: "RED DOOR — HA THAI LACQUER",
     title: "A living surface,",
     titleAccent: "shaped by hand",
+    heroDescription:
+      "The essence of Vietnamese lacquer is preserved in every coat — each product is a harmony of nature and the artisan's hand.",
     craftTitle: "A material story in layers",
     craftBody:
       "From the first primed core to the final coat, every Red Door piece passes through dozens of stages and weeks of natural drying. We coat, wet-sand and coat again — until the surface holds the depth and stillness of dark water.",

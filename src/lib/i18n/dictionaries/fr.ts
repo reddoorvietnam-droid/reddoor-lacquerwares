@@ -39,6 +39,8 @@ const dictionary = {
     eyebrow: "RED DOOR — LAQUE DE HA THAI",
     title: "Une surface vivante,",
     titleAccent: "façonnée à la main",
+    heroDescription:
+      "L'essence de la laque vietnamienne est préservée dans chaque couche — chaque produit est une harmonie entre nature et main de l'artisan.",
     craftTitle: "Un récit de matière, couche après couche",
     craftBody:
       "Du premier apprêt à la dernière couche, chaque pièce Red Door traverse des dizaines d'étapes et des semaines de séchage naturel. Nous laquons, ponçons à l'eau, puis laquons encore — jusqu'à ce que la surface prenne la profondeur d'une eau calme.",

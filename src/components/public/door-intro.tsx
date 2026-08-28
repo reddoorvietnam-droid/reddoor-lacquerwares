@@ -3,6 +3,11 @@
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 
+import {
+  DOOR_INTRO_PENDING_ATTRIBUTE,
+  DOOR_INTRO_STORAGE_KEY,
+  DoorTexture,
+} from "./door-intro-shared";
 import { BrandPlaque } from "./logo";
 
 /*
@@ -21,37 +26,54 @@ const DISMISS_AFTER_MS = 2700;
 export type DoorIntroProps = {
   brandName: string;
   title: string;
-  storageKey?: string;
 };
 
-export function DoorIntro({
-  brandName,
-  title,
-  storageKey = "reddoor:door-intro:v1",
-}: DoorIntroProps) {
+export function DoorIntro({ brandName, title }: DoorIntroProps) {
   const [isOpen, setIsOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
 
-  const dismiss = useCallback(() => setIsOpen(false), []);
-
-  useEffect(() => {
-    const prefersReducedMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    ).matches;
-
+  /*
+   * The once-per-tab flag is written on dismissal, not before opening. Writing
+   * it up front broke under React Strict Mode's double-invoked effects: the
+   * first run stamped the flag and its cleanup cancelled the still-pending
+   * animation frame, so the second run saw "seen" and the intro never opened.
+   */
+  const dismiss = useCallback(() => {
+    setIsOpen(false);
     try {
-      if (window.sessionStorage.getItem(storageKey)) return;
-      window.sessionStorage.setItem(storageKey, "seen");
+      window.sessionStorage.setItem(DOOR_INTRO_STORAGE_KEY, "seen");
     } catch {
       // The intro remains nonessential when storage is unavailable.
     }
+  }, []);
 
-    if (prefersReducedMotion) return;
+  /*
+   * Whether to play at all was already decided before first paint by the
+   * DoorIntroCurtain boot script (session flag + reduced motion); its verdict
+   * is the attribute on <html>. Re-deciding here could disagree with the
+   * static curtain the visitor is already looking at.
+   */
+  useEffect(() => {
+    if (
+      !document.documentElement.hasAttribute(DOOR_INTRO_PENDING_ATTRIBUTE)
+    ) {
+      return;
+    }
 
     const frame = window.requestAnimationFrame(() => setIsOpen(true));
     return () => window.cancelAnimationFrame(frame);
-  }, [storageKey]);
+  }, []);
+
+  /*
+   * Once the animated overlay is mounted (painted above the static curtain),
+   * clear the attribute: the curtain disappears underneath it and the
+   * choreography continues seamlessly from the identical closed-doors frame.
+   */
+  useEffect(() => {
+    if (!isOpen) return;
+    document.documentElement.removeAttribute(DOOR_INTRO_PENDING_ATTRIBUTE);
+  }, [isOpen]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -190,19 +212,3 @@ export function DoorIntro({
   );
 }
 
-function DoorTexture({ mirrored = false }: { mirrored?: boolean }) {
-  return (
-    <div
-      className="absolute inset-0 overflow-hidden"
-      aria-hidden="true"
-      style={{ transform: mirrored ? "scaleX(-1)" : undefined }}
-    >
-      <div className="absolute inset-5 border border-[#c2a052]/30 sm:inset-8" />
-      <div className="absolute inset-10 border border-[#c2a052]/15 sm:inset-14" />
-      <div className="absolute top-1/2 left-1/2 size-56 -translate-x-1/2 -translate-y-1/2 rounded-full border border-[#c2a052]/25" />
-      <div className="absolute top-1/2 left-1/2 h-px w-[130%] -translate-x-1/2 rotate-45 bg-[#c2a052]/12" />
-      <div className="absolute top-1/2 left-1/2 h-px w-[130%] -translate-x-1/2 -rotate-45 bg-[#c2a052]/12" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_24%_18%,rgb(255_255_255/0.08),transparent_28%),radial-gradient(circle_at_75%_82%,rgb(0_0_0/0.18),transparent_35%)]" />
-    </div>
-  );
-}

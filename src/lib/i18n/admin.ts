@@ -196,7 +196,7 @@ type AdminCopy = {
 
 const adminDictionaries = {
   vi: {
-    productName: "Cửa Đỏ Việt Nam",
+    productName: "Red Door Việt Nam",
     consoleLabel: "Cổng quản trị",
     openPublicSite: "Mở website",
     navigationLabel: "Điều hướng quản trị",

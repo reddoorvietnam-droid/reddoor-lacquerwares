@@ -166,7 +166,7 @@ export function PageHero({
     <header className="text-ivory relative isolate mx-auto mt-5 w-[calc(100%-2rem)] max-w-[96rem] overflow-hidden rounded-[var(--radius-display)] bg-[var(--surface-inverse)] shadow-[var(--shadow-lacquer)] sm:w-[calc(100%-3rem)]">
       <div className="lacquer-grain" aria-hidden="true" />
       {media ? (
-        <div className="absolute inset-0 -z-10 [mask-image:linear-gradient(to_right,transparent_10%,black_75%)] opacity-30">
+        <div className="absolute inset-0 -z-10">
           <MediaFrame
             className="h-full rounded-none border-0"
             media={media}

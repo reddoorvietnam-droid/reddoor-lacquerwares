@@ -40,6 +40,8 @@ const dictionary = {
     eyebrow: "RED DOOR — LACK AUS HA THAI",
     title: "Eine lebendige Oberfläche,",
     titleAccent: "von Hand geformt",
+    heroDescription:
+      "Das Wesen vietnamesischer Lackkunst wird in jeder Schicht bewahrt — jedes Produkt ist ein Zusammenspiel von Natur und Handwerkskunst.",
     craftTitle: "Eine Materialgeschichte in Schichten",
     craftBody:
       "Vom ersten grundierten Kern bis zur letzten Schicht durchläuft jedes Red-Door-Stück Dutzende Arbeitsschritte und Wochen natürlicher Trocknung. Wir lackieren, schleifen nass und lackieren erneut — bis die Oberfläche die Tiefe stillen Wassers trägt.",

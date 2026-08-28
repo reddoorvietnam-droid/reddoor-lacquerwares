@@ -3,9 +3,9 @@ import type { PublicDictionary } from "../dictionary";
 const dictionary = {
   meta: {
     siteName: "Red Door",
-    siteTitle: "Red Door — Sơn mài Hạ Thái, Việt Nam",
+    siteTitle: "Red Door — Sơn mài thủ công Việt Nam",
     siteDescription:
-      "Red Door chế tác đồ sơn mài thủ công tại làng nghề Hạ Thái, Hà Nội: khay, hộp, lót ly và đồ trang trí nội thất được phủ nhiều lớp sơn, mài nước và đánh bóng bằng tay. Sản phẩm kiểm định SGS theo tiêu chuẩn châu Âu, xuất khẩu đi Mỹ và châu Âu.",
+      "Red Door chế tác đồ sơn mài thủ công — Nghệ thuật sơn mài Việt Nam: khay, hộp, lót ly và đồ trang trí nội thất được phủ nhiều lớp sơn, mài nước và đánh bóng bằng tay. Sản phẩm kiểm định SGS theo tiêu chuẩn châu Âu, xuất khẩu đi Mỹ và châu Âu.",
   },
   common: {
     updatingLabel: "Đang cập nhật",
@@ -36,9 +36,11 @@ const dictionary = {
     contact: "Liên hệ",
   },
   home: {
-    eyebrow: "CỬA ĐỎ — SƠN MÀI HẠ THÁI",
+    eyebrow: "RED DOOR — SƠN MÀI SỐNG",
     title: "Bề mặt sống động,",
     titleAccent: "được tạo tác thủ công",
+    heroDescription:
+      "Tinh hoa sơn mài Việt được gìn giữ qua từng lớp sơn, mỗi sản phẩm là sự hòa quyện giữa thiên nhiên và bàn tay nghệ nhân.",
     craftTitle: "Câu chuyện vật liệu qua từng lớp",
     craftBody:
       "Từ tấm vóc đầu tiên đến lớp sơn cuối cùng, mỗi món đồ Red Door đi qua hàng chục công đoạn và nhiều tuần chờ sơn khô tự nhiên. Chúng tôi phủ, mài nước rồi lại phủ — cho đến khi mặt sơn sâu và trong như mặt nước lặng.",
@@ -54,10 +56,10 @@ const dictionary = {
   pages: {
     aboutTitle: "Về chúng tôi",
     aboutIntro:
-      "Red Door là xưởng sơn mài đặt tại làng nghề Hạ Thái, Hà Nội — nơi nghề sơn mài được trao truyền qua nhiều thế hệ. Chúng tôi kết hợp kỹ thuật cổ truyền với thiết kế đương đại để đưa sơn mài Việt Nam đến những không gian sống trên khắp thế giới.",
+      "Red Door gìn giữ và phát triển Nghệ thuật sơn mài Việt Nam — nơi nghề sơn mài được trao truyền qua nhiều thế hệ. Chúng tôi kết hợp kỹ thuật cổ truyền với thiết kế đương đại để đưa sơn mài Việt Nam đến những không gian sống trên khắp thế giới.",
     productsTitle: "Sản phẩm",
     productsIntro:
-      "Khay, hộp, lót ly, bình và đồ trang trí nội thất — mỗi sản phẩm được chế tác thủ công tại xưởng Hạ Thái, phủ nhiều lớp sơn, mài nước và đánh bóng bằng tay.",
+      "Khay, hộp, lót ly, bình và đồ trang trí nội thất — mỗi sản phẩm được chế tác thủ công theo Nghệ thuật sơn mài Việt Nam, phủ nhiều lớp sơn, mài nước và đánh bóng bằng tay.",
     collectionsTitle: "Bộ sưu tập",
     collectionsIntro:
       "Mỗi năm, Red Door giới thiệu một bộ sưu tập mới — kết quả của quá trình nghiên cứu vật liệu, màu sắc và kỹ thuật bề mặt tại xưởng. Mở từng cuốn catalogue để xem trọn bộ.",
@@ -66,7 +68,7 @@ const dictionary = {
       "Một món đồ sơn mài hoàn chỉnh đi qua hàng chục công đoạn: làm vóc, bó hom, phủ sơn, mài nước và đánh bóng. Không công đoạn nào có thể vội.",
     newsTitle: "Tin tức và câu chuyện",
     newsIntro:
-      "Ghi chép từ xưởng Hạ Thái: bộ sưu tập mới, hội chợ quốc tế và những câu chuyện phía sau từng bề mặt sơn.",
+      "Ghi chép từ xưởng Red Door: bộ sưu tập mới, hội chợ quốc tế và những câu chuyện phía sau từng bề mặt sơn.",
     contactTitle: "Liên hệ và yêu cầu báo giá",
     contactIntro:
       "Liên hệ với Red Door để nhận catalogue, báo giá hoặc trao đổi về đơn hàng riêng. Chúng tôi làm việc trực tiếp với các nhà bán lẻ, nhà thiết kế và thương hiệu trên toàn thế giới.",
@@ -77,7 +79,7 @@ const dictionary = {
   },
   about: {
     highlightVillageLabel: "Làng nghề",
-    highlightVillageValue: "Hạ Thái, Hà Nội",
+    highlightVillageValue: "Nghệ thuật sơn mài Việt Nam",
     highlightComplianceLabel: "Kiểm định",
     highlightComplianceValue: "SGS — tiêu chuẩn EU",
     highlightMarketsLabel: "Thị trường",
@@ -234,13 +236,13 @@ const dictionary = {
   },
   footer: {
     description:
-      "Red Door chế tác đồ sơn mài thủ công tại làng nghề Hạ Thái, Hà Nội — từng lớp sơn được phủ, mài nước và đánh bóng bằng tay cho những không gian sống trên khắp thế giới.",
+      "Red Door chế tác đồ sơn mài thủ công — Nghệ thuật sơn mài Việt Nam — từng lớp sơn được phủ, mài nước và đánh bóng bằng tay cho những không gian sống trên khắp thế giới.",
     navigate: "Điều hướng",
     legal: "Pháp lý",
     privacy: "Quyền riêng tư",
     terms: "Điều khoản",
     accessibility: "Khả năng tiếp cận",
-    copyright: "© Công ty TNHH Red Door — làng nghề Hạ Thái, Hà Nội. Bảo lưu mọi quyền.",
+    copyright: "© Công ty TNHH Red Door — Nghệ thuật sơn mài Việt Nam. Bảo lưu mọi quyền.",
   },
 } satisfies PublicDictionary;
 

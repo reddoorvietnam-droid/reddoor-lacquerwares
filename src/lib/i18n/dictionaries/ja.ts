@@ -39,6 +39,8 @@ const dictionary = {
     eyebrow: "RED DOOR — ハタイ村の漆",
     title: "手から生まれる、",
     titleAccent: "息づく表情",
+    heroDescription:
+      "ベトナム漆の真髄は一層一層に宿ります。すべての製品は、自然と職人の手の調和から生まれます。",
     craftTitle: "層が紡ぐ素材の物語",
     craftBody:
       "最初の下地から最後の一層まで、Red Door の品はいくつもの工程と、自然乾燥を待つ数週間を経て生まれます。塗り、水研ぎし、また塗る — 表面が静かな水面のような深さをたたえるまで。",

@@ -1,5 +1,6 @@
 export { DemoNotice, type DemoNoticeProps } from "./demo-notice";
 export { DoorIntro, type DoorIntroProps } from "./door-intro";
+export { DoorIntroCurtain } from "./door-intro-curtain";
 export {
   PublicFooter,
   type FooterLink,
