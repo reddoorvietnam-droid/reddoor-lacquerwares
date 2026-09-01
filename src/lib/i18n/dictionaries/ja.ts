@@ -84,6 +84,19 @@ const dictionary = {
     highlightComplianceValue: "SGS — 欧州基準",
     highlightMarketsLabel: "輸出先",
     highlightMarketsValue: "アメリカ・ヨーロッパ",
+    mediaFeaturesEyebrow: "メディア・テレビ放映",
+    mediaFeaturesTitle: "国内外のテレビで紹介された漆芸の技と美",
+    mediaFeaturesDescription:
+      "ハタイ漆芸村の伝統を守り、ベトナムの手仕事の真髄を世界へ届ける歩みが数々のドキュメンタリーで紹介されています。",
+    mediaVtvChannel: "VTV — ベトナム国営放送",
+    mediaVtvTitle: "VTV特集：ハタイ漆芸村の伝統と魂を継承する手仕事",
+    mediaVtvDescription:
+      "ベトナム国営放送（VTV）による特別番組。Red Doorの工房とハタイ村における幾重もの塗り重ねや水研ぎなど、熟練の職人技を紹介。",
+    mediaFranceChannel: "フランス国営テレビ — France TV",
+    mediaFranceTitle:
+      "フランス国営テレビ：世界を魅了するベトナム漆工芸の精緻な美",
+    mediaFranceDescription:
+      "フランスのテレビ局が取材したドキュメンタリー。厳しい国際基準と高い美意識を備えたRed Doorの漆器がヨーロッパで注目される理由を伝えます。",
     pillarKicker: "大切にしていること",
     pillarsDescription:
       "Red Door の工房を出るすべての品に共通する、変わらない三つのこと。",
@@ -125,12 +138,36 @@ const dictionary = {
     process: "製作工程",
     processUnavailable: "この製品の製作記録は現在執筆中です。",
     noPrice: "価格はお問い合わせください",
+    groupAll: "すべて",
+    groupProcessing: "製作中",
+    groupDevelop: "開発中",
+    availableOnly: "在庫ありのみ",
+    availableBadge: "在庫あり",
+    resultCount: "{count} 件の製品を表示",
+    searchPlaceholder: "名称・素材で検索",
+    applyFilters: "適用",
   },
   collection: {
     openBook: "アートブックを開く",
     viewProducts: "製品を見る",
     download: "PDFをダウンロード",
     downloadDisabled: "このコレクションのPDFは近日公開予定です",
+  },
+  processPage: {
+    video1Eyebrow: "ベトナム漆絵の真髄",
+    video1Title: "原液の本漆から至高の漆画が生まれるまでの軌跡",
+    video1Paragraph1:
+      "漆画はベトナム美術の至宝であり、幾世代にもわたり受け継がれた秘伝の結晶です。",
+    video1Paragraph2:
+      "天然の本漆から熟練の手仕事を経て、深い文化美を宿す唯一無二の芸術作品へ。",
+    playVideo1: "ベトナム漆画の動画を見る",
+    video2Eyebrow: "伝統工芸の匠と本漆の技",
+    video2Title: "漆工芸士 ヴー・フイ・メン：ハタイ村の伝統を守る匠の歩み",
+    video2Paragraph1:
+      "ハタイ漆芸村の伝統を担うヴー・フイ・メン氏は、天然本漆による絵画技法の継承に心血を注いでいます。",
+    video2Paragraph2:
+      "伝統技と独自の感性を融合させた作品を通じ、工業塗料の波に抗い本物の価値を守り続けています。",
+    playVideo2: "ヴー・フイ・メン氏の動画を見る",
   },
   news: {
     published: "公開日",
@@ -171,7 +208,8 @@ const dictionary = {
     openInMaps: "Google マップで開く",
     consent:
       "このお問い合わせへの回答に必要な範囲で、入力情報が使用されることに同意します。",
-    consentHelp: "ご入力いただいた情報は、このお問い合わせへの回答にのみ使用します。",
+    consentHelp:
+      "ご入力いただいた情報は、このお問い合わせへの回答にのみ使用します。",
     submit: "問い合わせを送信",
     formNoticeTitle: "オンラインフォームは準備中です",
     formNotice:
@@ -240,8 +278,7 @@ const dictionary = {
     privacy: "プライバシー",
     terms: "利用条件",
     accessibility: "アクセシビリティ",
-    copyright:
-      "© RED DOOR Co., Ltd. — ハタイ村、ハノイ。無断転載を禁じます。",
+    copyright: "© RED DOOR Co., Ltd. — ハタイ村、ハノイ。無断転載を禁じます。",
   },
 } satisfies PublicDictionary;
 

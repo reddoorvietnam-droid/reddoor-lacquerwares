@@ -84,6 +84,18 @@ const dictionary = {
     highlightComplianceValue: "SGS — 欧盟标准",
     highlightMarketsLabel: "市场",
     highlightMarketsValue: "美国与欧洲",
+    mediaFeaturesEyebrow: "媒体与电视报道",
+    mediaFeaturesTitle: "漆器艺术亮相国内外权威电视台",
+    mediaFeaturesDescription:
+      "通过权威纪录片，展现传承河泰漆艺村传统工艺与推动越南手工艺术走向世界舞台的历程。",
+    mediaVtvChannel: "VTV — 越南国家电视台",
+    mediaVtvTitle: "VTV专题报道：守护河泰漆艺村的工艺精髓与灵魂",
+    mediaVtvDescription:
+      "越南国家电视台（VTV）专题报道，真实记录Red Door工坊与河泰手工艺村细腻繁复的漆艺制作工序与文化传承。",
+    mediaFranceChannel: "法国国家电视台 — France TV",
+    mediaFranceTitle: "法国国家电视台：越南漆器艺术闪耀国际舞台",
+    mediaFranceDescription:
+      "法国电视台纪录片专题，赞誉越南传统漆艺的卓越品质与工艺标准，展现Red Door作品在欧洲市场的独特魅力。",
     pillarKicker: "核心价值",
     pillarsDescription: "每一件走出 Red Door 工坊的作品都不变的三件事。",
     pillarCraftTitle: "全程手作",
@@ -124,12 +136,36 @@ const dictionary = {
     process: "制作过程",
     processUnavailable: "该产品的制作笔记正在撰写中。",
     noPrice: "价格请咨询",
+    groupAll: "全部",
+    groupProcessing: "生产中",
+    groupDevelop: "开发中",
+    availableOnly: "仅看现货",
+    availableBadge: "现货",
+    resultCount: "显示 {count} 件产品",
+    searchPlaceholder: "按名称、材质搜索",
+    applyFilters: "应用",
   },
   collection: {
-    openBook: "打开艺术画册",
+    openBook: "打开画册",
     viewProducts: "查看产品",
     download: "下载 PDF",
     downloadDisabled: "该系列的 PDF 即将上线",
+  },
+  processPage: {
+    video1Eyebrow: "越南漆画艺术",
+    video1Title: "从原始天然大漆到艺术杰作的匠心历程",
+    video1Paragraph1:
+      "漆画是越南美术中的瑰宝，凝聚着世代传承的传统技艺与匠人智慧。",
+    video1Paragraph2:
+      "从天然大漆原液经由匠人巧手雕琢，蜕变为极具文化底蕴与美学价值的艺术杰作。",
+    playVideo1: "观看越南漆画艺术视频",
+    video2Eyebrow: "传统大漆工艺与匠人精神",
+    video2Title: "匠人武辉门：守护河泰传统漆艺薪火",
+    video2Paragraph1:
+      "河泰漆艺村匠人武辉门倾注心血，矢志传承天然生漆制作传统漆画的精湛技艺。",
+    video2Paragraph2:
+      "其作品融汇传统大漆与个人创新，在工业漆冲击下坚守本真漆艺的深邃魅力。",
+    playVideo2: "观看武辉门大师专访视频",
   },
   news: {
     published: "发布日期",

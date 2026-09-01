@@ -147,6 +147,9 @@ function productFields(
     ...(metadata.categoryId
       ? { categoryId: new Types.ObjectId(metadata.categoryId) }
       : { $unsetCategory: true }),
+    group: metadata.group,
+    isAvailable: metadata.isAvailable,
+    categoryKey: metadata.categoryKey,
     collectionIds: metadata.collectionIds.map((id) => new Types.ObjectId(id)),
     materialKeys: metadata.materialKeys,
     finishKeys: metadata.finishKeys,

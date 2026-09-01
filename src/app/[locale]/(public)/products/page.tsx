@@ -9,10 +9,10 @@ import { getDemoStaticPageMetadata } from "@/lib/seo/route-metadata";
 type ProductsRouteProps = {
   params: Promise<{ locale: string }>;
   searchParams: Promise<{
+    available?: string | string[];
     category?: string | string[];
     collection?: string | string[];
-    finish?: string | string[];
-    material?: string | string[];
+    group?: string | string[];
     page?: string | string[];
     q?: string | string[];
     sort?: string | string[];
@@ -49,10 +49,10 @@ export default async function ProductsRoute({
 
   const dictionary = await getDictionary(locale);
   const data = await getDemoProductListingPageData(locale, dictionary, {
+    available: firstValue(query.available),
     category: firstValue(query.category),
     collection: firstValue(query.collection),
-    finish: firstValue(query.finish),
-    material: firstValue(query.material),
+    group: firstValue(query.group),
     page: firstValue(query.page),
     query: firstValue(query.q),
     sort: firstValue(query.sort),

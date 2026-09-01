@@ -19,6 +19,8 @@ const productStatuses = [
   "discontinued",
   "archived",
 ];
+/** Catalogue grouping shown to visitors; unrelated to the CMS `status` above. */
+const productGroups = ["processing", "develop"];
 const workflowStatuses = ["draft", "inReview", "published", "archived"];
 const translationStatuses = ["draft", "inReview", "published", "needsUpdate"];
 
@@ -107,6 +109,22 @@ export const productSchema = new Schema(
       default: [],
     },
     status: { type: String, required: true, enum: productStatuses },
+    // Records that predate this field read as "processing"; the default keeps
+    // them in the main group rather than dropping them out of every tab.
+    group: {
+      type: String,
+      required: true,
+      enum: productGroups,
+      default: "processing",
+    },
+    /** True once the company can ship the piece from existing stock. */
+    isAvailable: { type: Boolean, required: true, default: false },
+    /**
+     * Slug into the fixed set in `@/domains/products/categories`. The sibling
+     * `categoryId` stays reserved for the taxonomy collection that would
+     * replace this if categories ever need managing from the portal.
+     */
+    categoryKey: { type: String, trim: true, lowercase: true, maxlength: 80, default: "" },
     currentDraftVersionId: {
       type: Schema.Types.ObjectId,
       ref: "ProductVersion",
@@ -144,6 +162,10 @@ productSchema.index(
 productSchema.index(
   { collectionIds: 1, status: 1 },
   { name: "product_collection_listing" },
+);
+productSchema.index(
+  { status: 1, group: 1, isAvailable: 1, updatedAt: -1 },
+  { name: "product_group_listing" },
 );
 productSchema.index(
   { materialKeys: 1, status: 1 },

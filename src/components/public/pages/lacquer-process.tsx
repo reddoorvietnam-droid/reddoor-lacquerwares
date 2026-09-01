@@ -1,5 +1,6 @@
 import type { PublicDictionary } from "@/lib/i18n/dictionary";
 
+import { VideoEmbed } from "@/components/public/video-embed";
 import {
   ActionLink,
   MediaFrame,
@@ -22,6 +23,15 @@ export interface LacquerProcessStepView {
   title: string;
 }
 
+export interface LacquerProcessVideoFeature {
+  eyebrow: string;
+  id: string;
+  paragraphs: readonly string[];
+  playLabel: string;
+  title: string;
+  videoId: string;
+}
+
 export interface LacquerProcessPageData {
   /** True while the records behind this page are still placeholders. */
   contentIsDemo: boolean;
@@ -31,11 +41,12 @@ export interface LacquerProcessPageData {
   closingTitle: string;
   heroEyebrow: string;
   heroMedia: PublicPageMedia | null;
-  overviewDescription: string;
-  overviewEyebrow: string;
-  overviewMedia: PublicPageMedia | null;
-  overviewParagraphs: readonly string[];
-  overviewTitle: string;
+  overviewDescription?: string;
+  overviewEyebrow?: string;
+  overviewMedia?: PublicPageMedia | null;
+  overviewParagraphs?: readonly string[];
+  overviewTitle?: string;
+  overviewVideos?: readonly LacquerProcessVideoFeature[];
   steps: readonly LacquerProcessStepView[];
   stepsLabel: string;
 }
@@ -63,38 +74,74 @@ export function LacquerProcessPage({
         media={data.heroMedia}
       />
 
-      <section className="mx-auto grid max-w-7xl gap-12 px-[var(--space-page)] py-20 lg:grid-cols-[0.9fr_1.1fr] lg:items-center lg:gap-20 lg:py-28">
-        {data.overviewMedia ? (
-          <MediaFrame
-            media={data.overviewMedia}
-            sizes="(min-width: 1024px) 44vw, 100vw"
-            className="aspect-4/5"
-          />
-        ) : (
-          <div
-            className="from-burgundy via-lacquer to-gold/75 text-ivory grid aspect-4/5 place-items-center rounded-[var(--radius-lg)] bg-linear-to-br p-10 text-center shadow-[var(--shadow-lacquer)]"
-            aria-hidden="true"
-          >
-            <span
-              className="text-ivory/25 font-serif text-7xl"
-              aria-hidden="true"
-            >
-              01—∞
-            </span>
-          </div>
-        )}
-        <div>
-          <SectionHeading
-            eyebrow={data.overviewEyebrow}
-            title={data.overviewTitle}
-            description={data.overviewDescription}
-          />
-          <div className="text-charcoal/68 mt-8 space-y-5 text-lg leading-8">
-            {data.overviewParagraphs.map((paragraph, index) => (
-              <p key={`process-overview-${index}`}>{paragraph}</p>
+      <section className="mx-auto max-w-7xl px-[var(--space-page)] py-20 lg:py-28">
+        {data.overviewVideos && data.overviewVideos.length > 0 ? (
+          <div className="space-y-16 lg:space-y-24">
+            {data.overviewVideos.map((video, index) => (
+              <div
+                key={video.id}
+                className={`grid gap-10 lg:grid-cols-[1.35fr_1fr] lg:items-center lg:gap-16 ${
+                  index % 2 === 1 ? "lg:grid-cols-[1fr_1.35fr]" : ""
+                }`}
+              >
+                <div className={`w-full ${index % 2 === 1 ? "lg:order-2" : ""}`}>
+                  <VideoEmbed
+                    videoId={video.videoId}
+                    title={video.title}
+                    playLabel={video.playLabel}
+                    className="aspect-video w-full rounded-[var(--radius-lg)] shadow-[var(--shadow-lacquer)]"
+                  />
+                </div>
+                <div className={index % 2 === 1 ? "lg:order-1" : ""}>
+                  <SectionHeading
+                    eyebrow={video.eyebrow}
+                    title={video.title}
+                    description=""
+                  />
+                  <div className="text-charcoal/72 mt-5 space-y-3.5 text-base leading-relaxed sm:text-lg sm:leading-8">
+                    {video.paragraphs.map((paragraph, pIndex) => (
+                      <p key={`video-${video.id}-p-${pIndex}`}>{paragraph}</p>
+                    ))}
+                  </div>
+                </div>
+              </div>
             ))}
           </div>
-        </div>
+        ) : (
+          <div className="grid gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:items-center lg:gap-20">
+            {data.overviewMedia ? (
+              <MediaFrame
+                media={data.overviewMedia}
+                sizes="(min-width: 1024px) 44vw, 100vw"
+                className="aspect-4/5"
+              />
+            ) : (
+              <div
+                className="from-burgundy via-lacquer to-gold/75 text-ivory grid aspect-4/5 place-items-center rounded-[var(--radius-lg)] bg-linear-to-br p-10 text-center shadow-[var(--shadow-lacquer)]"
+                aria-hidden="true"
+              >
+                <span
+                  className="text-ivory/25 font-serif text-7xl"
+                  aria-hidden="true"
+                >
+                  01—∞
+                </span>
+              </div>
+            )}
+            <div>
+              <SectionHeading
+                eyebrow={data.overviewEyebrow ?? ""}
+                title={data.overviewTitle ?? ""}
+                description={data.overviewDescription ?? ""}
+              />
+              <div className="text-charcoal/72 mt-8 space-y-5 text-base leading-relaxed sm:text-lg sm:leading-8">
+                {data.overviewParagraphs?.map((paragraph, index) => (
+                  <p key={`process-overview-${index}`}>{paragraph}</p>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
       </section>
 
       <section className="bg-burgundy text-ivory relative isolate py-20 lg:py-28">

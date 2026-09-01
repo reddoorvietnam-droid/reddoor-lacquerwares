@@ -28,6 +28,15 @@ export interface HistoryMilestoneView {
   title: string;
 }
 
+export interface AboutMediaFeatureView {
+  channel: string;
+  description: string;
+  id: string;
+  poster?: string;
+  title: string;
+  videoSrc: string;
+}
+
 export interface AboutHighlightView {
   id: string;
   label: string;
@@ -43,12 +52,16 @@ export interface AboutHistoryPageData {
   closingTitle: string;
   heroEyebrow: string;
   heroMedia: PublicPageMedia | null;
-  highlights: readonly AboutHighlightView[];
+  highlights?: readonly AboutHighlightView[];
   historyDescription: string;
   historyEyebrow: string;
   historyTitle: string;
+  mediaFeatures: readonly AboutMediaFeatureView[];
+  mediaFeaturesDescription: string;
+  mediaFeaturesEyebrow: string;
+  mediaFeaturesTitle: string;
   milestones: readonly HistoryMilestoneView[];
-  overviewParagraphs: readonly string[];
+  overviewParagraphs?: readonly string[];
   principles: readonly AboutPrincipleView[];
   principlesDescription: string;
   principlesEyebrow: string;
@@ -78,32 +91,46 @@ export function AboutHistoryPage({
         media={data.heroMedia}
       />
 
-      <section className="mx-auto grid max-w-7xl gap-12 px-[var(--space-page)] py-20 lg:grid-cols-[0.85fr_1.15fr] lg:py-28">
-        <div>
-          <p className="eyebrow">{data.heroEyebrow}</p>
-          {data.highlights.length > 0 ? (
-            <dl className="border-burgundy/12 bg-burgundy/12 mt-8 grid grid-cols-2 gap-px overflow-hidden rounded-[var(--radius-lg)] border">
-              {data.highlights.map((highlight) => (
-                <div key={highlight.id} className="bg-ivory p-5 sm:p-7">
-                  <dt className="text-charcoal/64 text-xs leading-5 tracking-[0.12em] uppercase">
-                    {highlight.label}
-                  </dt>
-                  <dd className="text-burgundy mt-2 font-serif text-2xl leading-tight sm:text-3xl">
-                    {highlight.value}
-                  </dd>
-                </div>
-              ))}
-            </dl>
-          ) : null}
-        </div>
-        <div className="max-w-3xl space-y-6">
-          {data.overviewParagraphs.map((paragraph, index) => (
-            <p
-              key={`overview-${index}`}
-              className="text-charcoal/72 first:text-burgundy text-lg leading-9 text-pretty first:font-serif first:text-2xl first:leading-10 sm:first:text-3xl"
+      <section className="mx-auto max-w-7xl px-[var(--space-page)] py-20 lg:py-28">
+        <SectionHeading
+          eyebrow={data.mediaFeaturesEyebrow}
+          title={data.mediaFeaturesTitle}
+          description={data.mediaFeaturesDescription}
+        />
+        <div className="mt-16 space-y-12 lg:space-y-16">
+          {data.mediaFeatures.map((feature, index) => (
+            <article
+              key={feature.id}
+              className={`border-burgundy/12 flex flex-col gap-8 rounded-[var(--radius-lg)] border bg-white/70 p-6 shadow-[var(--shadow-soft)] transition duration-[var(--duration-base)] hover:shadow-[var(--shadow-elevated)] sm:p-8 lg:items-center lg:gap-12 ${
+                index % 2 === 1 ? "lg:flex-row-reverse" : "lg:flex-row"
+              }`}
             >
-              {paragraph}
-            </p>
+              <div className="bg-lacquer/95 relative aspect-video w-full overflow-hidden rounded-[var(--radius-md)] lg:w-7/12 shrink-0 shadow-md">
+                <video
+                  controls
+                  preload="metadata"
+                  aria-label={feature.title}
+                  className="h-full w-full object-cover"
+                  {...(feature.poster ? { poster: feature.poster } : {})}
+                >
+                  <source src={feature.videoSrc} type="video/mp4" />
+                  Trình duyệt không hỗ trợ xem video trực tiếp.
+                </video>
+              </div>
+              <div className="flex flex-1 flex-col justify-center">
+                <div>
+                  <span className="bg-burgundy/10 text-burgundy inline-block rounded-full px-3.5 py-1.5 text-xs font-semibold tracking-wider uppercase">
+                    {feature.channel}
+                  </span>
+                </div>
+                <h3 className="text-burgundy mt-4 font-serif text-2xl leading-snug sm:text-3xl">
+                  {feature.title}
+                </h3>
+                <p className="text-charcoal/75 mt-4 text-base leading-relaxed text-pretty sm:text-lg sm:leading-8">
+                  {feature.description}
+                </p>
+              </div>
+            </article>
           ))}
         </div>
       </section>

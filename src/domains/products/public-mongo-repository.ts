@@ -28,6 +28,7 @@ import {
   pendingImage,
   pickTranslation,
 } from "@/lib/public/published-mapping";
+import { productCategoryLabel } from "@/domains/products/categories";
 
 /**
  * Reads the catalogue the CMS has actually published: a product is visible
@@ -39,15 +40,18 @@ import {
  * - No featured flag exists yet, so `featuredOnly` returns the most recently
  *   updated published products — the home page fills with the newest work
  *   instead of staying empty until the flag is modelled.
- * - No category taxonomy is persisted yet, so category fields are empty and a
- *   `categorySlug` filter matches nothing. The listing page derives its
- *   filter chips from the data, so an empty taxonomy simply shows no chips.
+ * - No category taxonomy collection is persisted. The family is a slug into
+ *   the fixed set in `@/domains/products/categories`, stored on the product as
+ *   `categoryKey`, so both the label and the filter resolve without a join.
  */
 
 type LeanProduct = {
   _id: Types.ObjectId;
   sku: string;
   collectionIds?: Types.ObjectId[];
+  group?: "processing" | "develop";
+  isAvailable?: boolean;
+  categoryKey?: string;
   currentPublishedVersionId?: Types.ObjectId;
   updatedAt?: Date;
 };
@@ -179,8 +183,14 @@ function mapProduct(
     slug: translation.slug,
     internalReference: product.sku,
     name: translation.title,
-    categorySlug: "",
-    categoryLabel: "",
+    // Documents written before the grouping existed default to the production
+    // group and to made-to-order, so nothing silently claims to be in stock.
+    group: product.group ?? "processing",
+    isAvailable: product.isAvailable ?? false,
+    // The family is a slug into a fixed set, so the label is resolved here
+    // rather than joined from a taxonomy collection that does not exist.
+    categorySlug: product.categoryKey ?? "",
+    categoryLabel: productCategoryLabel(product.categoryKey ?? "", locale),
     summary: translation.shortDescription ?? "",
     story: storyParagraphs.join("\n\n"),
     storyParagraphs,
@@ -210,9 +220,6 @@ async function loadPublished(
 ): Promise<PublicProduct[]> {
   await connectToDatabase();
 
-  // An explicit category filter cannot match until a taxonomy is persisted.
-  if (options.categorySlug) return [];
-
   const filter: Record<string, unknown> = {
     status: "published",
     deletedAt: { $exists: false },
@@ -221,6 +228,20 @@ async function loadPublished(
   if (options.collectionId && Types.ObjectId.isValid(options.collectionId)) {
     filter.collectionIds = new Types.ObjectId(options.collectionId);
   }
+  if (options.group) {
+    // Records predating the field are treated as "processing", so that tab has
+    // to match a missing value too or the back catalogue disappears from it.
+    filter.group =
+      options.group === "processing"
+        ? { $in: ["processing", null] }
+        : options.group;
+  }
+  if (options.availableOnly) {
+    filter.isAvailable = true;
+  }
+  if (options.categorySlug) {
+    filter.categoryKey = options.categorySlug;
+  }
   if (options.id) {
     if (!Types.ObjectId.isValid(options.id)) return [];
     filter._id = new Types.ObjectId(options.id);
@@ -228,7 +249,9 @@ async function loadPublished(
 
   const products = await getProductModel()
     .find(filter)
-    .select("_id sku collectionIds currentPublishedVersionId updatedAt")
+    .select(
+      "_id sku collectionIds group isAvailable categoryKey currentPublishedVersionId updatedAt",
+    )
     .sort({ updatedAt: -1 })
     .limit(options.slug ? 0 : (options.limit ?? 0))
     .lean<LeanProduct[]>()

@@ -34,6 +34,8 @@ type ProductBlueprint = {
   readonly imageKeys: readonly string[];
   readonly collectionIds: readonly string[];
   readonly featured: boolean;
+  readonly group: "processing" | "develop";
+  readonly isAvailable: boolean;
 };
 
 function deepFreeze<T>(value: T): T {
@@ -65,6 +67,8 @@ const PRODUCT_BLUEPRINTS = deepFreeze([
     ],
     collectionIds: ["collection-2026"],
     featured: true,
+    group: "processing",
+    isAvailable: true,
   },
   {
     id: "product-lacquer-bowl",
@@ -73,6 +77,8 @@ const PRODUCT_BLUEPRINTS = deepFreeze([
     imageKeys: ["product-lacquer-bowl-01", "product-lacquer-bowl-02"],
     collectionIds: ["collection-2026"],
     featured: true,
+    group: "processing",
+    isAvailable: true,
   },
   {
     id: "product-lacquer-vessel",
@@ -81,6 +87,8 @@ const PRODUCT_BLUEPRINTS = deepFreeze([
     imageKeys: ["product-lacquer-vessel-01", "product-lacquer-vessel-02"],
     collectionIds: ["collection-2026"],
     featured: true,
+    group: "processing",
+    isAvailable: false,
   },
   {
     id: "product-lacquer-keepsake-box",
@@ -92,6 +100,8 @@ const PRODUCT_BLUEPRINTS = deepFreeze([
     ],
     collectionIds: ["collection-2026"],
     featured: true,
+    group: "processing",
+    isAvailable: true,
   },
   {
     id: "product-lacquer-table-set",
@@ -100,6 +110,8 @@ const PRODUCT_BLUEPRINTS = deepFreeze([
     imageKeys: ["product-lacquer-table-set-01", "product-lacquer-table-set-02"],
     collectionIds: ["collection-2026"],
     featured: false,
+    group: "processing",
+    isAvailable: false,
   },
   {
     id: "product-lacquer-wall-panel",
@@ -111,6 +123,8 @@ const PRODUCT_BLUEPRINTS = deepFreeze([
     ],
     collectionIds: ["collection-2026"],
     featured: true,
+    group: "develop",
+    isAvailable: false,
   },
   {
     id: "product-lacquered-woven-basket",
@@ -122,6 +136,8 @@ const PRODUCT_BLUEPRINTS = deepFreeze([
     ],
     collectionIds: ["collection-2026"],
     featured: false,
+    group: "develop",
+    isAvailable: false,
   },
   {
     id: "product-lacquer-accent-table",
@@ -133,6 +149,8 @@ const PRODUCT_BLUEPRINTS = deepFreeze([
     ],
     collectionIds: ["collection-2026"],
     featured: false,
+    group: "develop",
+    isAvailable: true,
   },
 ] satisfies readonly ProductBlueprint[]);
 
@@ -1522,6 +1540,8 @@ function makeProducts(locale: Locale): readonly PublicProduct[] {
         slug: blueprint.slug,
         internalReference: null,
         name: copy.name,
+        group: blueprint.group,
+        isAvailable: blueprint.isAvailable,
         categorySlug: blueprint.categorySlug,
         categoryLabel: copy.categoryLabel,
         summary: copy.summary,
@@ -1587,6 +1607,12 @@ function applyListOptions(
       return false;
     }
     if (options.categorySlug && product.categorySlug !== options.categorySlug) {
+      return false;
+    }
+    if (options.group && product.group !== options.group) {
+      return false;
+    }
+    if (options.availableOnly && !product.isAvailable) {
       return false;
     }
     return true;

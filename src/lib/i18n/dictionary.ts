@@ -89,6 +89,15 @@ export type PublicDictionary = {
     highlightComplianceValue: string;
     highlightMarketsLabel: string;
     highlightMarketsValue: string;
+    mediaFeaturesEyebrow: string;
+    mediaFeaturesTitle: string;
+    mediaFeaturesDescription: string;
+    mediaVtvChannel: string;
+    mediaVtvTitle: string;
+    mediaVtvDescription: string;
+    mediaFranceChannel: string;
+    mediaFranceTitle: string;
+    mediaFranceDescription: string;
     pillarKicker: string;
     pillarsDescription: string;
     pillarCraftTitle: string;
@@ -126,12 +135,33 @@ export type PublicDictionary = {
     process: string;
     processUnavailable: string;
     noPrice: string;
+    /** Availability + production-stage labels for the catalogue listing. */
+    groupAll: string;
+    groupProcessing: string;
+    groupDevelop: string;
+    availableOnly: string;
+    availableBadge: string;
+    resultCount: string;
+    searchPlaceholder: string;
+    applyFilters: string;
   };
   collection: {
     openBook: string;
     viewProducts: string;
     download: string;
     downloadDisabled: string;
+  };
+  processPage: {
+    video1Eyebrow: string;
+    video1Title: string;
+    video1Paragraph1: string;
+    video1Paragraph2: string;
+    playVideo1: string;
+    video2Eyebrow: string;
+    video2Title: string;
+    video2Paragraph1: string;
+    video2Paragraph2: string;
+    playVideo2: string;
   };
   news: {
     published: string;

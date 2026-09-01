@@ -84,6 +84,20 @@ const dictionary = {
     highlightComplianceValue: "SGS — EU standards",
     highlightMarketsLabel: "Markets",
     highlightMarketsValue: "USA and Europe",
+    mediaFeaturesEyebrow: "Media & Television Features",
+    mediaFeaturesTitle:
+      "Lacquerware Art in the Spotlight of Global & National Television",
+    mediaFeaturesDescription:
+      "The journey of preserving the heritage of Ha Thai lacquer village and elevating traditional Vietnamese craftsmanship to the world stage through renowned documentaries.",
+    mediaVtvChannel: "VTV — Vietnam National Television",
+    mediaVtvTitle: "VTV Feature: Preserving the Soul of Ha Thai Lacquer Craft",
+    mediaVtvDescription:
+      "A special broadcast by Vietnam National Television (VTV) highlighting the meticulous artisanal craftsmanship at Red Door workshop and Ha Thai craft village — where artisans dedicate themselves to multi-layer natural lacquer, water polishing, and preserving cultural heritage.",
+    mediaFranceChannel: "France TV — French National Television",
+    mediaFranceTitle:
+      "French Television: Vietnamese Lacquer Art Reaching Global Stages",
+    mediaFranceDescription:
+      "A documentary by French Television celebrating the distinctive craftsmanship of Vietnamese lacquerware, rigorous quality standards, and the timeless elegance of Red Door creations cherished in France and across Europe.",
     pillarKicker: "Core values",
     pillarsDescription:
       "Three things that never change in a piece that leaves the Red Door workshop.",
@@ -125,12 +139,38 @@ const dictionary = {
     process: "Making process",
     processUnavailable: "Making notes for this product are being written.",
     noPrice: "Price available on request",
+    groupAll: "All",
+    groupProcessing: "In production",
+    groupDevelop: "In development",
+    availableOnly: "In stock only",
+    availableBadge: "In stock",
+    resultCount: "Showing {count} products",
+    searchPlaceholder: "Search by name, material…",
+    applyFilters: "Apply",
   },
   collection: {
     openBook: "Open art book",
     viewProducts: "View products",
     download: "Download PDF",
     downloadDisabled: "The PDF for this collection is coming soon",
+  },
+  processPage: {
+    video1Eyebrow: "Vietnamese Lacquer Art",
+    video1Title:
+      "The Elaborate Journey from Raw Natural Lacquer to Masterpieces",
+    video1Paragraph1:
+      "Lacquer painting is a hallmark of Vietnamese fine arts, crystallizing traditional mastery preserved across generations.",
+    video1Paragraph2:
+      "A painstaking journey from raw natural lacquer through the artisan's hands, creating artworks of distinct cultural and aesthetic value.",
+    playVideo1: "Watch Vietnamese Lacquer Art video",
+    video2Eyebrow: "Artisan & Traditional Natural Lacquer Craft",
+    video2Title:
+      "Artisan Vu Huy Men: Keeping the Flame of Ha Thai Lacquer Craft Alive",
+    video2Paragraph1:
+      "Artisan Vu Huy Men is a devoted torchbearer of Ha Thai village, dedicating his life to preserving natural lacquer painting techniques.",
+    video2Paragraph2:
+      "His artworks blend traditional lacquer with personal creativity, creating rich depths while steadfastly upholding authentic heritage.",
+    playVideo2: "Watch Artisan Vu Huy Men video",
   },
   news: {
     published: "Published",
@@ -171,8 +211,7 @@ const dictionary = {
     openInMaps: "Open in Google Maps",
     consent:
       "I agree that my information may be used to respond to this enquiry.",
-    consentHelp:
-      "The details you share are used only to answer this enquiry.",
+    consentHelp: "The details you share are used only to answer this enquiry.",
     submit: "Send enquiry",
     formNoticeTitle: "The online form is being finished",
     formNotice:

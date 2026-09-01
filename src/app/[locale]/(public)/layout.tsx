@@ -13,6 +13,10 @@ import { getPublicContentRepository } from "@/lib/public/repositories";
 
 const contentRepository = getPublicContentRepository();
 
+// Hardcoded brand text — intentionally not read from the CMS/MongoDB snapshot.
+const BRAND_NAME = "RED DOOR VIET NAM";
+const BRAND_DESCRIPTOR = "Nghệ thuật sơn mài Việt Nam";
+
 type PublicLayoutProps = {
   children: ReactNode;
   params: Promise<{ locale: string }>;
@@ -46,21 +50,21 @@ export default async function PublicLayout({
       */}
       <DoorIntroCurtain />
       <DoorIntro
-        brandName={content.company.displayName}
+        brandName={BRAND_NAME}
         title={`${dictionary.home.title} ${dictionary.home.titleAccent}`}
       />
       <PublicHeader
         locale={locale}
         dictionary={dictionary}
-        brandName={content.company.displayName}
-        brandDescriptor={content.company.tagline}
+        brandName={BRAND_NAME}
+        brandDescriptor={BRAND_DESCRIPTOR}
       />
       {children}
       <PublicFooter
         locale={locale}
         dictionary={dictionary}
-        brandName={content.company.displayName}
-        brandDescriptor={content.company.tagline}
+        brandName={BRAND_NAME}
+        brandDescriptor={BRAND_DESCRIPTOR}
         socialLinks={socialLinks}
       />
     </>

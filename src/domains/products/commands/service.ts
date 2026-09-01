@@ -224,6 +224,15 @@ function assertUpdateTranslations(
   }
 }
 
+/**
+ * The shape compared by `assertPublishedMetadataImmutable`, and nothing else.
+ *
+ * `group`, `isAvailable` and `categoryKey` are deliberately absent: they are
+ * shelf placement an editor changes as stock moves or a mis-filing is noticed,
+ * not part of the versioned identity the immutability rule protects. Including
+ * them would freeze "in stock" at the value it held on publication day and make
+ * a wrongly-filed live product uncorrectable without a version bump.
+ */
 function normalizeMetadata(metadata: ProductMetadataInput): unknown {
   return {
     internalId: metadata.internalId,
@@ -242,6 +251,9 @@ function persistedMetadata(
   return {
     internalId: aggregate.product.internalId,
     sku: aggregate.product.sku,
+    group: aggregate.product.group,
+    isAvailable: aggregate.product.isAvailable,
+    categoryKey: aggregate.product.categoryKey,
     categoryId: aggregate.product.categoryId,
     collectionIds: [...aggregate.product.collectionIds],
     materialKeys: [...aggregate.product.materialKeys],

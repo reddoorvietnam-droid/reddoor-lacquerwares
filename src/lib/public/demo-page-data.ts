@@ -63,10 +63,10 @@ type DemoMediaSource =
   | PublicNewsImage;
 
 export type DemoProductListingQuery = {
+  available: string;
   category: string;
   collection: string;
-  finish: string;
-  material: string;
+  group: string;
   page: string;
   query: string;
   sort: string;
@@ -138,7 +138,9 @@ function mapProductCard(
         : null,
     media: toPageMedia(image),
     badges: product.tags,
-    statusLabel: null,
+    // Only stock is worth a badge. The group is already the tab the visitor is
+    // standing in, so repeating it on every card would be noise.
+    statusLabel: product.isAvailable ? dictionary.product.availableBadge : null,
   };
 }
 
@@ -260,6 +262,11 @@ function productSort(value: string): DemoProductSort {
     : "default";
 }
 
+/** An unknown value means "no group chosen", i.e. the All tab. */
+function productGroup(value: string): "" | "processing" | "develop" {
+  return value === "processing" || value === "develop" ? value : "";
+}
+
 function selectedOption(
   value: string,
   options: readonly ProductFilterOptionView[],
@@ -298,23 +305,23 @@ export async function getDemoAboutHistoryPageData(
       width: 1600,
       height: 1000,
     },
-    // Verifiable facts about the workshop: where it works, how the products
-    // are tested, and where they ship.
-    highlights: [
+    mediaFeaturesEyebrow: dictionary.about.mediaFeaturesEyebrow,
+    mediaFeaturesTitle: dictionary.about.mediaFeaturesTitle,
+    mediaFeaturesDescription: dictionary.about.mediaFeaturesDescription,
+    mediaFeatures: [
       {
-        id: "village",
-        label: dictionary.about.highlightVillageLabel,
-        value: dictionary.about.highlightVillageValue,
+        id: "media-vtv",
+        channel: dictionary.about.mediaVtvChannel,
+        title: dictionary.about.mediaVtvTitle,
+        description: dictionary.about.mediaVtvDescription,
+        videoSrc: "/about-us/Video1_about_us.mp4",
       },
       {
-        id: "compliance",
-        label: dictionary.about.highlightComplianceLabel,
-        value: dictionary.about.highlightComplianceValue,
-      },
-      {
-        id: "markets",
-        label: dictionary.about.highlightMarketsLabel,
-        value: dictionary.about.highlightMarketsValue,
+        id: "media-france",
+        channel: dictionary.about.mediaFranceChannel,
+        title: dictionary.about.mediaFranceTitle,
+        description: dictionary.about.mediaFranceDescription,
+        videoSrc: "/about-us/Video2_about_us.mp4",
       },
     ],
     historyDescription: dictionary.pages.aboutIntro,
@@ -334,21 +341,39 @@ export async function getDemoAboutHistoryPageData(
         kicker: dictionary.about.pillarKicker,
         title: dictionary.about.pillarCraftTitle,
         description: dictionary.about.pillarCraftDescription,
-        media: null,
+        media: {
+          id: "pillar-craft",
+          src: "/about-us/Gia_tri_coi_loi_01.jpg",
+          alt: dictionary.about.pillarCraftTitle,
+          width: 800,
+          height: 600,
+        },
       },
       {
         id: "material",
         kicker: dictionary.about.pillarKicker,
         title: dictionary.about.pillarMaterialTitle,
         description: dictionary.about.pillarMaterialDescription,
-        media: null,
+        media: {
+          id: "pillar-material",
+          src: "/about-us/Cam_hung_tu_nhien_02.jpg",
+          alt: dictionary.about.pillarMaterialTitle,
+          width: 800,
+          height: 600,
+        },
       },
       {
         id: "standard",
         kicker: dictionary.about.pillarKicker,
         title: dictionary.about.pillarStandardTitle,
         description: dictionary.about.pillarStandardDescription,
-        media: null,
+        media: {
+          id: "pillar-standard",
+          src: "/about-us/Chuan_muc_quoc_te_03.jpg",
+          alt: dictionary.about.pillarStandardTitle,
+          width: 800,
+          height: 600,
+        },
       },
     ],
     principlesDescription: dictionary.about.pillarsDescription,
@@ -387,36 +412,23 @@ export async function getDemoProductListingPageData(
       value: collection.id,
       label: collection.title,
     }));
-  const materialOptions = uniqueOptions(
-    allProducts.flatMap((product) =>
-      product.materialLabels.map((material) => ({
-        value: material,
-        label: material,
-      })),
-    ),
-  );
-  const finishOptions = uniqueOptions(
-    allProducts.map((product) => ({
-      value: product.finishLabel,
-      label: product.finishLabel,
-    })),
-  );
   const category = selectedOption(options.category, categoryOptions);
   const collection = selectedOption(options.collection, collectionOptions);
-  const material = selectedOption(options.material, materialOptions);
-  const finish = selectedOption(options.finish, finishOptions);
+  const group = productGroup(options.group);
+  const availableOnly = options.available === "1";
   const sort = productSort(options.sort);
-  const filteredProducts = allProducts.filter((product) => {
+
+  // Material and finish are no longer filter controls, but they stay in the
+  // haystack: someone typing "sơn mài" or a wood name should still find the
+  // pieces made of it.
+  const scopedProducts = allProducts.filter((product) => {
     if (category && product.categorySlug !== category) {
       return false;
     }
     if (collection && !product.collectionIds.includes(collection)) {
       return false;
     }
-    if (material && !product.materialLabels.includes(material)) {
-      return false;
-    }
-    if (finish && product.finishLabel !== finish) {
+    if (availableOnly && !product.isAvailable) {
       return false;
     }
     return includesQuery(
@@ -435,6 +447,12 @@ export async function getDemoProductListingPageData(
       locale,
     );
   });
+  // Counts come from the set before the group narrows it, so each tab shows
+  // what the visitor would actually land on rather than always showing zero
+  // for the tab they are not standing in.
+  const filteredProducts = group
+    ? scopedProducts.filter((product) => product.group === group)
+    : scopedProducts;
   const collator = new Intl.Collator(locale, {
     numeric: true,
     sensitivity: "base",
@@ -465,28 +483,73 @@ export async function getDemoProductListingPageData(
     pageStart + DEMO_PRODUCT_PAGE_SIZE,
   );
   const hasFilters = Boolean(
-    query || category || collection || material || finish || sort !== "default",
+    query ||
+    category ||
+    collection ||
+    group ||
+    availableOnly ||
+    sort !== "default",
   );
   const productsPath = localePath(locale, "/products");
-  const pageHref = (page: number) =>
-    withQuery(productsPath, {
+  // Every link on this page is built from the same state, changing one axis and
+  // carrying the rest. Paging is the exception: narrowing the set invalidates
+  // the page number, so tab and toggle links drop it.
+  const listingHref = (overrides: {
+    group?: string;
+    available?: boolean;
+    page?: number;
+  }) => {
+    const nextGroup = overrides.group ?? group;
+    const nextAvailable = overrides.available ?? availableOnly;
+    const nextPage = overrides.page ?? 1;
+    return withQuery(productsPath, {
       q: options.query.trim(),
       category,
       collection,
-      material,
-      finish,
+      group: nextGroup,
+      available: nextAvailable ? "1" : "",
       sort: sort === "default" ? "" : sort,
-      page: page > 1 ? String(page) : "",
+      page: nextPage > 1 ? String(nextPage) : "",
     });
-  const firstResult = sortedProducts.length > 0 ? pageStart + 1 : 0;
-  const lastResult = Math.min(
-    pageStart + pageProducts.length,
-    sortedProducts.length,
-  );
-
+  };
+  const pageHref = (page: number) => listingHref({ page });
+  const groupTabs = [
+    {
+      value: "",
+      label: dictionary.product.groupAll,
+      total: scopedProducts.length,
+    },
+    {
+      value: "processing",
+      label: dictionary.product.groupProcessing,
+      total: scopedProducts.filter((entry) => entry.group === "processing")
+        .length,
+    },
+    {
+      value: "develop",
+      label: dictionary.product.groupDevelop,
+      total: scopedProducts.filter((entry) => entry.group === "develop").length,
+    },
+  ].map((tab) => ({
+    count: tab.total,
+    href: listingHref({ group: tab.value }),
+    isCurrent: group === tab.value,
+    label: tab.label,
+    value: tab.value || "all",
+  }));
   return {
     contentIsDemo: sortedProducts.some((entry) => entry.isDemo),
-    applyFiltersLabel: dictionary.product.filters,
+    applyFiltersLabel: dictionary.product.applyFilters,
+    availableOnlyActive: availableOnly,
+    availableOnlyHref: listingHref({ available: !availableOnly }),
+    availableOnlyLabel: dictionary.product.availableOnly,
+    groupTabs,
+    // The tab and stock state live outside the form, so they would be dropped
+    // by a GET submit unless they ride along as hidden inputs.
+    hiddenFields: [
+      ...(group ? [{ name: "group", value: group }] : []),
+      ...(availableOnly ? [{ name: "available", value: "1" }] : []),
+    ],
     clearFiltersLink: hasFilters
       ? {
           href: productsPath,
@@ -517,26 +580,6 @@ export async function getDemoProductListingPageData(
           ...collectionOptions,
         ],
       },
-      {
-        id: "material",
-        name: "material",
-        label: dictionary.product.material,
-        currentValue: material,
-        options: [
-          { value: "", label: dictionary.common.viewAll },
-          ...materialOptions,
-        ],
-      },
-      {
-        id: "finish",
-        name: "finish",
-        label: dictionary.product.finish,
-        currentValue: finish,
-        options: [
-          { value: "", label: dictionary.common.viewAll },
-          ...finishOptions,
-        ],
-      },
     ],
     heroEyebrow: content.company.eyebrow,
     heroMedia: toPageMedia(content.company.heroImage),
@@ -564,8 +607,11 @@ export async function getDemoProductListingPageData(
       mapProductCard(locale, dictionary, product),
     ),
     query: options.query,
-    resultSummary: `${firstResult}–${lastResult} / ${sortedProducts.length} · ${dictionary.pages.productsTitle}`,
-    searchPlaceholder: dictionary.common.search,
+    resultSummary: dictionary.product.resultCount.replace(
+      "{count}",
+      String(sortedProducts.length),
+    ),
+    searchPlaceholder: dictionary.product.searchPlaceholder,
     sortCurrentValue: sort,
     sortName: "sort",
     sortOptions: [
@@ -661,10 +707,32 @@ export async function getDemoProductDetailPageData(
       title: step.title,
       description: step.description,
     })),
+    // "Similar" ranks rather than filters: sharing a family is the strongest
+    // signal, a shared collection the next. Anything left over still fills the
+    // row, because three cards that are merely other work read better than a
+    // gap where the visitor expected somewhere to go next.
     relatedProducts: allProducts
       .filter((candidate) => candidate.id !== product.id)
+      .map((candidate) => ({
+        candidate,
+        score:
+          (candidate.categorySlug &&
+          candidate.categorySlug === product.categorySlug
+            ? 2
+            : 0) +
+          (candidate.collectionIds.some((id) =>
+            product.collectionIds.includes(id),
+          )
+            ? 1
+            : 0),
+      }))
+      .sort(
+        (left, right) =>
+          right.score - left.score ||
+          left.candidate.sortOrder - right.candidate.sortOrder,
+      )
       .slice(0, 3)
-      .map((candidate) => mapProductCard(locale, dictionary, candidate)),
+      .map(({ candidate }) => mapProductCard(locale, dictionary, candidate)),
     specifications,
     // The domain already stores the story as separate paragraphs; collapsing
     // them into one block ran the whole description together on the page.
@@ -731,11 +799,30 @@ export async function getDemoLacquerProcessPageData(
     closingTitle: dictionary.home.contactTitle,
     heroEyebrow: content.company.eyebrow,
     heroMedia: toPageMedia(content.company.heroImage),
-    overviewDescription: dictionary.home.craftBody,
-    overviewEyebrow: dictionary.home.eyebrow,
-    overviewMedia: toPageMedia(content.company.heroImage),
-    overviewParagraphs: [content.company.summary],
-    overviewTitle: dictionary.home.craftTitle,
+    overviewVideos: [
+      {
+        id: "video-art-craft",
+        eyebrow: dictionary.processPage.video1Eyebrow,
+        title: dictionary.processPage.video1Title,
+        paragraphs: [
+          dictionary.processPage.video1Paragraph1,
+          dictionary.processPage.video1Paragraph2,
+        ],
+        videoId: "1O9eTdyR-1s",
+        playLabel: dictionary.processPage.playVideo1,
+      },
+      {
+        id: "video-artisan-men",
+        eyebrow: dictionary.processPage.video2Eyebrow,
+        title: dictionary.processPage.video2Title,
+        paragraphs: [
+          dictionary.processPage.video2Paragraph1,
+          dictionary.processPage.video2Paragraph2,
+        ],
+        videoId: "dhaGJzJ3ngU",
+        playLabel: dictionary.processPage.playVideo2,
+      },
+    ],
     steps: content.process.map((stage) => ({
       id: stage.id,
       numberLabel: stage.stepLabel,

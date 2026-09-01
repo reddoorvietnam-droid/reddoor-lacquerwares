@@ -1,4 +1,5 @@
 import type {
+  ProductGroup,
   ProductStatus,
   RevisionWorkflowStatus,
   SeoFields,
@@ -17,6 +18,9 @@ export interface ProductDto {
   finishKeys: string[];
   searchTokens: string[];
   status: ProductStatus;
+  group: ProductGroup;
+  isAvailable: boolean;
+  categoryKey: string;
   currentDraftVersionId: string | null;
   currentPublishedVersionId: string | null;
   deletedAt: string | null;

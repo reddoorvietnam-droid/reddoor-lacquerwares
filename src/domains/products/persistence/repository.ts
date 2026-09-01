@@ -111,6 +111,9 @@ export interface ProductRaw extends ProductPersistenceBaseRaw {
   finishKeys: string[];
   searchTokens: string[];
   status: ProductDto["status"];
+  group?: ProductDto["group"];
+  isAvailable?: boolean;
+  categoryKey?: string;
   currentDraftVersionId?: Types.ObjectId;
   currentPublishedVersionId?: Types.ObjectId;
   deletedAt?: Date;
@@ -187,6 +190,12 @@ export function mapProduct(raw: ProductRaw): ProductDto {
     finishKeys: raw.finishKeys,
     searchTokens: raw.searchTokens,
     status: raw.status,
+    // Documents written before the catalogue grouping existed carry neither
+    // field; they read as an unavailable production item until an editor says
+    // otherwise, which is the safe way round for a public listing.
+    group: raw.group ?? "processing",
+    isAvailable: raw.isAvailable ?? false,
+    categoryKey: raw.categoryKey ?? "",
     currentDraftVersionId: raw.currentDraftVersionId
       ? objectIdToString(raw.currentDraftVersionId)
       : null,

@@ -1,5 +1,7 @@
 import type { PublicDictionary } from "@/lib/i18n/dictionary";
 
+import { ProductFilterSelect } from "./product-filter-select";
+
 import {
   ActionLink,
   MediaFrame,
@@ -39,15 +41,34 @@ export interface ProductFilterGroupView {
   options: readonly ProductFilterOptionView[];
 }
 
+/**
+ * One catalogue-group tab. `href` carries every other active filter forward, so
+ * switching tab narrows the same result set instead of resetting the page.
+ */
+export interface ProductGroupTabView {
+  count: number;
+  href: string;
+  isCurrent: boolean;
+  label: string;
+  value: string;
+}
+
 export interface ProductListingPageData {
   /** True while the records behind this page are still placeholders. */
   contentIsDemo: boolean;
   applyFiltersLabel: string;
+  /** Toggle for the stock flag, which crosses the group tabs rather than sitting among them. */
+  availableOnlyActive: boolean;
+  availableOnlyHref: string;
+  availableOnlyLabel: string;
   clearFiltersLink: PublicPageLink | null;
   emptyDescription: string;
   emptyTitle: string;
   filterAction: string;
   filterGroups: readonly ProductFilterGroupView[];
+  groupTabs: readonly ProductGroupTabView[];
+  /** Hidden inputs that keep the tab and stock state across a filter submit. */
+  hiddenFields: readonly { name: string; value: string }[];
   heroEyebrow: string;
   heroMedia: PublicPageMedia | null;
   pagination: PublicPagePagination | null;
@@ -154,77 +175,134 @@ export function ProductListingPage({
       />
 
       <section className="mx-auto max-w-7xl px-[var(--space-page)] py-16 lg:py-24">
+        {/*
+          Two rows, each with one job: the tabs answer "which part of the
+          catalogue", the bar below answers "narrow it how". Mixing the stock
+          flag into the tabs would have made picking it clear a chosen group,
+          so it sits at the end of the row as its own toggle.
+        */}
+        <nav
+          className="border-burgundy/12 flex flex-wrap items-center gap-x-1 gap-y-2 border-b pb-3"
+          aria-label={dictionary.product.filters}
+        >
+          {data.groupTabs.map((tab) => (
+            <a
+              key={tab.value}
+              href={tab.href}
+              aria-current={tab.isCurrent ? "page" : undefined}
+              className={`relative -mb-px inline-flex min-h-11 items-center gap-2 border-b-2 px-3.5 text-sm font-semibold tracking-[0.01em] transition-colors ${
+                tab.isCurrent
+                  ? "border-lacquer text-lacquer"
+                  : "text-charcoal/60 hover:text-burgundy border-transparent"
+              }`}
+            >
+              {tab.label}
+              <span
+                className={`rounded-full px-1.5 py-0.5 text-[0.68rem] font-semibold tabular-nums ${
+                  tab.isCurrent
+                    ? "bg-lacquer/12 text-lacquer"
+                    : "bg-charcoal/6 text-charcoal/55"
+                }`}
+              >
+                {tab.count}
+              </span>
+            </a>
+          ))}
+          <a
+            href={data.availableOnlyHref}
+            // A link, not a button, so it works without JavaScript — which
+            // rules out aria-pressed. `aria-current` is the state a link may
+            // carry, and here it reads as "this filter is the one applied".
+            aria-current={data.availableOnlyActive ? "true" : undefined}
+            className={`ml-auto inline-flex min-h-11 items-center gap-2 rounded-full border px-4 text-sm font-semibold transition-colors ${
+              data.availableOnlyActive
+                ? "border-lacquer bg-lacquer text-white"
+                : "border-burgundy/18 text-charcoal/70 hover:border-lacquer/45 hover:text-lacquer"
+            }`}
+          >
+            <span
+              aria-hidden="true"
+              className={`size-1.5 rounded-full ${
+                data.availableOnlyActive ? "bg-white" : "bg-lacquer/60"
+              }`}
+            />
+            {data.availableOnlyLabel}
+          </a>
+        </nav>
+
+        {/*
+          No apply button: changing a select submits the form, so the control
+          that looked like a filter and behaved like a submit is gone. The
+          button below is the no-JS fallback and stays reachable by keyboard.
+        */}
         <form
           action={data.filterAction}
           method="get"
-          className="border-burgundy/12 rounded-[var(--radius-lg)] border bg-white/55 p-5 shadow-[var(--shadow-soft)] sm:p-7"
+          className="mt-5 flex flex-wrap items-center gap-2.5"
           aria-label={dictionary.product.filters}
         >
-          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-[minmax(14rem,1.4fr)_repeat(5,minmax(9rem,1fr))]">
-            <label className="text-burgundy grid gap-2 text-sm font-semibold">
-              <span>{dictionary.common.search}</span>
-              <input
-                type="search"
-                name="q"
-                defaultValue={data.query}
-                placeholder={data.searchPlaceholder}
-                className="border-burgundy/18 bg-ivory text-charcoal placeholder:text-charcoal/64 focus:border-lacquer min-h-12 rounded-[var(--radius-sm)] border px-4 font-normal"
-              />
-            </label>
-            {data.filterGroups.map((group) => (
-              <label
-                key={group.id}
-                className="text-burgundy grid gap-2 text-sm font-semibold"
-              >
-                <span>{group.label}</span>
-                <select
-                  name={group.name}
-                  defaultValue={group.currentValue}
-                  className="border-burgundy/18 bg-ivory text-charcoal min-h-12 rounded-[var(--radius-sm)] border px-4 font-normal"
-                >
-                  {group.options.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            ))}
-            <label className="text-burgundy grid gap-2 text-sm font-semibold">
-              <span>{dictionary.product.sort}</span>
-              <select
-                name={data.sortName}
-                defaultValue={data.sortCurrentValue}
-                className="border-burgundy/18 bg-ivory text-charcoal min-h-12 rounded-[var(--radius-sm)] border px-4 font-normal"
-              >
-                {data.sortOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
-          <div className="mt-6 flex flex-wrap items-center gap-3">
-            <button
-              type="submit"
-              className="bg-lacquer hover:bg-burgundy min-h-11 rounded-full px-5 py-2.5 text-sm font-semibold text-white transition"
+          {data.hiddenFields.map((field) => (
+            <input
+              key={field.name}
+              type="hidden"
+              name={field.name}
+              value={field.value}
+            />
+          ))}
+          <div className="relative min-w-52 flex-1 basis-64">
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 20 20"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              className="text-charcoal/40 pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2"
             >
-              {data.applyFiltersLabel}
-            </button>
-            {data.clearFiltersLink ? (
-              <a
-                href={data.clearFiltersLink.href}
-                className="text-burgundy hover:text-lacquer min-h-11 rounded-full px-4 py-3 text-sm font-semibold"
-              >
-                {data.clearFiltersLink.label}
-              </a>
-            ) : null}
+              <circle cx="9" cy="9" r="6" />
+              <path d="m13.5 13.5 3.5 3.5" strokeLinecap="round" />
+            </svg>
+            <input
+              type="search"
+              name="q"
+              defaultValue={data.query}
+              placeholder={data.searchPlaceholder}
+              aria-label={dictionary.common.search}
+              className="border-burgundy/18 bg-ivory text-charcoal placeholder:text-charcoal/45 focus:border-lacquer focus:ring-lacquer/15 h-11 w-full rounded-full border pr-4 pl-10 text-sm outline-none focus:ring-2"
+            />
           </div>
+          {data.filterGroups.map((group) => (
+            <ProductFilterSelect
+              key={group.id}
+              currentValue={group.currentValue}
+              label={group.label}
+              name={group.name}
+              options={group.options}
+            />
+          ))}
+          <ProductFilterSelect
+            currentValue={data.sortCurrentValue}
+            label={dictionary.product.sort}
+            name={data.sortName}
+            options={data.sortOptions}
+          />
+          <button
+            type="submit"
+            className="border-burgundy/18 text-charcoal/70 hover:border-lacquer/45 hover:text-lacquer h-11 rounded-full border px-4 text-sm font-semibold transition-colors"
+          >
+            {data.applyFiltersLabel}
+          </button>
+          {data.clearFiltersLink ? (
+            <a
+              href={data.clearFiltersLink.href}
+              className="text-charcoal/55 hover:text-lacquer inline-flex h-11 items-center px-2 text-sm font-semibold underline underline-offset-4"
+            >
+              {data.clearFiltersLink.label}
+            </a>
+          ) : null}
         </form>
 
-        <div className="mt-10 flex items-center justify-between gap-5">
-          <p className="text-charcoal/64 text-sm" role="status">
+        <div className="mt-8 flex items-center gap-5">
+          <p className="text-charcoal/60 text-sm" role="status">
             {data.resultSummary}
           </p>
           <span

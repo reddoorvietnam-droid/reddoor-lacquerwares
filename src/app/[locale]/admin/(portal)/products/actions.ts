@@ -78,6 +78,9 @@ const savePayloadSchema = z.object({
     .max(80)
     .transform((value) => value.toUpperCase()),
   collectionIds: z.array(z.string().regex(/^[a-f0-9]{24}$/)).max(50),
+  group: z.enum(["processing", "develop"]).default("processing"),
+  isAvailable: z.boolean().default(false),
+  categoryKey: z.string().trim().max(80).default(""),
   materials: z.string().trim().max(1000).default(""),
   colors: z.string().trim().max(1000).default(""),
   finishes: z.string().trim().max(1000).default(""),
@@ -186,6 +189,9 @@ export async function saveProductAction(
       internalId: sku,
       sku,
       collectionIds: parsed.collectionIds,
+      group: parsed.group,
+      isAvailable: parsed.isAvailable,
+      categoryKey: parsed.categoryKey,
       materialKeys: labelList(parsed.materials)
         .map((label) => slugify(label))
         .filter(Boolean),

@@ -12,6 +12,7 @@ import {
   saveProductImagesAction,
 } from "@/app/[locale]/admin/(portal)/products/actions";
 import { uploadImage } from "@/components/admin/upload-image";
+import { productCategories } from "@/domains/products/categories";
 import type { AdminLocale } from "@/lib/i18n/admin";
 import { slugify } from "@/lib/utils/slug";
 
@@ -48,6 +49,10 @@ export type ProductEditorInitial = {
   hasDraft: boolean;
   sku: string;
   collectionIds: readonly string[];
+  /** Catalogue grouping the public listing sorts by; not the CMS status. */
+  group: "processing" | "develop";
+  isAvailable: boolean;
+  categoryKey: string;
   materials: string;
   colors: string;
   finishes: string;
@@ -81,6 +86,14 @@ const copy = {
     sku: "Mã SKU",
     collections: "Thuộc bộ sưu tập",
     noCollections: "Chưa có bộ sưu tập nào được tạo.",
+    category: "Danh mục",
+    categoryNone: "Chưa phân loại",
+    group: "Nhóm trưng bày",
+    groupProcessing: "Đang sản xuất",
+    groupDevelop: "Đang phát triển",
+    isAvailable: "Đang có sẵn hàng",
+    isAvailableHint:
+      "Bật khi khách có thể đặt và nhận ngay. Khách xem web sẽ thấy nhãn “Có sẵn”.",
     spec: "Thông số",
     materials: "Chất liệu (phân cách bằng dấu phẩy)",
     colors: "Màu (phân cách bằng dấu phẩy)",
@@ -136,6 +149,14 @@ const copy = {
     sku: "SKU",
     collections: "Collections",
     noCollections: "No collections exist yet.",
+    category: "Category",
+    categoryNone: "Unfiled",
+    group: "Catalogue group",
+    groupProcessing: "In production",
+    groupDevelop: "In development",
+    isAvailable: "In stock now",
+    isAvailableHint:
+      "Turn on when the piece ships from stock. Visitors see an “In stock” badge.",
     spec: "Specification",
     materials: "Materials (comma separated)",
     colors: "Colours (comma separated)",
@@ -211,6 +232,9 @@ export function ProductEditor({
   const [collectionIds, setCollectionIds] = useState<readonly string[]>(
     initial.collectionIds,
   );
+  const [group, setGroup] = useState(initial.group);
+  const [categoryKey, setCategoryKey] = useState(initial.categoryKey);
+  const [isAvailable, setIsAvailable] = useState(initial.isAvailable);
   const [materials, setMaterials] = useState(initial.materials);
   const [colors, setColors] = useState(initial.colors);
   const [finishes, setFinishes] = useState(initial.finishes);
@@ -266,6 +290,9 @@ export function ProductEditor({
       productId,
       sku,
       collectionIds,
+      group,
+      isAvailable,
+      categoryKey,
       materials,
       colors,
       finishes,
@@ -433,6 +460,48 @@ export function ProductEditor({
                 ))}
               </div>
             )}
+          </div>
+          <label className="flex flex-col gap-1.5">
+            <span className={labelClass}>{text.category}</span>
+            <select
+              value={categoryKey}
+              onChange={(event) => setCategoryKey(event.target.value)}
+              className={inputClass}
+            >
+              <option value="">{text.categoryNone}</option>
+              {productCategories.map((category) => (
+                <option key={category.slug} value={category.slug}>
+                  {category.labels[locale]}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="flex flex-col gap-1.5">
+            <span className={labelClass}>{text.group}</span>
+            <select
+              value={group}
+              onChange={(event) =>
+                setGroup(event.target.value as "processing" | "develop")
+              }
+              className={inputClass}
+            >
+              <option value="processing">{text.groupProcessing}</option>
+              <option value="develop">{text.groupDevelop}</option>
+            </select>
+          </label>
+          <div className="flex flex-col gap-1.5">
+            <span className={labelClass}>{text.isAvailable}</span>
+            <label className="text-charcoal/75 flex items-center gap-2 pt-2 text-sm">
+              <input
+                type="checkbox"
+                checked={isAvailable}
+                onChange={(event) => setIsAvailable(event.target.checked)}
+              />
+              {text.isAvailable}
+            </label>
+            <p className="text-charcoal/50 text-xs leading-5">
+              {text.isAvailableHint}
+            </p>
           </div>
         </div>
       </section>

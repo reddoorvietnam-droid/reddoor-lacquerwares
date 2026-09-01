@@ -85,6 +85,21 @@ const dictionary = {
     highlightComplianceValue: "SGS — EU-Standards",
     highlightMarketsLabel: "Märkte",
     highlightMarketsValue: "USA und Europa",
+    mediaFeaturesEyebrow: "Medien & Fernsehen",
+    mediaFeaturesTitle:
+      "Lackkunst im Fokus des nationalen und internationalen Fernsehens",
+    mediaFeaturesDescription:
+      "Die Reise zur Bewahrung des Erbes des Lackdorfes Ha Thai und zur Präsentation vietnamesischer Handwerkskunst auf der Weltbühne.",
+    mediaVtvChannel: "VTV — Nationales Fernsehen Vietnams",
+    mediaVtvTitle:
+      "VTV-Reportage: Die Seele des traditionellen Ha Thai Lackhandwerks bewahren",
+    mediaVtvDescription:
+      "Ein Sonderbericht des vietnamesischen Fernsehens (VTV) über die sorgfältige Handarbeit in der Red Door Werkstatt und im traditionsreichen Dorf Ha Thai.",
+    mediaFranceChannel: "France TV — Französisches Fernsehen",
+    mediaFranceTitle:
+      "Französisches Fernsehen: Vietnamesische Lackkunst erobert die Welt",
+    mediaFranceDescription:
+      "Ein Dokumentarfilm des französischen Fernsehens über die exquisite Kunst der vietnamesischen Lackarbeiten, strenge Qualitätsstandards und ihre Beliebtheit in Europa.",
     pillarKicker: "Grundwerte",
     pillarsDescription:
       "Drei Dinge, die sich bei keinem Stück ändern, das die Red-Door-Werkstatt verlässt.",
@@ -127,12 +142,38 @@ const dictionary = {
     processUnavailable:
       "Die Herstellungsnotizen zu diesem Produkt werden gerade verfasst.",
     noPrice: "Preis auf Anfrage",
+    groupAll: "Alle",
+    groupProcessing: "In Produktion",
+    groupDevelop: "In Entwicklung",
+    availableOnly: "Nur verfügbare",
+    availableBadge: "Verfügbar",
+    resultCount: "{count} Produkte angezeigt",
+    searchPlaceholder: "Nach Name, Material suchen…",
+    applyFilters: "Anwenden",
   },
   collection: {
     openBook: "Kunstbuch öffnen",
     viewProducts: "Produkte ansehen",
     download: "PDF herunterladen",
     downloadDisabled: "Das PDF dieser Kollektion erscheint in Kürze",
+  },
+  processPage: {
+    video1Eyebrow: "Vietnamesische Lackkunst",
+    video1Title:
+      "Die kunstvolle Reise vom rohen Naturlack zum Meisterwerk",
+    video1Paragraph1:
+      "Die vietnamesische Lackmalerei ist eine außergewöhnliche Kunstform, genährt aus über Generationen gehüteten Traditionen.",
+    video1Paragraph2:
+      "Vom reinen Naturlack bis zum vollendeten Kunstwerk — handwerkliche Meisterschaft von unvergänglichem kulturellem Wert.",
+    playVideo1: "Video über vietnamesische Lackkunst ansehen",
+    video2Eyebrow: "Kunsthandwerker & Traditionelle Naturlackkunst",
+    video2Title:
+      "Kunsthandwerker Vu Huy Men: Bewahrer des Ha Thai Lackhandwerks",
+    video2Paragraph1:
+      "Kunsthandwerker Vu Huy Men bewahrt mit Hingabe die Geheimnisse der traditionellen Naturlackkunst im Dorf Ha Thai.",
+    video2Paragraph2:
+      "Seine Bilder vereinen altehrwürdige Techniken mit moderner Tiefe und verteidigen die Authentizität gegen industrielle Einflüsse.",
+    playVideo2: "Video über Kunsthandwerker Vu Huy Men ansehen",
   },
   news: {
     published: "Veröffentlicht",

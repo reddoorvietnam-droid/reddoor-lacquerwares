@@ -4,11 +4,13 @@ import {
   localeSchema,
   localizedPathSchema,
   objectIdStringSchema,
+  productGroupSchema,
   productStatusSchema,
   seoFieldsSchema,
   slugSchema,
   structuredBlocksSchema,
 } from "@/lib/content/contracts";
+import { findProductCategory } from "@/domains/products/categories";
 import { locales } from "@/lib/i18n/config";
 
 const optimisticRevisionSchema = z.number().int().min(0);
@@ -80,6 +82,17 @@ export const productMetadataSchema = z
       .max(80)
       .regex(/^[A-Z0-9]+(?:[-_.][A-Z0-9]+)*$/),
     categoryId: optionalObjectIdSchema,
+    group: productGroupSchema.default("processing"),
+    isAvailable: z.boolean().default(false),
+    categoryKey: z
+      .string()
+      .trim()
+      .toLowerCase()
+      .max(80)
+      .refine((value) => value === "" || findProductCategory(value) !== null, {
+        message: "Unknown product category.",
+      })
+      .default(""),
     collectionIds: uniqueObjectIdsSchema.default([]),
     materialKeys: uniqueKeysSchema.default([]),
     finishKeys: uniqueKeysSchema.default([]),

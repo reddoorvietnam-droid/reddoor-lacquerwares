@@ -10,10 +10,10 @@ import {
 } from "@/lib/public/demo-page-data";
 
 const EMPTY_QUERY: DemoProductListingQuery = {
+  available: "",
   category: "",
   collection: "",
-  finish: "",
-  material: "",
+  group: "",
   page: "",
   query: "",
   sort: "",
@@ -23,7 +23,7 @@ const EMPTY_QUERY: DemoProductListingQuery = {
 const PAGE_SIZE = 3;
 
 describe("product public pages", () => {
-  it("builds truthful category, collection, material, and finish filters", async () => {
+  it("builds truthful category and collection filters", async () => {
     const [dictionary, products] = await Promise.all([
       getDictionary("en"),
       demoProductRepository.list("en"),
@@ -33,28 +33,77 @@ describe("product public pages", () => {
     if (!target) throw new Error("Expected a DEMO product fixture.");
 
     const collection = target.collectionIds[0];
-    const material = target.materialLabels[0];
 
-    if (!collection || !material) {
-      throw new Error("Expected DEMO filter values.");
-    }
+    if (!collection) throw new Error("Expected DEMO filter values.");
 
     const data = await getDemoProductListingPageData("en", dictionary, {
       ...EMPTY_QUERY,
       category: target.categorySlug,
       collection,
-      finish: target.finishLabel,
-      material,
     });
 
     expect(data.filterGroups.map((group) => group.name)).toEqual([
       "category",
       "collection",
-      "material",
-      "finish",
     ]);
     expect(data.products.map((product) => product.id)).toEqual([target.id]);
     expect(data.clearFiltersLink?.href).toBe("/en/products");
+  });
+
+  it("counts every group tab against the other active filters", async () => {
+    const [dictionary, products] = await Promise.all([
+      getDictionary("en"),
+      demoProductRepository.list("en"),
+    ]);
+    const data = await getDemoProductListingPageData("en", dictionary, {
+      ...EMPTY_QUERY,
+      group: "develop",
+    });
+    const byValue = new Map(data.groupTabs.map((tab) => [tab.value, tab]));
+
+    expect([...byValue.keys()]).toEqual(["all", "processing", "develop"]);
+    expect(byValue.get("all")?.count).toBe(products.length);
+    // The tab a visitor is not standing in still reports what they would land
+    // on, so the counts must not collapse to the current selection.
+    expect(byValue.get("processing")?.count).toBe(
+      products.filter((product) => product.group === "processing").length,
+    );
+    expect(byValue.get("develop")?.isCurrent).toBe(true);
+    expect(data.products.every((product) => product.id.length > 0)).toBe(true);
+  });
+
+  it("keeps the stock toggle orthogonal to the chosen group", async () => {
+    const [dictionary, products] = await Promise.all([
+      getDictionary("en"),
+      demoProductRepository.list("en"),
+    ]);
+    const data = await getDemoProductListingPageData("en", dictionary, {
+      ...EMPTY_QUERY,
+      available: "1",
+      group: "processing",
+    });
+    const expected = products.filter(
+      (product) => product.group === "processing" && product.isAvailable,
+    );
+
+    expect(expected.length).toBeGreaterThan(0);
+    expect(data.availableOnlyActive).toBe(true);
+    expect(data.products.length).toBe(expected.length);
+
+    // Switching tab must carry the toggle, and un-toggling must keep the tab.
+    const developTab = data.groupTabs.find((tab) => tab.value === "develop");
+    const developUrl = new URL(developTab?.href ?? "", "https://example.test");
+    expect(developUrl.searchParams.get("available")).toBe("1");
+
+    const offUrl = new URL(data.availableOnlyHref, "https://example.test");
+    expect(offUrl.searchParams.get("group")).toBe("processing");
+    expect(offUrl.searchParams.has("available")).toBe(false);
+
+    expect(
+      data.products.every(
+        (product) => product.statusLabel === dictionary.product.availableBadge,
+      ),
+    ).toBe(true);
   });
 
   it("sorts by localized product name and paginates three records at a time", async () => {
@@ -102,20 +151,16 @@ describe("product public pages", () => {
       getDictionary("en"),
       demoProductRepository.list("en"),
     ]);
-    const material = products[0]?.materialLabels[0];
-
-    if (!material) throw new Error("Expected a product material fixture.");
-
     const pageCount = Math.ceil(
-      products.filter((product) => product.materialLabels.includes(material))
-        .length / PAGE_SIZE,
+      products.filter((product) => product.group === "processing").length /
+        PAGE_SIZE,
     );
 
     expect(pageCount).toBeGreaterThan(1);
 
     const firstPage = await getDemoProductListingPageData("en", dictionary, {
       ...EMPTY_QUERY,
-      material,
+      group: "processing",
       sort: "name-asc",
     });
     const nextHref = firstPage.pagination?.next?.href;
@@ -123,13 +168,13 @@ describe("product public pages", () => {
     if (!nextHref) throw new Error("Expected a second DEMO product page.");
 
     const nextUrl = new URL(nextHref, "https://example.test");
-    expect(nextUrl.searchParams.get("material")).toBe(material);
+    expect(nextUrl.searchParams.get("group")).toBe("processing");
     expect(nextUrl.searchParams.get("sort")).toBe("name-asc");
     expect(nextUrl.searchParams.get("page")).toBe("2");
 
     const clampedPage = await getDemoProductListingPageData("en", dictionary, {
       ...EMPTY_QUERY,
-      material,
+      group: "processing",
       page: "999",
       sort: "name-asc",
     });
@@ -141,7 +186,7 @@ describe("product public pages", () => {
     if (!previousHref) throw new Error("Expected a previous product page.");
 
     const previousUrl = new URL(previousHref, "https://example.test");
-    expect(previousUrl.searchParams.get("material")).toBe(material);
+    expect(previousUrl.searchParams.get("group")).toBe("processing");
     // Page one is expressed by omitting the parameter, not by `page=1`.
     if (pageCount - 1 > 1) {
       expect(previousUrl.searchParams.get("page")).toBe(String(pageCount - 1));

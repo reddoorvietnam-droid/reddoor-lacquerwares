@@ -205,6 +205,16 @@ export const productStatusSchema = z.enum([
   "archived",
 ]);
 
+/**
+ * Which stage of the catalogue a product belongs to.
+ *
+ * Deliberately separate from `productStatusSchema`: that one records how far a
+ * record has moved through the CMS (draft → published), while this one records
+ * what the company is doing with the product. A product still in development
+ * is `published` copy — the visitor is meant to see it.
+ */
+export const productGroupSchema = z.enum(["processing", "develop"]);
+
 export type SeoFieldsInput = z.input<typeof seoFieldsSchema>;
 export type SeoFields = z.output<typeof seoFieldsSchema>;
 export type StructuredBlock = z.infer<typeof structuredBlockSchema>;
@@ -214,3 +224,4 @@ export type RevisionWorkflowStatus = z.infer<
 >;
 export type StableContentStatus = z.infer<typeof stableContentStatusSchema>;
 export type ProductStatus = z.infer<typeof productStatusSchema>;
+export type ProductGroup = z.infer<typeof productGroupSchema>;

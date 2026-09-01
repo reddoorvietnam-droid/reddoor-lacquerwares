@@ -210,6 +210,11 @@ async function getSettings(locale: Locale): Promise<PublicSiteSettings> {
   };
 }
 
+// Brand text is hardcoded on purpose — display copy must not follow the
+// MongoDB settings document.
+const BRAND_DISPLAY_NAME = "RED DOOR VIET NAM";
+const BRAND_TAGLINE = "Nghệ thuật sơn mài Việt Nam";
+
 async function getCompany(locale: Locale): Promise<PublicCompanyProfile> {
   const settings = await cachedSettings(locale);
   const name = settings?.translation.companyName ?? "";
@@ -218,10 +223,10 @@ async function getCompany(locale: Locale): Promise<PublicCompanyProfile> {
     id: settings?.id ?? "company",
     marker: null,
     isDemo: false,
-    displayName: name,
+    displayName: BRAND_DISPLAY_NAME,
     legalName: name,
-    eyebrow: settings?.translation.tagline ?? "",
-    tagline: settings?.translation.tagline ?? "",
+    eyebrow: BRAND_TAGLINE,
+    tagline: BRAND_TAGLINE,
     summary: settings?.translation.description ?? "",
     contentNotice: "",
     heroImage: pendingImage("home-hero-01", name, 3200, 2000),

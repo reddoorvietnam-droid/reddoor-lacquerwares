@@ -8,6 +8,9 @@ import type { Locale } from "@/lib/i18n/config";
  */
 export type PublicProductMarker = "DEMO" | null;
 
+/** Mirrors `ProductGroup` in the content contracts, kept local by design. */
+export type PublicProductGroup = "processing" | "develop";
+
 export interface PublicProductImage {
   /** Stable file name the final photograph should be saved as. */
   readonly assetKey: string;
@@ -75,6 +78,13 @@ export interface PublicProduct {
    */
   readonly internalReference: string | null;
   readonly name: string;
+  /**
+   * Which part of the catalogue the piece sits in. Distinct from the CMS
+   * workflow status: everything reaching this contract is already published.
+   */
+  readonly group: PublicProductGroup;
+  /** True when the piece ships from stock rather than being made to order. */
+  readonly isAvailable: boolean;
   readonly categorySlug: string;
   readonly categoryLabel: string;
   readonly summary: string;
@@ -109,6 +119,8 @@ export interface PublicProduct {
 
 export interface PublicProductListOptions {
   readonly featuredOnly?: boolean;
+  readonly group?: PublicProductGroup;
+  readonly availableOnly?: boolean;
   readonly collectionId?: string;
   readonly categorySlug?: string;
   readonly limit?: number;

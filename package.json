@@ -16,6 +16,7 @@
     "test:e2e": "playwright test",
     "test:e2e:install": "playwright install --with-deps chromium",
     "seed": "tsx --env-file-if-exists=.env --conditions=react-server scripts/seed.ts",
+    "seed:products": "tsx --env-file-if-exists=.env --conditions=react-server scripts/seed-products.ts",
     "migrate": "tsx --env-file-if-exists=.env --conditions=react-server scripts/migrate.ts",
     "backup": "tsx --env-file-if-exists=.env --conditions=react-server scripts/backup.ts",
     "ci": "npm run lint && npm run typecheck && npm run test:run && npm run build"

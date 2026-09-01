@@ -84,6 +84,21 @@ const dictionary = {
     highlightComplianceValue: "SGS — normes UE",
     highlightMarketsLabel: "Marchés",
     highlightMarketsValue: "États-Unis et Europe",
+    mediaFeaturesEyebrow: "Médias & Télévision",
+    mediaFeaturesTitle:
+      "L'art de la laque à l'honneur sur les chaînes de télévision",
+    mediaFeaturesDescription:
+      "Le voyage pour préserver l'héritage du village de laque de Ha Thai et faire rayonner l'artisanat vietnamien à l'international à travers des reportages d'exception.",
+    mediaVtvChannel: "VTV — Télévision Nationale du Vietnam",
+    mediaVtvTitle:
+      "Reportage VTV : Préserver l'âme de la laque traditionnelle de Ha Thai",
+    mediaVtvDescription:
+      "Un reportage exclusif de la Télévision Nationale du Vietnam (VTV) capturant les étapes minutieuses de création dans l'atelier Red Door và le village artisanal de Ha Thai.",
+    mediaFranceChannel: "France TV — Télévision Française",
+    mediaFranceTitle:
+      "Télévision Française : Le rayonnement de la laque d'art vietnamienne",
+    mediaFranceDescription:
+      "Un documentaire de la télévision française mettant à l'honneur le savoir-faire unique de la laque vietnamienne, ses standards de qualité rigoureux et son succès auprès des passionnés d'artisanat d'art en Europe.",
     pillarKicker: "Valeurs fondatrices",
     pillarsDescription:
       "Trois constantes dans chaque pièce qui quitte l'atelier Red Door.",
@@ -121,18 +136,43 @@ const dictionary = {
     video: "Vidéo du produit",
     videoUnavailable: "La vidéo de ce produit est en cours de réalisation.",
     variants: "Variantes",
-    variantsUnavailable:
-      "Ce produit n'a pas d'autre variante pour le moment.",
+    variantsUnavailable: "Ce produit n'a pas d'autre variante pour le moment.",
     process: "Processus de fabrication",
     processUnavailable:
       "Les notes de fabrication de ce produit sont en cours de rédaction.",
     noPrice: "Prix sur demande",
+    groupAll: "Tout",
+    groupProcessing: "En production",
+    groupDevelop: "En développement",
+    availableOnly: "En stock uniquement",
+    availableBadge: "En stock",
+    resultCount: "{count} produits affichés",
+    searchPlaceholder: "Rechercher par nom, matériau…",
+    applyFilters: "Appliquer",
   },
   collection: {
     openBook: "Ouvrir le livre d'art",
     viewProducts: "Voir les produits",
     download: "Télécharger le PDF",
     downloadDisabled: "Le PDF de cette collection arrive bientôt",
+  },
+  processPage: {
+    video1Eyebrow: "L'art de la laque vietnamienne",
+    video1Title:
+      "Le voyage minutieux de la laque brute aux chefs-d'œuvre",
+    video1Paragraph1:
+      "La peinture sur laque est un fleuron des beaux-arts vietnamiens, héritière d'un savoir-faire séculaire transmis avec passion.",
+    video1Paragraph2:
+      "Un cheminement patient de la sève naturelle aux mains du maître artisan, donnant vie à des œuvres d'une profondeur inestimable.",
+    playVideo1: "Regarder la vidéo sur l'art de la laque",
+    video2Eyebrow: "Artisan & Savoir-faire de la laque naturelle",
+    video2Title:
+      "L'artisan Vu Huy Men : Gardien de la laque traditionnelle de Ha Thai",
+    video2Paragraph1:
+      "L'artisan Vu Huy Men perpétue avec ferveur les secrets de la laque naturelle traditionnelle au cœur du village de Ha Thai.",
+    video2Paragraph2:
+      "Ses créations allient maîtrise ancestrale et sensibilité moderne, défendant l'authenticité de la laque face aux produits industriels.",
+    playVideo2: "Regarder la vidéo de l'artisan Vu Huy Men",
   },
   news: {
     published: "Publié le",

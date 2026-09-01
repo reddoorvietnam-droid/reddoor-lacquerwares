@@ -84,6 +84,19 @@ const dictionary = {
     highlightComplianceValue: "SGS — tiêu chuẩn EU",
     highlightMarketsLabel: "Thị trường",
     highlightMarketsValue: "Mỹ và châu Âu",
+    mediaFeaturesEyebrow: "Dấu ấn truyền thông & truyền hình",
+    mediaFeaturesTitle: "Nghệ thuật sơn mài tỏa sáng trên sóng truyền hình",
+    mediaFeaturesDescription:
+      "Hành trình gìn giữ di sản làng nghề sơn mài Hạ Thái và đưa nghệ thuật thủ công truyền thống Việt Nam vươn tầm thế giới qua các phóng sự tài liệu uy tín.",
+    mediaVtvChannel: "VTV — Đài Truyền hình Việt Nam",
+    mediaVtvTitle: "Phóng sự VTV: Gìn giữ hồn cốt sơn mài làng nghề Hạ Thái",
+    mediaVtvDescription:
+      "Phóng sự đặc biệt trên sóng Đài Truyền hình Việt Nam (VTV) ghi lại cận cảnh từng công đoạn chế tác công phu tại xưởng Red Door và làng nghề Hạ Thái — nơi nghệ nhân bền bỉ gắn bó với từng lớp sơn ta, mài nước và đánh bóng thủ công để lưu giữ trọn vẹn nét đẹp văn hóa Việt Nam.",
+    mediaFranceChannel: "Truyền hình Pháp — France TV",
+    mediaFranceTitle:
+      "Đài Truyền hình Pháp: Tinh hoa sơn mài thủ công Việt Nam vươn tầm quốc tế",
+    mediaFranceDescription:
+      "Phóng sự tài liệu từ Đài Truyền hình Pháp tôn vinh kỹ nghệ sơn mài độc đáo của Việt Nam, quy trình kiểm định chất lượng khắt khe và sức hút vượt thời gian của các tác phẩm sơn mài Red Door đối với thị trường châu Âu.",
     pillarKicker: "Giá trị cốt lõi",
     pillarsDescription:
       "Ba điều không đổi trong từng món đồ rời xưởng Red Door.",
@@ -123,15 +136,38 @@ const dictionary = {
     variants: "Biến thể",
     variantsUnavailable: "Sản phẩm này hiện chưa có biến thể nào khác.",
     process: "Quy trình chế tác",
-    processUnavailable:
-      "Ghi chú chế tác cho sản phẩm này đang được biên soạn.",
+    processUnavailable: "Ghi chú chế tác cho sản phẩm này đang được biên soạn.",
     noPrice: "Liên hệ để nhận báo giá",
+    groupAll: "Tất cả",
+    groupProcessing: "Đang sản xuất",
+    groupDevelop: "Đang phát triển",
+    availableOnly: "Chỉ hàng có sẵn",
+    availableBadge: "Có sẵn",
+    resultCount: "Đang xem {count} sản phẩm",
+    searchPlaceholder: "Tìm theo tên, chất liệu…",
+    applyFilters: "Áp dụng",
   },
   collection: {
     openBook: "Mở sách nghệ thuật",
     viewProducts: "Xem sản phẩm",
     download: "Tải PDF",
     downloadDisabled: "Bản PDF của bộ sưu tập này sẽ sớm được cập nhật",
+  },
+  processPage: {
+    video1Eyebrow: "Nghệ thuật sơn mài Việt Nam",
+    video1Title: "Hành trình kỳ công từ chất sơn ta đến kiệt tác sơn mài",
+    video1Paragraph1:
+      "Sơn mài là dòng tranh đặc sắc của mỹ thuật Việt Nam, kết tinh từ bí quyết truyền thống trao truyền qua nhiều thế hệ.",
+    video1Paragraph2:
+      "Hành trình kỳ công từ chất sơn ta nguyên thủy qua bàn tay tài hoa của người nghệ nhân để trở thành những bức tranh mang giá trị văn hóa độc bản.",
+    playVideo1: "Xem video nghệ thuật tranh sơn mài Việt Nam",
+    video2Eyebrow: "Nghệ nhân & Bí kíp sơn ta truyền thống",
+    video2Title: "Nghệ nhân Vũ Huy Mến: Người giữ lửa nghề sơn mài Hạ Thái",
+    video2Paragraph1:
+      "Nghệ nhân Vũ Huy Mến là một trong những người giữ lửa cho nghề sơn mài Hạ Thái, dành trọn tâm huyết duy trì bí kíp làm tranh bằng sơn ta truyền thống.",
+    video2Paragraph2:
+      "Tranh của ông kết hợp hài hòa giữa chất sơn ta và sáng tạo cá nhân với sắc độ sâu thẳm, bền bỉ giữ gìn bản sắc trước sự cạnh tranh của sơn công nghiệp.",
+    playVideo2: "Xem video nghệ nhân Vũ Huy Mến",
   },
   news: {
     published: "Đăng ngày",
@@ -242,7 +278,8 @@ const dictionary = {
     privacy: "Quyền riêng tư",
     terms: "Điều khoản",
     accessibility: "Khả năng tiếp cận",
-    copyright: "© Công ty TNHH Red Door — Nghệ thuật sơn mài Việt Nam. Bảo lưu mọi quyền.",
+    copyright:
+      "© Công ty TNHH Red Door — Nghệ thuật sơn mài Việt Nam. Bảo lưu mọi quyền.",
   },
 } satisfies PublicDictionary;
 
