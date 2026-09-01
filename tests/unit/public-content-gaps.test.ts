@@ -9,16 +9,21 @@ import {
 } from "@/lib/public/demo-page-data";
 
 describe("Phase 1 public content safeguards", () => {
-  it("fills About highlights and principles with localized copy", async () => {
+  it("fills About media features and principles with localized copy", async () => {
     for (const locale of locales) {
       const dictionary = await getDictionary(locale);
       const page = await getDemoAboutHistoryPageData(locale, dictionary);
 
-      expect(page.highlights).toHaveLength(3);
+      expect(page.mediaFeatures).toHaveLength(2);
       expect(page.principles).toHaveLength(3);
       expect(
-        page.principles.every((principle) => principle.media === null),
+        page.principles.every((principle) => principle.media !== null),
       ).toBe(true);
+      expect(page.principles.map((principle) => principle.title)).toEqual([
+        dictionary.about.pillarCraftTitle,
+        dictionary.about.pillarMaterialTitle,
+        dictionary.about.pillarStandardTitle,
+      ]);
       // The timeline stands on published milestones alone; no advisory note.
       expect(page.archiveNote).toBeNull();
     }
