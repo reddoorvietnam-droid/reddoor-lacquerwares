@@ -22,6 +22,12 @@ export type PermissionGuardDependencies = {
   auditRepository: AuditRepository;
   now?: () => Date;
   createRequestId?: () => string;
+  /**
+   * Development-only bypass: when it returns true, any authenticated session
+   * is granted every permission at global scope without consulting the
+   * authorization snapshot. Sign-in is still required.
+   */
+  openAccess?: () => boolean;
 };
 
 export type RequirePermissionOptions = PermissionTarget & {
@@ -120,6 +126,24 @@ export function createPermissionGuard(
         occurredAt,
       });
       throw new ContentAccessDeniedError("UNAUTHENTICATED");
+    }
+
+    if (dependencies.openAccess?.()) {
+      return {
+        actorType: "user",
+        userId: resolution.identity.userId,
+        userStatus: "active",
+        permissions: [
+          {
+            permission,
+            scope: "all",
+            businessUnitIds: [],
+            roleKeys: ["DEV_OPEN_ACCESS"],
+          },
+        ],
+        authzVersion: resolution.identity.authzVersion,
+        requestId,
+      };
     }
 
     let snapshot;

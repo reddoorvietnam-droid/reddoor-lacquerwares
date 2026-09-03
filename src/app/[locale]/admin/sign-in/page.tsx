@@ -30,7 +30,7 @@ export default async function AdminSignInPage({
     Boolean(authEnv.value.AUTH_GOOGLE_SECRET);
 
   return (
-    <AdminShell locale={locale}>
+    <AdminShell locale={locale} withNav={false}>
       {configured ? (
         <>
           {googleEnabled ? <GoogleSignIn locale={locale} /> : null}

@@ -200,8 +200,8 @@ describe("order transitions", () => {
 
 describe("stage ownership matches the granted permissions", () => {
   // A stage whose accountable position cannot leave it would stall every order
-  // until a Super Admin or the Director intervened. Only those two roles hold
-  // the whole catalog, so the check is meaningful for every other position.
+  // until the Director intervened. Only that role holds the whole catalog, so
+  // the check is meaningful for every other position.
   it.each(orderStages.map((stage) => [stage] as const))(
     "%s can be advanced by the role that owns it",
     (stage) => {

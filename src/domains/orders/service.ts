@@ -343,6 +343,56 @@ export class OrderCommandService {
   }
 
   /**
+   * Sets or clears the customer's payment due date. Held by the accountant
+   * (`payments.record`): the due date drives the receivables view, not the
+   * operational workflow, so it may change at any stage.
+   */
+  async setPaymentDueAt(
+    context: AccessContext,
+    input: {
+      orderId: string;
+      expectedRevision: number;
+      paymentDueAt: Date | null;
+    },
+  ): Promise<OrderReadDto> {
+    this.assertHolds(context, "payments.record");
+
+    const order = await this.dependencies.store.findById(input.orderId);
+    if (!order) {
+      throw new OrderCommandError("NOT_FOUND", "Order not found.");
+    }
+
+    const updated = await this.dependencies.store.setPaymentDueAt({
+      orderId: order.id,
+      expectedRevision: input.expectedRevision,
+      paymentDueAt: input.paymentDueAt,
+      updatedBy: context.userId,
+    });
+    if (!updated) {
+      throw new OrderCommandError(
+        "REVISION_CONFLICT",
+        "The order changed while this action was on screen.",
+      );
+    }
+
+    await this.dependencies.auditRepository.append({
+      actor: { type: "user", userId: context.userId },
+      action: "order.paymentDueAtSet",
+      resourceType: ORDER_RESOURCE_TYPE,
+      resourceId: order.id,
+      businessUnitIds: order.businessUnitIds,
+      requestId: context.requestId,
+      changes: {
+        before: order.paymentDueAt?.toISOString() ?? null,
+        after: input.paymentDueAt?.toISOString() ?? null,
+      },
+      occurredAt: this.now(),
+    });
+
+    return redact(updated, false);
+  }
+
+  /**
    * Raises the Director approval request that the CURRENT stage's exit is
    * gated on. The summary is built here so it can never include a price.
    */

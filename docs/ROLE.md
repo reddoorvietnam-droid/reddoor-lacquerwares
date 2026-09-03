@@ -2,10 +2,20 @@
 
 Trạng thái: bản mô tả đọc-được-bởi-người của cấu hình phân quyền đang chạy.
 
+> **Ghi chú gộp vai trò (2026-09-03):** Hệ thống được gộp về **5 vai trò**, khớp đúng 5 người thực tế của khách hàng:
+>
+> - `DIRECTOR` (Giám đốc) — nhận thêm `SUPER_ADMIN` (quản trị hệ thống), `REPORT_VIEWER` (xem báo cáo) và `CONTENT_EDITOR` (nội dung website); giữ toàn bộ danh mục quyền.
+> - `FACTORY_MANAGER` (Quản lý nhà máy) — nhận thêm `PRODUCTION_UNIT` (xưởng phụ không còn đăng nhập, quản lý nhà máy ghi nhận thay) và `PRODUCT_DESIGNER` (phát triển sản phẩm, đơn hàng mẫu).
+> - `WAREHOUSE_MANAGER` (Thủ kho) — giữ nguyên.
+> - `FACTORY_ACCOUNTANT` (Kế toán nhà máy & mua hàng) — nhận thêm `SUPPLIER_MANAGER` (nhà cung cấp, đơn mua, tạm ứng, đổi đơn giá).
+> - `COMPANY_ACCOUNTANT` (Kế toán công ty) — nhận thêm `ORDER_MANAGER` (khách hàng, báo giá, tiếp nhận đơn, điều phối giao hàng).
+>
+> Mọi đoạn bên dưới còn nhắc một vai trò đã gộp như vai trò riêng là mô tả cấu hình cũ — đọc theo vai trò tiếp nhận ở trên.
+
 Nguồn sự thật là code, không phải tài liệu này:
 
 - `src/domains/identity/permissions.ts` — danh mục 193 quyền, quyền bắt buộc phạm vi toàn cục, quyền trường nhạy cảm.
-- `src/domains/identity/role-definitions.ts` — 12 vai trò hệ thống và trần quyền của từng vai trò.
+- `src/domains/identity/role-definitions.ts` — 5 vai trò hệ thống và trần quyền của từng vai trò.
 - `src/lib/auth/authorization.ts` — thuật toán quyết định cho phép hay từ chối.
 - `src/domains/approvals/` — cổng phê duyệt của Giám đốc.
 - `src/domains/organization/responsibilities.ts` — vị trí công việc và vai trò gắn kèm.
@@ -29,7 +39,7 @@ Khi tài liệu này và code mâu thuẫn, **code đúng**. Tài liệu liên q
 
 Mã từ chối có thể trả về: `AUTH_NOT_CONFIGURED`, `UNAUTHENTICATED`, `USER_NOT_FOUND`, `USER_PENDING`, `USER_SUSPENDED`, `STALE_SESSION`, `PERMISSION_DENIED`, `AUTHORIZATION_UNAVAILABLE`.
 
-`ADMIN_EMAILS` chỉ dùng để khởi tạo Super Admin đầu tiên khi hệ thống chưa có Super Admin nào. Nó không bao giờ được dùng như một kiểm tra phân quyền thông thường.
+`ADMIN_EMAILS` chỉ dùng để khởi tạo Giám đốc (`DIRECTOR`) đầu tiên khi hệ thống chưa có ai giữ vai trò này. Nó không bao giờ được dùng như một kiểm tra phân quyền thông thường.
 
 ---
 

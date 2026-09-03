@@ -40,13 +40,7 @@ If either combination is later split between two people, the fix is to issue the
 
 ### Roles without a position
 
-Three system roles are intentionally not attached to a position in this registry:
-
-- `SUPER_ADMIN` — platform administration, not an operating position on the company chart.
-- `ORDER_MANAGER` — the confirmed organisation chart has no separate order-management position, so the registry does not invent one. The role exists and owns two stages of the sales-order process (`received` and `loadingScheduled`, see `docs/ORDER_WORKFLOW.md`); it is issued as a grant to whoever performs that work.
-- `REPORT_VIEWER` — a read-only grant issued to an observer, not a role on the chart.
-
-`positionsForRole()` returns an empty list for these, which is the honest answer rather than a fabricated mapping.
+Every system role is attached to exactly one position: the five roles mirror the five actual people on the client's staff. Former roles and where they went: `SUPER_ADMIN`, `REPORT_VIEWER`, and `CONTENT_EDITOR` into `DIRECTOR`; `PRODUCTION_UNIT` and `PRODUCT_DESIGNER` into `FACTORY_MANAGER` (the sub-workshops no longer sign in — the Factory Manager records for them); `SUPPLIER_MANAGER` into `FACTORY_ACCOUNTANT`; `ORDER_MANAGER` into `COMPANY_ACCOUNTANT` (order intake and delivery coordination).
 
 ## 3. Operational forms
 

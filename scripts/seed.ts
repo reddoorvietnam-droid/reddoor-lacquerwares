@@ -15,11 +15,18 @@
  */
 
 import {
+  getAccessGrantModel,
   getBusinessUnitModel,
   getRoleDefinitionModel,
+  getUserModel,
 } from "@/domains/identity/models";
 import { isPermission } from "@/domains/identity/permissions";
-import { roleDefinitionSeeds } from "@/domains/identity/role-definitions";
+import {
+  retiredRoleReplacements,
+  retiredSystemRoleKeys,
+  roleDefinitionSeeds,
+  type RetiredSystemRoleKey,
+} from "@/domains/identity/role-definitions";
 import { connectToDatabase } from "@/lib/db/mongoose";
 import { locales } from "@/lib/i18n/config";
 
@@ -114,6 +121,68 @@ async function seedRoleDefinitions(): Promise<void> {
   console.info(`Provisioned ${roleDefinitionSeeds.length} role definitions.`);
 }
 
+/**
+ * Retired roles were merged into a surviving role (see
+ * `retiredRoleReplacements`). Their definitions are deactivated and every
+ * grant they still carry is replaced by an equivalent grant on the surviving
+ * role, so a database seeded before a merge keeps working without a manual
+ * migration.
+ */
+async function retireMergedRoles(): Promise<void> {
+  const RoleDefinition = getRoleDefinitionModel();
+  const AccessGrant = getAccessGrantModel();
+  const User = getUserModel();
+
+  const deactivated = await RoleDefinition.updateMany(
+    { key: { $in: [...retiredSystemRoleKeys] }, active: true },
+    { $set: { active: false } },
+  );
+
+  const retiredGrants = await AccessGrant.find({
+    roleKey: { $in: [...retiredSystemRoleKeys] },
+    status: "active",
+  }).exec();
+
+  for (const grant of retiredGrants) {
+    const survivingRoleKey =
+      retiredRoleReplacements[grant.roleKey as RetiredSystemRoleKey];
+    const replacement = await AccessGrant.findOne({
+      userId: grant.userId,
+      roleKey: survivingRoleKey,
+      businessUnitId: grant.businessUnitId,
+    }).exec();
+
+    if (!replacement) {
+      await AccessGrant.create({
+        userId: grant.userId,
+        roleKey: survivingRoleKey,
+        businessUnitId: grant.businessUnitId,
+        status: "active",
+        grantedBy: grant.grantedBy,
+        grantedAt: new Date(),
+      });
+    } else if (replacement.status !== "active") {
+      await AccessGrant.updateOne(
+        { _id: replacement._id },
+        { $set: { status: "active" } },
+      );
+    }
+
+    await AccessGrant.updateOne(
+      { _id: grant._id },
+      { $set: { status: "revoked" } },
+    );
+    await User.updateOne({ _id: grant.userId }, { $inc: { authzVersion: 1 } });
+  }
+
+  if (deactivated.modifiedCount > 0 || retiredGrants.length > 0) {
+    console.info(
+      `Retired merged roles: ${deactivated.modifiedCount} definitions deactivated, ` +
+        `${retiredGrants.length} grants moved to their surviving roles.`,
+    );
+  }
+}
+
 async function seedDemoBusinessUnits(): Promise<void> {
   const model = getBusinessUnitModel();
 
@@ -147,6 +216,7 @@ async function main(): Promise<void> {
 
   await connectToDatabase();
   await seedRoleDefinitions();
+  await retireMergedRoles();
 
   if (options.withDemo) {
     await seedDemoBusinessUnits();

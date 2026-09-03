@@ -72,7 +72,9 @@ export const orderStageDefinitions = {
       vi: "Nhận đơn hàng từ khách hàng",
       en: "Customer order received",
     },
-    ownerRole: "ORDER_MANAGER",
+    // Order intake belongs to the Company Accountant since the former Order
+    // Manager role merged into it.
+    ownerRole: "COMPANY_ACCOUNTANT",
     advancePermission: "orders.updateDraft",
     approvalSubject: null,
     next: ["fileOpened", "cancelled"],

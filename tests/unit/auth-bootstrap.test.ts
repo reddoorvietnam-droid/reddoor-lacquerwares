@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { parseBootstrapAdminEmails } from "@/domains/identity/bootstrap";
 
-describe("one-time Super Admin bootstrap input", () => {
+describe("one-time Director bootstrap input", () => {
   it("normalizes a temporary comma, semicolon, or line separated allow-list", () => {
     expect([
       ...parseBootstrapAdminEmails(

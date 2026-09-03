@@ -5,21 +5,39 @@ import {
 import type { PermissionScope } from "@/domains/identity/contracts";
 
 export const systemRoleKeys = [
-  "SUPER_ADMIN",
   "DIRECTOR",
-  "ORDER_MANAGER",
-  "PRODUCT_DESIGNER",
-  "CONTENT_EDITOR",
-  "WAREHOUSE_MANAGER",
   "FACTORY_MANAGER",
+  "WAREHOUSE_MANAGER",
   "FACTORY_ACCOUNTANT",
-  "PRODUCTION_UNIT",
   "COMPANY_ACCOUNTANT",
-  "SUPPLIER_MANAGER",
-  "REPORT_VIEWER",
 ] as const;
 
 export type SystemRoleKey = (typeof systemRoleKeys)[number];
+
+/**
+ * Role keys that existed in earlier seeds and were merged into a surviving
+ * role. The five surviving roles mirror the five actual people on the client's
+ * staff thread: the Director, the Factory Manager, the Storekeeper, the
+ * Factory Accountant (who also purchases), and the Company Accountant (who
+ * also coordinates orders). The seed script uses this map to deactivate the
+ * retired definitions and to replace any grants they still carry with a grant
+ * on the surviving role.
+ */
+export const retiredRoleReplacements = {
+  SUPER_ADMIN: "DIRECTOR",
+  REPORT_VIEWER: "DIRECTOR",
+  CONTENT_EDITOR: "DIRECTOR",
+  PRODUCT_DESIGNER: "FACTORY_MANAGER",
+  PRODUCTION_UNIT: "FACTORY_MANAGER",
+  SUPPLIER_MANAGER: "FACTORY_ACCOUNTANT",
+  ORDER_MANAGER: "COMPANY_ACCOUNTANT",
+} as const satisfies Record<string, SystemRoleKey>;
+
+export type RetiredSystemRoleKey = keyof typeof retiredRoleReplacements;
+
+export const retiredSystemRoleKeys = Object.keys(
+  retiredRoleReplacements,
+) as readonly RetiredSystemRoleKey[];
 
 export type RolePermissionSeed = {
   permission: Permission;
@@ -73,161 +91,18 @@ const sharedOperationalReads = [
 
 export const roleDefinitionSeeds = [
   {
-    key: "SUPER_ADMIN",
-    labels: { vi: "Quản trị hệ thống", en: "Super Admin" },
-    summary: {
-      vi: "Thiết lập nền tảng, quản lý người dùng và toàn bộ nghiệp vụ.",
-      en: "Platform setup, user administration, and every business capability.",
-    },
-    // The only role holding the complete catalog. Still bound by state
-    // machines, separation of duties, and audit requirements.
-    permissions: grants({ all: permissionCatalog }),
-  },
-  {
     key: "DIRECTOR",
     labels: { vi: "Giám đốc", en: "Director" },
     summary: {
-      vi: "Duyệt toàn bộ nghiệp vụ trọng yếu và xem báo cáo hợp nhất.",
-      en: "Approves every significant operation and reads consolidated reports.",
+      vi: "Quản trị hệ thống, duyệt toàn bộ nghiệp vụ trọng yếu, xem mọi báo cáo và quản lý nội dung website.",
+      en: "Platform administration, approval of every significant operation, all reporting, and website content.",
     },
-    // Confirmed rule: every commercially significant action needs Director
-    // approval — orders, selling price, price changes, material purchases,
-    // incurred expenses, and dispatch.
-    permissions: grants({
-      all: permissionCatalog.filter(
-        (permission) =>
-          permission !== "users.manageSuperAdmin" &&
-          permission !== "roles.update" &&
-          permission !== "settings.manageSystem",
-      ),
-    }),
-  },
-  {
-    key: "ORDER_MANAGER",
-    labels: { vi: "Quản lý đơn hàng", en: "Order Manager" },
-    summary: {
-      vi: "Khách hàng, yêu cầu báo giá, báo giá và điều phối giao hàng.",
-      en: "Customers, quote requests, quotes, and delivery coordination.",
-    },
-    permissions: grants({
-      all: ["settings.read"],
-      assignedBusinessUnits: [
-        ...sharedOperationalReads,
-        "customers.read",
-        "customers.readSensitive",
-        "customers.create",
-        "customers.update",
-        "quoteRequests.read",
-        "quoteRequests.assign",
-        "quoteRequests.update",
-        "quoteRequests.close",
-        "quoteRequests.markSpam",
-        "quotes.read",
-        "quotes.create",
-        "quotes.update",
-        "quotes.addVersion",
-        "quotes.submitReview",
-        "quotes.send",
-        "quotes.expire",
-        "quotes.requestPriceAdjustment",
-        "orders.create",
-        "orders.updateDraft",
-        "orders.submitForApproval",
-        "orders.assignBusinessUnits",
-        "orders.assignResponsibleUsers",
-        "orders.transitionOperational",
-        "orders.requestPriceAdjustment",
-        "orders.requestCancel",
-        "deliveries.plan",
-        "deliveries.update",
-        "packing.create",
-        "packing.update",
-        "packing.complete",
-        "shipments.create",
-        "shipments.update",
-        "tradeDocuments.read",
-        "tradeDocuments.manage",
-        "samples.read",
-        "samples.create",
-        "samples.update",
-        "samples.addRevision",
-        "samples.recordCustomerReview",
-        "payments.read",
-        "receivables.read",
-        "documents.generate",
-        "documents.export",
-        "notifications.retry",
-        "approvals.request",
-      ],
-    }),
-  },
-  {
-    key: "PRODUCT_DESIGNER",
-    labels: { vi: "Nhân viên thiết kế", en: "Product Designer" },
-    summary: {
-      vi: "Đơn hàng mẫu, phát triển sản phẩm, chuẩn bị mẫu và theo dõi mẫu theo yêu cầu khách hàng.",
-      en: "Sample orders, product development, sample preparation, and customer sample tracking.",
-    },
-    permissions: grants({
-      own: [
-        "products.update",
-        "products.manageVariants",
-        "products.submitReview",
-        "samples.update",
-        "samples.addRevision",
-        "samples.submitInternalReview",
-        "media.updateOwnMetadata",
-        "media.softDelete",
-      ],
-      assignedBusinessUnits: [
-        ...sharedOperationalReads,
-        "products.create",
-        "products.manageBom",
-        "media.upload",
-        "collections.readDraft",
-        "samples.read",
-        "samples.create",
-        "samples.recordCustomerReview",
-        "samples.convert",
-        "documents.generate",
-        "documents.export",
-        "reports.submitDaily",
-        "approvals.request",
-      ],
-    }),
-  },
-  {
-    key: "CONTENT_EDITOR",
-    labels: { vi: "Biên tập nội dung", en: "Content Editor" },
-    summary: {
-      vi: "Nội dung website, tin tức, bản dịch, bản nháp bộ sưu tập và thư viện ảnh.",
-      en: "Public content, news, translations, collection drafts, and media.",
-    },
-    permissions: grants({
-      own: [
-        "content.create",
-        "content.update",
-        "translations.update",
-        "collections.create",
-        "collections.update",
-        "collections.updateHotspots",
-        "collections.submitReview",
-        "settings.updatePublic",
-        "media.updateOwnMetadata",
-        "media.softDelete",
-      ],
-      all: [
-        "content.read",
-        "media.read",
-        "media.upload",
-        "collections.readDraft",
-        "settings.read",
-        "products.read",
-        "businessUnits.read",
-        "approvals.read",
-        "approvals.request",
-      ],
-    }),
+    // The Director absorbs the former Super Admin, Report Viewer, and Content
+    // Editor roles: one person administers the platform, approves every
+    // commercially significant action, reads every report, and owns the public
+    // website. The only role holding the complete catalog; still bound by
+    // state machines, separation of duties, and audit requirements.
+    permissions: grants({ all: permissionCatalog }),
   },
   {
     key: "WAREHOUSE_MANAGER",
@@ -278,9 +153,14 @@ export const roleDefinitionSeeds = [
     key: "FACTORY_MANAGER",
     labels: { vi: "Quản lý nhà máy", en: "Factory Manager" },
     summary: {
-      vi: "Tổ chức sản xuất, lập kế hoạch, quản lý xưởng phụ, chi phí nhà máy và theo dõi chất lượng.",
-      en: "Production organisation and planning, sub-workshop management, factory cost, and quality tracking.",
+      vi: "Tổ chức sản xuất, kế hoạch, xưởng phụ, chi phí nhà máy, chất lượng, phát triển sản phẩm và đơn hàng mẫu.",
+      en: "Production organisation and planning, sub-workshops, factory cost, quality, product development, and sample orders.",
     },
+    // Absorbs the former Production Unit and Product Designer roles: the
+    // sub-workshops no longer sign in, so the Factory Manager records their
+    // progress, material use, and QC evidence, and also develops products and
+    // runs sample orders. That means the same person records progress and
+    // approves QC — the Director approval gates remain the outside check.
     permissions: grants({
       own: [
         "expenses.create",
@@ -292,7 +172,12 @@ export const roleDefinitionSeeds = [
       assignedBusinessUnits: [
         ...sharedOperationalReads,
         "products.readCost",
+        "products.create",
+        "products.update",
+        "products.manageVariants",
+        "products.submitReview",
         "products.manageBom",
+        "collections.readDraft",
         "production.createPlan",
         "production.updatePlan",
         "production.assignWork",
@@ -312,10 +197,13 @@ export const roleDefinitionSeeds = [
         "expenses.read",
         "finance.readCost",
         "samples.read",
+        "samples.create",
         "samples.update",
         "samples.addRevision",
         "samples.submitInternalReview",
         "samples.recordInternalReview",
+        "samples.recordCustomerReview",
+        "samples.convert",
         "media.upload",
         "documents.generate",
         "documents.export",
@@ -327,13 +215,15 @@ export const roleDefinitionSeeds = [
   },
   {
     key: "FACTORY_ACCOUNTANT",
-    labels: { vi: "Kế toán nhà máy", en: "Factory Accountant" },
+    labels: { vi: "Kế toán nhà máy & mua hàng", en: "Factory Accountant & Purchasing" },
     summary: {
-      vi: "Kiểm soát và báo cáo chi phí nhà máy, xưởng phụ và lao động lên kế toán công ty.",
-      en: "Controls and reports factory, sub-workshop, and labor cost to the Company Accountant.",
+      vi: "Chi phí nhà máy và xưởng phụ, lao động, nhà cung cấp, đơn mua nguyên liệu, tạm ứng và thay đổi đơn giá.",
+      en: "Factory and sub-workshop cost, labor, suppliers, material purchase orders, advances, and unit-price changes.",
     },
-    // Submits unit cost; approval and posting belong to the Company Accountant
-    // or the Director.
+    // Absorbs the former Supplier Manager role: the same person controls
+    // factory cost and coordinates suppliers and purchasing. Submits cost and
+    // supplier financial changes; approval and posting belong to the Company
+    // Accountant or the Director. Never sees selling price or profit.
     permissions: grants({
       assignedBusinessUnits: [
         ...sharedOperationalReads,
@@ -351,10 +241,21 @@ export const roleDefinitionSeeds = [
         "production.readLaborQuantity",
         "labor.readSalary",
         "labor.manageRecords",
+        "suppliers.create",
+        "suppliers.update",
+        "procurement.create",
+        "procurement.update",
+        "procurement.addVersion",
+        "procurement.submit",
+        "procurement.requestPriceChange",
+        "procurement.requestAdvance",
+        "tradeDocuments.read",
+        "tradeDocuments.manage",
         "documents.generate",
         "documents.readSensitive",
         "documents.import",
         "documents.export",
+        "media.upload",
         "reports.submitDaily",
         "approvals.request",
       ],
@@ -362,65 +263,66 @@ export const roleDefinitionSeeds = [
     }),
   },
   {
-    key: "PRODUCTION_UNIT",
-    labels: { vi: "Đơn vị sản xuất / Xưởng phụ", en: "Production Unit" },
-    summary: {
-      vi: "Thực hiện sản xuất, năng suất lao động, sử dụng nguyên vật liệu, đảm bảo chất lượng và giao hàng đúng kế hoạch.",
-      en: "Executes production, labor productivity, material usage, quality assurance, and on-plan delivery.",
-    },
-    // Never sees selling price, profit, salary, customer-private data, or the
-    // work of another unit.
-    permissions: grants({
-      own: [
-        "production.updateProgress",
-        "production.reportBlocker",
-        "production.recordMaterialUse",
-        "production.recordLabor",
-        "production.readLaborQuantity",
-        "production.recordQcEvidence",
-        "media.upload",
-        "media.updateOwnMetadata",
-        "documents.read",
-      ],
-      assignedBusinessUnits: [
-        "businessUnits.read",
-        "products.read",
-        "media.read",
-        "orders.read",
-        "inventory.read",
-        "production.read",
-        "reports.readOperational",
-        "reports.submitDaily",
-        "approvals.read",
-        "approvals.request",
-      ],
-    }),
-  },
-  {
     key: "COMPANY_ACCOUNTANT",
     labels: { vi: "Kế toán công ty", en: "Company Accountant" },
     summary: {
-      vi: "Kế toán và tài chính, hồ sơ thanh toán, hồ sơ nhập/xuất khẩu, xác nhận lương và báo cáo lãi lỗ hàng tháng.",
-      en: "Accounting and finance, payment records, import/export files, payroll confirmation, and the monthly profit and loss report.",
+      vi: "Kế toán tài chính, đơn hàng và khách hàng, báo giá, điều phối giao hàng, hồ sơ nhập/xuất khẩu, lương và báo cáo lãi lỗ.",
+      en: "Accounting and finance, orders and customers, quotes, delivery coordination, import/export files, payroll, and the profit and loss report.",
     },
-    // Confirmed rule: together with the Director, the only role that may read
-    // selling price and profit.
+    // Absorbs the former Order Manager role: the same person keeps the books
+    // and runs customer, quote, and order coordination. That means this role
+    // both requests and approves a price adjustment — the Director approval
+    // gate on every price change remains the separation of duties. Confirmed
+    // rule: together with the Director, the only role that may read selling
+    // price and profit.
     permissions: grants({
       all: [
         ...sharedOperationalReads,
         "settings.read",
         "customers.read",
         "customers.readSensitive",
+        "customers.create",
+        "customers.update",
+        "quoteRequests.read",
+        "quoteRequests.assign",
+        "quoteRequests.update",
+        "quoteRequests.close",
+        "quoteRequests.markSpam",
         "quotes.read",
         "quotes.readSellingPrice",
+        "quotes.create",
+        "quotes.update",
+        "quotes.addVersion",
+        "quotes.submitReview",
+        "quotes.send",
+        "quotes.expire",
+        "quotes.requestPriceAdjustment",
         "quotes.approvePriceAdjustment",
         "products.readSellingPrice",
         "products.readCost",
         "orders.readSellingPrice",
+        "orders.create",
+        "orders.updateDraft",
         // Step 2 of the order process: the Company Accountant opens the order
         // file and submits it for the Director's decision.
         "orders.submitForApproval",
+        "orders.assignBusinessUnits",
+        "orders.assignResponsibleUsers",
+        "orders.transitionOperational",
+        "orders.requestPriceAdjustment",
         "orders.approvePriceAdjustment",
+        "orders.requestCancel",
+        "deliveries.plan",
+        "deliveries.update",
+        "packing.create",
+        "packing.update",
+        "packing.complete",
+        "shipments.create",
+        "shipments.update",
+        "samples.create",
+        "samples.update",
+        "samples.addRevision",
+        "samples.recordCustomerReview",
         "procurement.approve",
         "procurement.cancel",
         "procurement.approvePriceChange",
@@ -461,51 +363,6 @@ export const roleDefinitionSeeds = [
       own: ["media.updateOwnMetadata"],
     }),
   },
-  {
-    key: "SUPPLIER_MANAGER",
-    labels: { vi: "Quản lý nhà cung cấp", en: "Supplier Manager" },
-    summary: {
-      vi: "Nhà cung cấp, hợp đồng đang thực hiện, đơn mua nguyên liệu, tạm ứng và thay đổi đơn giá.",
-      en: "Suppliers, active contracts, material purchase orders, advances, and unit-price changes.",
-    },
-    // Submits supplier financial changes; approval belongs to the Company
-    // Accountant or the Director.
-    permissions: grants({
-      assignedBusinessUnits: [
-        ...sharedOperationalReads,
-        "suppliers.create",
-        "suppliers.update",
-        "procurement.create",
-        "procurement.update",
-        "procurement.addVersion",
-        "procurement.submit",
-        "procurement.requestPriceChange",
-        "procurement.requestAdvance",
-        "payables.read",
-        "payments.read",
-        "tradeDocuments.read",
-        "tradeDocuments.manage",
-        "documents.generate",
-        "documents.import",
-        "documents.export",
-        "media.upload",
-        "reports.submitDaily",
-        "approvals.request",
-      ],
-      own: ["media.updateOwnMetadata"],
-    }),
-  },
-  {
-    key: "REPORT_VIEWER",
-    labels: { vi: "Người xem báo cáo", en: "Report Viewer" },
-    summary: {
-      vi: "Chỉ đọc báo cáo vận hành trong phạm vi đơn vị được cấp.",
-      en: "Read-only operational reports within the granted business units.",
-    },
-    permissions: grants({
-      assignedBusinessUnits: [...sharedOperationalReads, "documents.export"],
-    }),
-  },
 ] as const satisfies readonly RoleDefinitionSeed[];
 
 const seedsByKey = new Map<SystemRoleKey, RoleDefinitionSeed>(
@@ -523,6 +380,5 @@ export function getRoleDefinitionSeed(
  * approval service never has to test a role name inline.
  */
 export const approvalDecidingRoleKeys = [
-  "SUPER_ADMIN",
   "DIRECTOR",
 ] as const satisfies readonly SystemRoleKey[];

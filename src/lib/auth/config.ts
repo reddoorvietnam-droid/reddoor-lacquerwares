@@ -8,7 +8,7 @@ import { z } from "zod";
 import { mongoAuditRepository } from "@/domains/audit/mongo-repository";
 import {
   parseBootstrapAdminEmails,
-  tryBootstrapInitialSuperAdmin,
+  tryBootstrapInitialDirector,
 } from "@/domains/identity/bootstrap";
 import {
   findDevPreviewAccount,
@@ -158,7 +158,7 @@ function createAuthOptions(input: {
               avatarUrl: parsedProfile.data.picture ?? null,
               occurredAt,
             });
-          await tryBootstrapInitialSuperAdmin({
+          await tryBootstrapInitialDirector({
             userId: identity.id,
             normalizedEmail: identity.normalizedEmail,
             allowedEmails: allowedBootstrapEmails,

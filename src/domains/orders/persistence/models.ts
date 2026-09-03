@@ -79,6 +79,7 @@ export const salesOrderSchema = new Schema(
     },
     qcPassed: { type: Boolean, required: true, default: false },
     sellingPrice: { type: sellingPriceSchema, default: null },
+    paymentDueAt: { type: Date, default: null },
     notes: { type: String, trim: true, maxlength: 4_000, default: null },
     stageHistory: { type: [stageHistorySchema], required: true, default: [] },
     ...actorFields,

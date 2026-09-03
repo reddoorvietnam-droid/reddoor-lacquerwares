@@ -19,6 +19,12 @@ type AdminCopy = {
     news: string;
     collections: string;
     settings: string;
+    financeGroup: string;
+    financeOverview: string;
+    payments: string;
+    ledger: string;
+    expenses: string;
+    receivables: string;
   };
   operations: {
     eyebrow: string;
@@ -70,13 +76,6 @@ type AdminCopy = {
     eyebrow: string;
     title: string;
     description: string;
-    secureBoundary: string;
-    secureBoundaryDescription: string;
-    workflow: string;
-    workflowDescription: string;
-    translations: string;
-    translationsDescription: string;
-    openContent: string;
   };
   content: {
     eyebrow: string;
@@ -192,6 +191,31 @@ type AdminCopy = {
     auth: string;
     safeDefault: string;
   };
+  settings: {
+    eyebrow: string;
+    title: string;
+    description: string;
+    featureColumn: string;
+    statusColumn: string;
+    noteColumn: string;
+    statusConfigured: string;
+    statusMissing: string;
+    statusEnabled: string;
+    statusDisabled: string;
+    missingPrefix: string;
+    featureMongo: string;
+    featureAuth: string;
+    featureGoogle: string;
+    featureDevLogin: string;
+    featureOpenAccess: string;
+    featureCloudinary: string;
+    featureEmail: string;
+    noteDevLogin: string;
+    noteOpenAccess: string;
+    noteGoogle: string;
+    plannedTitle: string;
+    plannedDescription: string;
+  };
 };
 
 const adminDictionaries = {
@@ -211,6 +235,12 @@ const adminDictionaries = {
       news: "Tin tức",
       collections: "Bộ sưu tập",
       settings: "Thiết lập",
+      financeGroup: "Tài chính",
+      financeOverview: "Tổng quan tài chính",
+      payments: "Thanh toán đơn hàng",
+      ledger: "Thu – Chi",
+      expenses: "Chi phí đơn hàng",
+      receivables: "Công nợ khách hàng",
     },
     operations: {
       eyebrow: "Quy trình vận hành",
@@ -274,20 +304,10 @@ const adminDictionaries = {
         "Giá bán, biên lợi nhuận và lợi nhuận chỉ Giám đốc và Kế toán công ty được xem. Giá mua và các phần dữ liệu vận hành còn lại thì mọi vị trí đều xem được; quyền chỉnh sửa phải được cấp riêng.",
     },
     overview: {
-      eyebrow: "Tổng quan vận hành",
-      title: "Không gian làm việc nội dung",
+      eyebrow: "Tổng quan",
+      title: "Cổng quản trị Red Door",
       description:
-        "Mọi dữ liệu trên trang này đều được đọc sau khi phiên, trạng thái tài khoản, role và scope được kiểm tra lại trên máy chủ.",
-      secureBoundary: "Biên bảo vệ",
-      secureBoundaryDescription:
-        "Google OAuth, trạng thái pending/active/suspended và quyền hiệu lực đều fail-closed.",
-      workflow: "Quy trình xuất bản",
-      workflowDescription:
-        "Bản nháp phải qua duyệt; publish cập nhật pointer và route trong cùng transaction.",
-      translations: "Chất lượng bản dịch",
-      translationsDescription:
-        "Sáu locale có trạng thái độc lập; bản rỗng hoặc chưa duyệt luôn noindex.",
-      openContent: "Mở Content Studio",
+        "Chọn khu vực làm việc ở thanh bên trái. Bên dưới là vai trò và quyền hạn của phiên đăng nhập này.",
     },
     content: {
       eyebrow: "Content Studio",
@@ -433,6 +453,36 @@ const adminDictionaries = {
       safeDefault:
         "Khi thiếu cấu hình, mọi đọc/ghi quản trị đều bị từ chối theo mặc định.",
     },
+    settings: {
+      eyebrow: "Thiết lập hệ thống",
+      title: "Thiết lập",
+      description:
+        "Trạng thái cấu hình của các dịch vụ nền tảng, đọc trực tiếp từ biến môi trường của máy chủ. Trang này chỉ hiển thị — thay đổi được thực hiện trong .env hoặc phần Environment Variables trên Vercel.",
+      featureColumn: "Hạng mục",
+      statusColumn: "Trạng thái",
+      noteColumn: "Ghi chú",
+      statusConfigured: "Đã cấu hình",
+      statusMissing: "Chưa cấu hình",
+      statusEnabled: "Đang bật",
+      statusDisabled: "Đang tắt",
+      missingPrefix: "Thiếu",
+      featureMongo: "Cơ sở dữ liệu MongoDB",
+      featureAuth: "Đăng nhập & phiên làm việc",
+      featureGoogle: "Google OAuth",
+      featureDevLogin: "Đăng nhập xem thử theo vai trò",
+      featureOpenAccess: "Mở toàn quyền khi phát triển",
+      featureCloudinary: "Lưu trữ ảnh Cloudinary",
+      featureEmail: "Email thông báo (Resend)",
+      noteDevLogin:
+        "Chỉ dùng khi phát triển — xóa DEV_LOGIN_PASSWORD trước khi vận hành thật.",
+      noteOpenAccess:
+        "Mọi tài khoản đã đăng nhập được xem mọi khu vực. Xóa DEV_OPEN_ACCESS trước khi vận hành thật để phân quyền theo vai trò hoạt động lại.",
+      noteGoogle:
+        "Khi chưa cấu hình, đăng nhập Google bị ẩn trên trang đăng nhập.",
+      plannedTitle: "Quản trị vai trò & phân quyền",
+      plannedDescription:
+        "Màn hình cấp vai trò, gán đơn vị kinh doanh và thu hồi quyền sẽ được bổ sung ở giai đoạn sau. Hiện tại quyền được cấp qua dữ liệu khởi tạo và tài khoản xem thử.",
+    },
   },
   en: {
     productName: "Red Door Vietnam",
@@ -450,6 +500,12 @@ const adminDictionaries = {
       news: "News",
       collections: "Collections",
       settings: "Settings",
+      financeGroup: "Finance",
+      financeOverview: "Finance overview",
+      payments: "Order payments",
+      ledger: "Cash ledger",
+      expenses: "Order costs",
+      receivables: "Receivables",
     },
     operations: {
       eyebrow: "Operating process",
@@ -513,20 +569,10 @@ const adminDictionaries = {
         "Selling price, margin, and profit are visible only to the Director and the Company Accountant. Purchase price and the remaining operational data are readable by every position; the right to edit is granted separately.",
     },
     overview: {
-      eyebrow: "Operations overview",
-      title: "Content workspace",
+      eyebrow: "Overview",
+      title: "Red Door administration",
       description:
-        "Every record on this page is read only after the session, account status, roles, and effective scope are rechecked on the server.",
-      secureBoundary: "Secure boundary",
-      secureBoundaryDescription:
-        "Google OAuth, pending/active/suspended states, and effective permissions all fail closed.",
-      workflow: "Publishing workflow",
-      workflowDescription:
-        "Drafts pass review; publication updates the pointer and route in one transaction.",
-      translations: "Translation quality",
-      translationsDescription:
-        "Six locales have independent status; empty or unreviewed content is always noindex.",
-      openContent: "Open Content Studio",
+        "Pick a working area in the sidebar. Below are this session's roles and permissions.",
     },
     content: {
       eyebrow: "Content Studio",
@@ -671,6 +717,36 @@ const adminDictionaries = {
       auth: "Set AUTH_SECRET, AUTH_GOOGLE_ID, and AUTH_GOOGLE_SECRET.",
       safeDefault:
         "Without configuration, all administration reads and writes are denied by default.",
+    },
+    settings: {
+      eyebrow: "System settings",
+      title: "Settings",
+      description:
+        "Configuration status of the platform services, read straight from the server environment. This page is read-only — changes are made in .env or in the Environment Variables section on Vercel.",
+      featureColumn: "Feature",
+      statusColumn: "Status",
+      noteColumn: "Notes",
+      statusConfigured: "Configured",
+      statusMissing: "Not configured",
+      statusEnabled: "Enabled",
+      statusDisabled: "Disabled",
+      missingPrefix: "Missing",
+      featureMongo: "MongoDB database",
+      featureAuth: "Sign-in & sessions",
+      featureGoogle: "Google OAuth",
+      featureDevLogin: "Role-preview sign-in",
+      featureOpenAccess: "Development open access",
+      featureCloudinary: "Cloudinary media storage",
+      featureEmail: "Notification email (Resend)",
+      noteDevLogin:
+        "Development only — remove DEV_LOGIN_PASSWORD before going live.",
+      noteOpenAccess:
+        "Every signed-in account can view every area. Remove DEV_OPEN_ACCESS before going live so role-based access applies again.",
+      noteGoogle:
+        "While unconfigured, Google sign-in is hidden on the sign-in page.",
+      plannedTitle: "Role & permission administration",
+      plannedDescription:
+        "Screens for granting roles, assigning business units, and revoking access arrive in a later phase. For now, access is granted through seed data and the preview accounts.",
     },
   },
 } as const satisfies Record<AdminLocale, AdminCopy>;

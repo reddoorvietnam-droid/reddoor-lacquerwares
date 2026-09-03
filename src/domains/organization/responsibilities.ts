@@ -37,36 +37,46 @@ export const organizationPositions = [
     roleKeys: ["DIRECTOR"],
     responsibilities: {
       vi: [
+        "Quản trị hệ thống và người dùng",
         "Phê duyệt toàn bộ nghiệp vụ trọng yếu trên hệ thống",
         "Phê duyệt đơn hàng, giá bán và điều khoản thanh toán",
         "Xác nhận ưu tiên sản xuất",
         "Xem báo cáo hợp nhất và lợi nhuận",
+        "Quản lý và xuất bản nội dung website",
       ],
       en: [
+        "Platform and user administration",
         "Approves every significant operation in the system",
         "Approves orders, selling price, and payment terms",
         "Confirms production priority",
         "Reads consolidated and profit reporting",
+        "Manages and publishes website content",
       ],
     },
     ownedData: {
       vi: [
         "Đơn hàng khách đặt, đã xuất, đã đặt cọc và đã thanh toán",
         "Quyết định phê duyệt và lý do từ chối",
+        "Dữ liệu nội dung website",
       ],
       en: [
         "Orders placed, dispatched, deposited, and paid",
         "Approval decisions and rejection reasons",
+        "Website content data",
       ],
     },
   },
   {
     key: "company-accountant",
     labels: { vi: "Kế toán công ty", en: "Company Accountant" },
+    // Also coordinates customers, quotes, and orders since the former Order
+    // Manager role merged into COMPANY_ACCOUNTANT.
     roleKeys: ["COMPANY_ACCOUNTANT"],
     responsibilities: {
       vi: [
         "Kế toán và tài chính",
+        "Tiếp nhận đơn hàng, khách hàng và báo giá",
+        "Điều phối giao hàng",
         "Hồ sơ thanh toán",
         "Hồ sơ nhập khẩu và xuất khẩu",
         "Xác nhận lương",
@@ -74,6 +84,8 @@ export const organizationPositions = [
       ],
       en: [
         "Accounting and finance",
+        "Order intake, customers, and quotes",
+        "Delivery coordination",
         "Payment records",
         "Import and export files",
         "Payroll confirmation",
@@ -82,12 +94,14 @@ export const organizationPositions = [
     },
     ownedData: {
       vi: [
+        "Hồ sơ khách hàng, yêu cầu báo giá và báo giá",
         "Kế hoạch đóng hàng và chứng từ",
         "Thanh toán của khách hàng và công nợ phải thu",
         "Thông tin nhập khẩu hàng hóa: giá trị và giấy phép",
         "Tờ khai và chứng từ xuất nhập khẩu",
       ],
       en: [
+        "Customer records, quote requests, and quotes",
         "Loading plan and trade documents",
         "Customer payments and receivables",
         "Import data: declared value and permits",
@@ -98,39 +112,51 @@ export const organizationPositions = [
   {
     key: "factory-manager",
     labels: { vi: "Quản lý nhà máy", en: "Factory Manager" },
+    // Also records progress on behalf of the sub-workshops (they no longer
+    // sign in) and runs product development and sample orders, since the
+    // former Production Unit and Product Designer roles merged in.
     roleKeys: ["FACTORY_MANAGER"],
     responsibilities: {
       vi: [
         "Tổ chức sản xuất",
         "Chi phí nhà máy",
         "Quản lý xưởng phụ",
+        "Ghi nhận tiến độ, vật tư và chất lượng thay xưởng phụ",
         "Lập kế hoạch sản xuất",
         "Theo dõi chất lượng",
+        "Phát triển sản phẩm và đơn hàng mẫu",
       ],
       en: [
         "Production organisation",
         "Factory cost",
         "Sub-workshop management",
+        "Records progress, material use, and quality for the sub-workshops",
         "Production planning",
         "Quality tracking",
+        "Product development and sample orders",
       ],
     },
     ownedData: {
       vi: [
         "Thông tin thu chi xưởng",
         "Lịch sản xuất, in ấn, ép khuôn và đóng hàng",
+        "Tiến độ và bằng chứng chất lượng của các xưởng",
+        "Ảnh sản phẩm và ảnh bộ sưu tập",
       ],
       en: [
         "Workshop income and expenditure",
         "Production, printing, moulding, and loading schedules",
+        "Workshop progress and quality evidence",
+        "Product and collection imagery",
       ],
     },
   },
   {
     key: "factory-accountant",
     labels: { vi: "Kế toán nhà máy", en: "Factory Accountant" },
-    // The same person also coordinates suppliers and material purchasing.
-    roleKeys: ["FACTORY_ACCOUNTANT", "SUPPLIER_MANAGER"],
+    // Supplier and purchasing coordination merged into FACTORY_ACCOUNTANT
+    // itself, so one role key covers this position.
+    roleKeys: ["FACTORY_ACCOUNTANT"],
     responsibilities: {
       vi: [
         "Kiểm soát chi phí nhà máy",
@@ -189,58 +215,6 @@ export const organizationPositions = [
         "Inventory: on hand, issued, and received",
         "Workshop labor headcount",
       ],
-    },
-  },
-  {
-    key: "product-designer",
-    labels: { vi: "Nhân viên thiết kế", en: "Product Designer" },
-    // Also the owner of product imagery and collection artwork on the website.
-    roleKeys: ["PRODUCT_DESIGNER", "CONTENT_EDITOR"],
-    responsibilities: {
-      vi: [
-        "Quản lý đơn hàng mẫu",
-        "Phát triển sản phẩm",
-        "Chuẩn bị mẫu",
-        "Theo dõi mẫu theo yêu cầu khách hàng",
-      ],
-      en: [
-        "Sample order management",
-        "Product development",
-        "Sample preparation",
-        "Tracking samples against customer requirements",
-      ],
-    },
-    ownedData: {
-      vi: ["Ảnh sản phẩm và ảnh bộ sưu tập", "Dữ liệu nội dung website"],
-      en: ["Product and collection imagery", "Website content data"],
-    },
-  },
-  {
-    key: "production-unit",
-    labels: {
-      vi: "Đơn vị sản xuất / Xưởng phụ",
-      en: "Production Unit / Sub-workshop",
-    },
-    roleKeys: ["PRODUCTION_UNIT"],
-    responsibilities: {
-      vi: [
-        "Thực hiện sản xuất",
-        "Năng suất lao động",
-        "Sử dụng nguyên vật liệu",
-        "Đảm bảo chất lượng",
-        "Giao hàng đúng kế hoạch",
-      ],
-      en: [
-        "Executes production",
-        "Labor productivity",
-        "Material usage",
-        "Quality assurance",
-        "On-plan delivery",
-      ],
-    },
-    ownedData: {
-      vi: ["Tiến độ công việc được giao", "Bằng chứng chất lượng"],
-      en: ["Progress on assigned work", "Quality evidence"],
     },
   },
 ] as const satisfies readonly OrganizationPosition[];
@@ -368,25 +342,26 @@ export const operationalForms: readonly OperationalForm[] = [
     permission: "labor.readSalary",
     status: "planned",
   },
-  // Product Designer
+  // Sample work moved to the Factory Manager when the Product Designer role
+  // merged into FACTORY_MANAGER.
   {
     key: "sample-progress",
     labels: { vi: "Form tiến độ mẫu", en: "Sample progress form" },
-    ownerPositionKey: "product-designer",
+    ownerPositionKey: "factory-manager",
     permission: "samples.update",
     status: "planned",
   },
   {
     key: "sample-order",
     labels: { vi: "Đơn hàng mẫu", en: "Sample order" },
-    ownerPositionKey: "product-designer",
+    ownerPositionKey: "factory-manager",
     permission: "samples.create",
     status: "planned",
   },
   {
     key: "sample-handover",
     labels: { vi: "Giao mẫu", en: "Sample handover" },
-    ownerPositionKey: "product-designer",
+    ownerPositionKey: "factory-manager",
     permission: "samples.addRevision",
     status: "planned",
   },

@@ -1,17 +1,21 @@
 import "server-only";
 
+import { cache } from "react";
+
 import { mongoAuditRepository } from "@/domains/audit/mongo-repository";
 import { mongoIdentityRepository } from "@/domains/identity/mongo-repository";
 import type { Permission } from "@/domains/identity/permissions";
 import {
   grantCoverageForPermission,
   type AccessContext,
+  type AccessDenialCode,
 } from "@/lib/auth/authorization";
 import {
   createContentPermissionGuard,
   createPermissionGuard,
 } from "@/lib/auth/guard";
 import { resolveSessionIdentity } from "@/lib/auth/session";
+import { isDevOpenAccessEnabled } from "@/lib/env/server";
 
 export type {
   AccessContext,
@@ -23,18 +27,94 @@ export type {
   RequirePermissionOptions,
 } from "@/lib/auth/guard";
 
+/**
+ * Request-scoped memoization. One page view runs the layout gate, the shell's
+ * menu filter, and every leaf guard — each of which needs the session
+ * identity and the authorization snapshot. Both are stable for the lifetime
+ * of a request, and the snapshot alone costs three Atlas queries, so React's
+ * `cache` collapses all of those reads into one per request. Grants changed
+ * mid-request are still caught: the JWT's `authzVersion` is compared against
+ * the snapshot on every evaluation.
+ */
+const resolveSessionIdentityCached = cache(resolveSessionIdentity);
+
+const findSnapshotByUserIdCached = cache((userId: string) =>
+  mongoIdentityRepository.findSnapshotByUserId(userId),
+);
+
+const cachedIdentityRepository = {
+  findSnapshotByUserId: findSnapshotByUserIdCached,
+};
+
 export const requireContentPermission = createContentPermissionGuard({
-  resolveSessionIdentity,
-  authorizationRepository: mongoIdentityRepository,
+  resolveSessionIdentity: resolveSessionIdentityCached,
+  authorizationRepository: cachedIdentityRepository,
   auditRepository: mongoAuditRepository,
+  openAccess: isDevOpenAccessEnabled,
 });
 
 /** The generalized guard: any permission from the catalog, any target. */
 export const requirePermission = createPermissionGuard({
-  resolveSessionIdentity,
-  authorizationRepository: mongoIdentityRepository,
+  resolveSessionIdentity: resolveSessionIdentityCached,
+  authorizationRepository: cachedIdentityRepository,
   auditRepository: mongoAuditRepository,
+  openAccess: isDevOpenAccessEnabled,
 });
+
+export type PortalDenialCode = Extract<
+  AccessDenialCode,
+  | "USER_PENDING"
+  | "USER_SUSPENDED"
+  | "USER_NOT_FOUND"
+  | "STALE_SESSION"
+  | "PERMISSION_DENIED"
+>;
+
+export type PortalEntryState =
+  | { kind: "unconfigured" }
+  | { kind: "unauthenticated" }
+  | { kind: "denied"; code: PortalDenialCode }
+  | { kind: "granted" };
+
+/**
+ * Auditless gate for the portal layout: decides whether the shell renders at
+ * all, with the exact denial code the access screen should explain. Every
+ * leaf page still guards its own reads and writes — this check writes no
+ * audit event, because a navigation is not an authorization decision and a
+ * per-click denial write was the most expensive thing the layout did.
+ */
+export async function resolvePortalEntry(
+  entryPermissions: readonly Permission[],
+): Promise<PortalEntryState> {
+  const resolution = await resolveSessionIdentityCached();
+  if (!resolution.configured) return { kind: "unconfigured" };
+  if (!resolution.identity) return { kind: "unauthenticated" };
+
+  const identity = resolution.identity;
+  if (identity.status === "pending") {
+    return { kind: "denied", code: "USER_PENDING" };
+  }
+  if (identity.status === "suspended") {
+    return { kind: "denied", code: "USER_SUSPENDED" };
+  }
+
+  if (isDevOpenAccessEnabled()) return { kind: "granted" };
+
+  const snapshot = await findSnapshotByUserIdCached(identity.userId);
+  if (!snapshot) return { kind: "denied", code: "USER_NOT_FOUND" };
+  if (snapshot.user.authzVersion !== identity.authzVersion) {
+    return { kind: "denied", code: "STALE_SESSION" };
+  }
+
+  const now = new Date();
+  const granted = entryPermissions.some((permission) => {
+    const coverage = grantCoverageForPermission(snapshot, permission, now);
+    return coverage.global || coverage.businessUnitIds.length > 0;
+  });
+  return granted
+    ? { kind: "granted" }
+    : { kind: "denied", code: "PERMISSION_DENIED" };
+}
 
 export type PermissionCoverage = {
   global: boolean;
@@ -55,18 +135,24 @@ export async function resolvePermissionCoverages<
     permissions.map((permission) => [permission, empty]),
   ) as Record<P[number], PermissionCoverage>;
 
-  const resolution = await resolveSessionIdentity();
-  if (
-    !resolution.configured ||
-    !resolution.identity ||
-    resolution.identity.status !== "active"
-  ) {
+  const resolution = await resolveSessionIdentityCached();
+  if (!resolution.configured || !resolution.identity) {
     return coverages;
   }
 
-  const snapshot = await mongoIdentityRepository.findSnapshotByUserId(
-    resolution.identity.userId,
-  );
+  if (isDevOpenAccessEnabled()) {
+    const open: PermissionCoverage = { global: true, businessUnitIds: [] };
+    for (const permission of permissions) {
+      coverages[permission as P[number]] = open;
+    }
+    return coverages;
+  }
+
+  if (resolution.identity.status !== "active") {
+    return coverages;
+  }
+
+  const snapshot = await findSnapshotByUserIdCached(resolution.identity.userId);
   if (
     !snapshot ||
     snapshot.user.authzVersion !== resolution.identity.authzVersion
@@ -114,11 +200,11 @@ export type ListReadScope =
 export async function requireListAccess(
   permission: Permission,
 ): Promise<{ context: AccessContext; scope: ListReadScope }> {
-  const resolution = await resolveSessionIdentity();
+  const resolution = await resolveSessionIdentityCached();
   let coveredUnitIds: readonly string[] = [];
 
   if (resolution.configured && resolution.identity) {
-    const snapshot = await mongoIdentityRepository.findSnapshotByUserId(
+    const snapshot = await findSnapshotByUserIdCached(
       resolution.identity.userId,
     );
     if (snapshot) {

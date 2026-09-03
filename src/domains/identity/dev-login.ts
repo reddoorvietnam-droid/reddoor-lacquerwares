@@ -17,7 +17,7 @@ import { connectToDatabase } from "@/lib/db/mongoose";
  * Local role-preview accounts, active only while `DEV_LOGIN_PASSWORD` is set.
  *
  * Their purpose is to let the working group walk the admin portal as each of
- * the twelve seeded roles before Google sign-in and grant administration
+ * the seeded roles before Google sign-in and grant administration
  * exist. They are NOT a parallel authentication system: signing in provisions
  * a real user document and a real access grant, and every later check runs
  * through the same repository, guard, and audit path a Google account will

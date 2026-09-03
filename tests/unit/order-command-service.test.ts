@@ -72,6 +72,7 @@ class FakeOrderStore implements OrderStore {
       stage: partial.stage ?? "received",
       qcPassed: partial.qcPassed ?? false,
       sellingPrice: partial.sellingPrice ?? null,
+      paymentDueAt: partial.paymentDueAt ?? null,
       notes: partial.notes ?? null,
       stageHistory: partial.stageHistory ?? [],
       createdBy: partial.createdBy ?? actorId,
@@ -173,6 +174,24 @@ class FakeOrderStore implements OrderStore {
     const updated: OrderRecordDto = {
       ...order,
       sellingPrice: input.sellingPrice,
+      updatedBy: input.updatedBy,
+      revision: order.revision + 1,
+    };
+    this.orders.set(order.id, updated);
+    return updated;
+  }
+
+  async setPaymentDueAt(input: {
+    orderId: string;
+    expectedRevision: number;
+    paymentDueAt: Date | null;
+    updatedBy: string;
+  }): Promise<OrderRecordDto | null> {
+    const order = this.orders.get(input.orderId);
+    if (!order || order.revision !== input.expectedRevision) return null;
+    const updated: OrderRecordDto = {
+      ...order,
+      paymentDueAt: input.paymentDueAt,
       updatedBy: input.updatedBy,
       revision: order.revision + 1,
     };

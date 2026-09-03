@@ -7,8 +7,7 @@ import type { Permission } from "@/domains/identity/permissions";
  * Director in the system — orders, selling price, price changes, material
  * purchases, incurred expenses, dispatch — the answer was "tất cả" (all of
  * them). Every gated action below therefore parks in a pending approval request
- * instead of taking effect, and only the Director (or Super Admin) can release
- * it.
+ * instead of taking effect, and only the Director can release it.
  *
  * Holding the permission to perform an action is not the same as being allowed
  * to complete it: the state machine still refuses to advance until an approval

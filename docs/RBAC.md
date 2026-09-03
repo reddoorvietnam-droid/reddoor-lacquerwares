@@ -2,6 +2,8 @@
 
 Status: authoritative default policy for the initial platform. Authentication proves identity; this policy determines access. Hiding a control in the client is never an authorization decision.
 
+> **Role merge (2026-09-03):** The system was consolidated to **5 roles**, matching the client's five actual staff members: `DIRECTOR` (absorbs `SUPER_ADMIN`, `REPORT_VIEWER`, `CONTENT_EDITOR`; holds the complete catalog and is the sole member of `approvalDecidingRoleKeys`), `FACTORY_MANAGER` (absorbs `PRODUCTION_UNIT` and `PRODUCT_DESIGNER`), `WAREHOUSE_MANAGER` (unchanged), `FACTORY_ACCOUNTANT` (absorbs `SUPPLIER_MANAGER`), and `COMPANY_ACCOUNTANT` (absorbs `ORDER_MANAGER`). Passages below that still name a merged role as a separate role describe the pre-merge configuration — read them as the surviving role.
+
 ## 1. Security model
 
 Google OAuth through Auth.js supplies an identity assertion. MongoDB supplies user status, invitations, roles, business-unit assignments, permissions, and scopes.

@@ -2,7 +2,10 @@ import Link from "next/link";
 import type { Route } from "next";
 import type { ReactNode } from "react";
 
+import { AdminNav, type AdminNavGroup } from "@/components/admin/admin-nav";
 import { BrandPlaque } from "@/components/public/logo";
+import type { Permission } from "@/domains/identity/permissions";
+import { resolvePermissionCoverages } from "@/lib/auth";
 import type { AdminLocale } from "@/lib/i18n/admin";
 import { getAdminDictionary } from "@/lib/i18n/admin";
 
@@ -10,47 +13,154 @@ type AdminShellProps = {
   locale: AdminLocale;
   children: ReactNode;
   userLabel?: string;
+  /** False on screens outside a session (sign-in): no sidebar, full width. */
+  withNav?: boolean;
 };
 
-export function AdminShell({ locale, children, userLabel }: AdminShellProps) {
+type NavItemSeed = {
+  href: Route;
+  label: string;
+  /** Visible when ANY of these is granted; null = visible to every signed-in reader. */
+  anyOf: readonly Permission[] | null;
+};
+
+type NavGroupSeed = {
+  label: string | null;
+  items: readonly NavItemSeed[];
+};
+
+export async function AdminShell({
+  locale,
+  children,
+  userLabel,
+  withNav = true,
+}: AdminShellProps) {
   const copy = getAdminDictionary(locale);
   const basePath = `/${locale}/admin` as Route;
-  const navigation = [
-    { href: basePath, label: copy.navigation.overview },
+
+  // Each entry mirrors the permission its page actually guards with, so the
+  // menu never links to a section the reader would 404 on.
+  const groups: NavGroupSeed[] = [
     {
-      href: `${basePath}/orders` as Route,
-      label: copy.navigation.orders,
+      label: null,
+      items: [
+        { href: basePath, label: copy.navigation.overview, anyOf: null },
+        {
+          href: `${basePath}/orders` as Route,
+          label: copy.navigation.orders,
+          anyOf: ["orders.read"],
+        },
+        {
+          // The workflow reference is for the people who move orders through
+          // it, not for every role that can read the order book.
+          href: `${basePath}/operations` as Route,
+          label: copy.navigation.operations,
+          anyOf: ["orders.transitionOperational"],
+        },
+        {
+          // The approvals queue is the Director's decision desk; requesters
+          // raise and track approvals from the record they concern.
+          href: `${basePath}/approvals` as Route,
+          label: copy.navigation.approvals,
+          anyOf: ["approvals.decide"],
+        },
+        {
+          href: `${basePath}/organization` as Route,
+          label: copy.navigation.organization,
+          anyOf: ["users.read"],
+        },
+        {
+          href: `${basePath}/content` as Route,
+          label: copy.navigation.content,
+          anyOf: ["content.read"],
+        },
+        {
+          href: `${basePath}/products` as Route,
+          label: copy.navigation.products,
+          anyOf: ["content.read"],
+        },
+        {
+          href: `${basePath}/news` as Route,
+          label: copy.navigation.news,
+          anyOf: ["content.read"],
+        },
+        {
+          href: `${basePath}/collections` as Route,
+          label: copy.navigation.collections,
+          anyOf: ["content.read"],
+        },
+        {
+          href: `${basePath}/settings` as Route,
+          label: copy.navigation.settings,
+          anyOf: ["settings.read"],
+        },
+      ],
     },
     {
-      href: `${basePath}/operations` as Route,
-      label: copy.navigation.operations,
-    },
-    {
-      href: `${basePath}/approvals` as Route,
-      label: copy.navigation.approvals,
-    },
-    {
-      href: `${basePath}/organization` as Route,
-      label: copy.navigation.organization,
-    },
-    {
-      href: `${basePath}/content` as Route,
-      label: copy.navigation.content,
-    },
-    {
-      href: `${basePath}/products` as Route,
-      label: copy.navigation.products,
-    },
-    { href: `${basePath}/news` as Route, label: copy.navigation.news },
-    {
-      href: `${basePath}/collections` as Route,
-      label: copy.navigation.collections,
-    },
-    {
-      href: `${basePath}/settings` as Route,
-      label: copy.navigation.settings,
+      label: copy.navigation.financeGroup,
+      items: [
+        {
+          href: `${basePath}/finance` as Route,
+          label: copy.navigation.financeOverview,
+          anyOf: ["payments.read"],
+        },
+        {
+          href: `${basePath}/finance/payments` as Route,
+          label: copy.navigation.payments,
+          anyOf: ["payments.read"],
+        },
+        {
+          // The ledger page reads receipts, so it guards on payments.read;
+          // expense-only readers get the order-costs screen instead.
+          href: `${basePath}/finance/ledger` as Route,
+          label: copy.navigation.ledger,
+          anyOf: ["payments.read"],
+        },
+        {
+          href: `${basePath}/finance/expenses` as Route,
+          label: copy.navigation.expenses,
+          anyOf: ["expenses.read"],
+        },
+        {
+          href: `${basePath}/finance/receivables` as Route,
+          label: copy.navigation.receivables,
+          anyOf: ["receivables.read"],
+        },
+      ],
     },
   ];
+
+  let visibleGroups: AdminNavGroup[] = [];
+  if (withNav) {
+    const requested = [
+      ...new Set(
+        groups.flatMap(({ items }) => items.flatMap((i) => i.anyOf ?? [])),
+      ),
+    ] as Permission[];
+    const coverages = await resolvePermissionCoverages(requested);
+
+    const covered = (permission: Permission): boolean => {
+      const coverage = coverages[permission as keyof typeof coverages];
+      return coverage.global || coverage.businessUnitIds.length > 0;
+    };
+    const anyGranted = requested.some(covered);
+
+    // An unauthenticated or fully unauthorized reader gets no menu at all; the
+    // always-visible items only make sense alongside at least one granted area.
+    visibleGroups = anyGranted
+      ? groups
+          .map(({ label, items }) => ({
+            label,
+            items: items
+              .filter(({ anyOf }) => anyOf === null || anyOf.some(covered))
+              .map(({ href, label: itemLabel }) => ({
+                href,
+                label: itemLabel,
+              })),
+          }))
+          .filter(({ items }) => items.length > 0)
+      : [];
+  }
 
   return (
     <div className="text-charcoal min-h-screen bg-[#f2ede4]">
@@ -91,31 +201,28 @@ export function AdminShell({ locale, children, userLabel }: AdminShellProps) {
           </div>
         </div>
       </header>
-      <div className="mx-auto grid max-w-[100rem] lg:grid-cols-[15rem_minmax(0,1fr)]">
-        <nav
-          aria-label={copy.navigationLabel}
-          className="border-burgundy/10 bg-[#e9dfd0] px-[var(--space-page)] py-4 lg:min-h-[calc(100vh-4.5rem)] lg:border-r lg:px-5 lg:py-8"
-        >
-          <ul className="flex gap-2 overflow-x-auto pb-1 lg:flex-col lg:overflow-visible">
-            {navigation.map((item) => (
-              <li key={item.href} className="shrink-0">
-                <Link
-                  href={item.href}
-                  className="text-burgundy hover:bg-ivory/70 block rounded-xl px-4 py-3 text-sm font-semibold transition-colors"
-                >
-                  {item.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
+      {withNav ? (
+        <div className="mx-auto grid max-w-[100rem] lg:grid-cols-[15rem_minmax(0,1fr)]">
+          <AdminNav
+            navigationLabel={copy.navigationLabel}
+            basePath={basePath}
+            groups={visibleGroups}
+          />
+          <main
+            id="admin-main"
+            className="min-w-0 px-[var(--space-page)] py-8 lg:py-12"
+          >
+            {children}
+          </main>
+        </div>
+      ) : (
         <main
           id="admin-main"
-          className="min-w-0 px-[var(--space-page)] py-8 lg:py-12"
+          className="mx-auto max-w-[100rem] min-w-0 px-[var(--space-page)] py-8 lg:py-12"
         >
           {children}
         </main>
-      </div>
+      )}
     </div>
   );
 }

@@ -161,10 +161,60 @@ export function inspectAuthEnv(): OptionalFeatureEnv<AuthEnv> {
   };
 }
 
+/**
+ * Development-only escape hatch: with DEV_OPEN_ACCESS=true every signed-in
+ * portal user passes every permission check at global scope, so the whole
+ * team can browse the portal while RBAC is still being wired up. Denial
+ * audits are skipped for these bypassed checks. Leave unset in any real
+ * deployment — the RBAC rules in the role definitions apply again the
+ * moment it is removed.
+ */
+export function isDevOpenAccessEnabled(): boolean {
+  return process.env.DEV_OPEN_ACCESS?.trim().toLowerCase() === "true";
+}
+
 export function getCloudinaryEnv(): CloudinaryEnv {
   return parseFeatureEnv(cloudinarySchema, "Cloudinary");
 }
 
+export function inspectCloudinaryEnv(): OptionalFeatureEnv<CloudinaryEnv> {
+  const result = cloudinarySchema.safeParse(process.env);
+
+  if (result.success) {
+    return { configured: true, value: result.data };
+  }
+
+  return {
+    configured: false,
+    invalidKeys: [
+      ...new Set(
+        result.error.issues.map(
+          (issue) => issue.path.join(".") || "environment",
+        ),
+      ),
+    ],
+  };
+}
+
 export function getEmailEnv(): EmailEnv {
   return parseFeatureEnv(emailSchema, "Email");
+}
+
+export function inspectEmailEnv(): OptionalFeatureEnv<EmailEnv> {
+  const result = emailSchema.safeParse(process.env);
+
+  if (result.success) {
+    return { configured: true, value: result.data };
+  }
+
+  return {
+    configured: false,
+    invalidKeys: [
+      ...new Set(
+        result.error.issues.map(
+          (issue) => issue.path.join(".") || "environment",
+        ),
+      ),
+    ],
+  };
 }

@@ -32,6 +32,8 @@ export type OrderRecordDto = {
   stage: OrderStage;
   qcPassed: boolean;
   sellingPrice: OrderSellingPrice | null;
+  /** When the customer's payment falls due; drives the overdue receivables view. */
+  paymentDueAt: Date | null;
   notes: string | null;
   stageHistory: readonly OrderStageHistoryEntry[];
   createdBy: string;
@@ -87,6 +89,13 @@ export interface OrderStore {
     orderId: string;
     expectedRevision: number;
     sellingPrice: OrderSellingPrice;
+    updatedBy: string;
+  }): Promise<OrderRecordDto | null>;
+  /** Conditional on the revision; null means the record moved on. */
+  setPaymentDueAt(input: {
+    orderId: string;
+    expectedRevision: number;
+    paymentDueAt: Date | null;
     updatedBy: string;
   }): Promise<OrderRecordDto | null>;
 }

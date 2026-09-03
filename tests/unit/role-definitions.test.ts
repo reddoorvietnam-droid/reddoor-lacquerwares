@@ -40,23 +40,16 @@ const restrictedCommercialPermissions = [
 ] as const satisfies readonly Permission[];
 
 const commerciallyBlindRoles = [
-  "PRODUCTION_UNIT",
   "WAREHOUSE_MANAGER",
   "FACTORY_MANAGER",
   "FACTORY_ACCOUNTANT",
-  "SUPPLIER_MANAGER",
-  "PRODUCT_DESIGNER",
 ] as const satisfies readonly SystemRoleKey[];
 
 const operationalStaffRoles = [
   "WAREHOUSE_MANAGER",
   "FACTORY_MANAGER",
   "FACTORY_ACCOUNTANT",
-  "SUPPLIER_MANAGER",
-  "PRODUCT_DESIGNER",
   "COMPANY_ACCOUNTANT",
-  "ORDER_MANAGER",
-  "REPORT_VIEWER",
 ] as const satisfies readonly SystemRoleKey[];
 
 describe("role seed integrity", () => {
@@ -86,12 +79,11 @@ describe("role seed integrity", () => {
 
 describe("selling price and profit stay with the Director and the accountant", () => {
   it.each(restrictedCommercialPermissions)(
-    "grants %s to no role beyond Super Admin, Director, and Company Accountant",
+    "grants %s to no role beyond the Director and the Company Accountant",
     (permission) => {
       expect(rolesGranting(permission)).toEqual([
         "COMPANY_ACCOUNTANT",
         "DIRECTOR",
-        "SUPER_ADMIN",
       ]);
     },
   );
@@ -119,15 +111,13 @@ describe("purchase price and ordinary reads are broad", () => {
     },
   );
 
-  it("gives the two administrative roles the whole catalog they are entitled to", () => {
-    const superAdmin = permissionsOf("SUPER_ADMIN");
+  it("gives the Director the whole catalog they are entitled to", () => {
     const director = permissionsOf("DIRECTOR");
 
     for (const permission of [
       "procurement.readPrice",
       "products.read",
     ] as const) {
-      expect(superAdmin.has(permission)).toBe(true);
       expect(director.has(permission)).toBe(true);
     }
   });
@@ -142,8 +132,8 @@ describe("separation of duties", () => {
     expect(permissions.has("expenses.post")).toBe(false);
   });
 
-  it("lets the Supplier Manager request price changes and advances, not approve them", () => {
-    const permissions = permissionsOf("SUPPLIER_MANAGER");
+  it("lets the Factory Accountant request price changes and advances, not approve them", () => {
+    const permissions = permissionsOf("FACTORY_ACCOUNTANT");
 
     expect(permissions.has("procurement.requestPriceChange")).toBe(true);
     expect(permissions.has("procurement.requestAdvance")).toBe(true);
@@ -151,15 +141,19 @@ describe("separation of duties", () => {
     expect(permissions.has("procurement.approveAdvance")).toBe(false);
   });
 
-  it("lets the Order Manager request a price adjustment, not approve one", () => {
-    const permissions = permissionsOf("ORDER_MANAGER");
+  it("keeps the final say on price with the Director even though the Company Accountant holds both sides", () => {
+    const permissions = permissionsOf("COMPANY_ACCOUNTANT");
 
+    // The former Order Manager merged in, so the same role requests and
+    // approves a price adjustment; the Director approval gate on every price
+    // change stays the outside check.
     expect(permissions.has("orders.requestPriceAdjustment")).toBe(true);
-    expect(permissions.has("orders.approvePriceAdjustment")).toBe(false);
+    expect(permissions.has("orders.approvePriceAdjustment")).toBe(true);
+    expect(permissions.has("approvals.decide")).toBe(false);
   });
 
-  it("keeps quality sign-off away from the unit doing the work", () => {
-    expect(permissionsOf("PRODUCTION_UNIT").has("production.approveQc")).toBe(
+  it("keeps quality sign-off away from the warehouse", () => {
+    expect(permissionsOf("WAREHOUSE_MANAGER").has("production.approveQc")).toBe(
       false,
     );
   });

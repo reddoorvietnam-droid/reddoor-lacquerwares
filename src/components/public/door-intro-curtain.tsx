@@ -1,3 +1,5 @@
+"use client";
+
 import {
   DOOR_INTRO_PENDING_ATTRIBUTE,
   DOOR_INTRO_STORAGE_KEY,
@@ -36,7 +38,18 @@ const bootScript = `(function () {
 export function DoorIntroCurtain() {
   return (
     <>
-      <script dangerouslySetInnerHTML={{ __html: bootScript }} />
+      {/*
+       * text/javascript only in the SSR HTML, where the parser executes it.
+       * Client renders emit an inert text/plain copy: re-running is wrong
+       * (the decision is per page load) and React never executes rendered
+       * scripts anyway — it just warns. suppressHydrationWarning covers the
+       * deliberate type mismatch.
+       */}
+      <script
+        type={typeof window === "undefined" ? "text/javascript" : "text/plain"}
+        suppressHydrationWarning
+        dangerouslySetInnerHTML={{ __html: bootScript }}
+      />
       <div
         id="door-intro-static"
         className="fixed inset-0 isolate z-[99] overflow-hidden"

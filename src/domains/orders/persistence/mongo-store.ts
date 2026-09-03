@@ -24,6 +24,7 @@ type SalesOrderDocument = {
   stage: OrderStage;
   qcPassed: boolean;
   sellingPrice: OrderSellingPrice | null;
+  paymentDueAt: Date | null;
   notes: string | null;
   stageHistory: {
     from: OrderStage;
@@ -53,6 +54,7 @@ function toDto(document: SalesOrderDocument): OrderRecordDto {
           currency: document.sellingPrice.currency,
         }
       : null,
+    paymentDueAt: document.paymentDueAt ?? null,
     notes: document.notes ?? null,
     stageHistory: document.stageHistory.map((entry) => ({
       from: entry.from,
@@ -231,6 +233,34 @@ export class MongoOrderStore implements OrderStore {
         {
           $set: {
             sellingPrice: input.sellingPrice,
+            updatedBy: new Types.ObjectId(input.updatedBy),
+          },
+          $inc: { revision: 1 },
+        },
+        { new: true },
+      )
+      .lean<SalesOrderDocument>()
+      .exec();
+    return document ? toDto(document) : null;
+  }
+
+  async setPaymentDueAt(input: {
+    orderId: string;
+    expectedRevision: number;
+    paymentDueAt: Date | null;
+    updatedBy: string;
+  }): Promise<OrderRecordDto | null> {
+    await connectToDatabase();
+
+    const document = await getSalesOrderModel()
+      .findOneAndUpdate(
+        {
+          _id: new Types.ObjectId(input.orderId),
+          revision: input.expectedRevision,
+        },
+        {
+          $set: {
+            paymentDueAt: input.paymentDueAt,
             updatedBy: new Types.ObjectId(input.updatedBy),
           },
           $inc: { revision: 1 },

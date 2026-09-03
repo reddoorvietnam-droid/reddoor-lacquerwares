@@ -7,11 +7,7 @@ import {
   AdminSetupRequired,
   AdminShell,
 } from "@/components/admin";
-import {
-  ContentAccessDeniedError,
-  requireContentPermission,
-  requireListAccess,
-} from "@/lib/auth";
+import { resolvePortalEntry } from "@/lib/auth";
 import { inspectAuthEnv, inspectMongoEnv } from "@/lib/env/server";
 import { isLocale } from "@/lib/i18n/config";
 import { resolveAdminLocale } from "@/lib/i18n/admin";
@@ -42,38 +38,27 @@ export default async function ProtectedAdminLayout({
 
   // The portal admits anyone holding at least one admin-facing read: content
   // staff enter through `content.read`, operational roles through their
-  // shared operational reads. Each page still guards its own permission.
-  try {
-    try {
-      await requireContentPermission("content.read");
-    } catch (error) {
-      if (
-        error instanceof ContentAccessDeniedError &&
-        error.code === "PERMISSION_DENIED"
-      ) {
-        await requireListAccess("orders.read");
-      } else {
-        throw error;
-      }
-    }
-  } catch (error) {
-    if (!(error instanceof ContentAccessDeniedError)) throw error;
+  // shared operational reads. Each page still guards its own permission —
+  // this gate only decides whether the shell renders, so it is auditless and
+  // reuses the request-cached session and snapshot.
+  const entry = await resolvePortalEntry(["content.read", "orders.read"]);
 
-    if (error.code === "UNAUTHENTICATED") {
-      redirect(`/${locale}/admin/sign-in` as Route);
-    }
+  if (entry.kind === "unauthenticated") {
+    redirect(`/${locale}/admin/sign-in` as Route);
+  }
 
-    if (error.code === "AUTH_NOT_CONFIGURED") {
-      return (
-        <AdminShell locale={locale}>
-          <AdminSetupRequired locale={locale} />
-        </AdminShell>
-      );
-    }
-
+  if (entry.kind === "unconfigured") {
     return (
       <AdminShell locale={locale}>
-        <AdminAccessState locale={locale} code={error.code} />
+        <AdminSetupRequired locale={locale} />
+      </AdminShell>
+    );
+  }
+
+  if (entry.kind === "denied") {
+    return (
+      <AdminShell locale={locale} withNav={false}>
+        <AdminAccessState locale={locale} code={entry.code} />
       </AdminShell>
     );
   }
