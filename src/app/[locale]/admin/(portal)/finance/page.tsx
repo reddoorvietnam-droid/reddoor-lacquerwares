@@ -123,7 +123,7 @@ export default async function FinanceOverviewPage({
 
     const revenueTotals = new Map<Currency, Money>();
     const outstandingTotals = new Map<Currency, Money>();
-    const now = Date.now();
+    const now = new Date();
 
     for (const order of pricedOrders) {
       if (!order.sellingPrice) continue;
@@ -136,7 +136,7 @@ export default async function FinanceOverviewPage({
       const remaining = subtract(order.sellingPrice, paid);
       if (isPositive(remaining)) {
         addInto(outstandingTotals, remaining);
-        if (order.paymentDueAt && order.paymentDueAt.getTime() < now) {
+        if (order.paymentDueAt && order.paymentDueAt < now) {
           overdueCount += 1;
         }
       }
