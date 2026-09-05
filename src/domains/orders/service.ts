@@ -4,11 +4,14 @@ import type { AuditRepository } from "@/domains/audit/contracts";
 import type { ApprovalRepository } from "@/domains/approvals/contracts";
 import { assertApproved } from "@/domains/approvals/policy";
 import type { ApprovalService } from "@/domains/approvals/service";
+import type { CustomerStore } from "@/domains/customers/contracts";
 import {
   approvalSummaryForOrder,
   createOrderInputSchema,
+  exportProgressInputSchema,
   generateOrderCode,
   OrderCommandError,
+  paymentDocumentInputSchema,
   transitionOrderInputSchema,
   type OrderReadDto,
   type OrderRecordDto,
@@ -31,6 +34,7 @@ import { money } from "@/lib/money";
 
 export type OrderCommandServiceDependencies = {
   store: OrderStore;
+  customerStore: CustomerStore;
   approvalRepository: ApprovalRepository;
   approvalService: ApprovalService;
   auditRepository: AuditRepository;
@@ -88,6 +92,22 @@ export class OrderCommandService {
       ? money(input.sellingPrice.amount, input.sellingPrice.currency)
       : null;
 
+    // Every order belongs to a customer record; the name is snapshotted so
+    // the order book renders without a join and keeps the name the file was
+    // opened under even if the customer is renamed later.
+    const customer = await this.dependencies.customerStore.findById(
+      input.customerId,
+    );
+    if (!customer) {
+      throw new OrderCommandError("CUSTOMER_NOT_FOUND", "Customer not found.");
+    }
+    if (customer.status !== "active") {
+      throw new OrderCommandError(
+        "CUSTOMER_ARCHIVED",
+        "An archived customer cannot receive new orders.",
+      );
+    }
+
     const manualCode = input.orderCode ?? null;
     let lastError: unknown = null;
 
@@ -96,7 +116,8 @@ export class OrderCommandService {
       try {
         const record = await this.dependencies.store.insert({
           orderCode,
-          customerName: input.customerName,
+          customerId: customer.id,
+          customerName: customer.name,
           businessUnitIds: input.businessUnitIds,
           sellingPrice,
           notes: input.notes,
@@ -110,7 +131,7 @@ export class OrderCommandService {
           resourceId: record.id,
           businessUnitIds: record.businessUnitIds,
           requestId: context.requestId,
-          metadata: { orderCode: record.orderCode },
+          metadata: { orderCode: record.orderCode, customerId: customer.id },
           occurredAt: this.now(),
         });
 
@@ -147,6 +168,14 @@ export class OrderCommandService {
   ): Promise<OrderReadDto | null> {
     const record = await this.dependencies.store.findById(orderId);
     return record ? redact(record, sellingPriceVisible) : null;
+  }
+
+  async listByCustomer(
+    customerId: string,
+    sellingPriceVisible: boolean,
+  ): Promise<OrderReadDto[]> {
+    const records = await this.dependencies.store.listByCustomer(customerId);
+    return records.map((record) => redact(record, sellingPriceVisible));
   }
 
   /** The raw record for guard targeting; never returned to a renderer. */
@@ -343,29 +372,35 @@ export class OrderCommandService {
   }
 
   /**
-   * Sets or clears the customer's payment due date. Held by the accountant
-   * (`payments.record`): the due date drives the receivables view, not the
-   * operational workflow, so it may change at any stage.
+   * Export progress the Company Accountant keeps on the order file: expected
+   * ready date and the carrier booking. Held by `orders.updateExportProgress`
+   * and independent of the operational workflow, so it may change at any
+   * stage until the order is closed or cancelled.
    */
-  async setPaymentDueAt(
+  async setExportProgress(
     context: AccessContext,
-    input: {
-      orderId: string;
-      expectedRevision: number;
-      paymentDueAt: Date | null;
-    },
+    rawInput: unknown,
   ): Promise<OrderReadDto> {
-    this.assertHolds(context, "payments.record");
+    this.assertHolds(context, "orders.updateExportProgress");
+    const input = exportProgressInputSchema.parse(rawInput);
 
     const order = await this.dependencies.store.findById(input.orderId);
     if (!order) {
       throw new OrderCommandError("NOT_FOUND", "Order not found.");
     }
+    if (isTerminalStage(order.stage)) {
+      throw new OrderCommandError(
+        "STAGE_MISMATCH",
+        "A closed or cancelled order file no longer changes.",
+      );
+    }
 
-    const updated = await this.dependencies.store.setPaymentDueAt({
+    const updated = await this.dependencies.store.setExportProgress({
       orderId: order.id,
       expectedRevision: input.expectedRevision,
-      paymentDueAt: input.paymentDueAt,
+      expectedReadyAt: input.expectedReadyAt,
+      bookingNumber: input.bookingNumber,
+      bookingDate: input.bookingDate,
       updatedBy: context.userId,
     });
     if (!updated) {
@@ -377,15 +412,120 @@ export class OrderCommandService {
 
     await this.dependencies.auditRepository.append({
       actor: { type: "user", userId: context.userId },
-      action: "order.paymentDueAtSet",
+      action: "order.exportProgressSet",
       resourceType: ORDER_RESOURCE_TYPE,
       resourceId: order.id,
       businessUnitIds: order.businessUnitIds,
       requestId: context.requestId,
       changes: {
-        before: order.paymentDueAt?.toISOString() ?? null,
-        after: input.paymentDueAt?.toISOString() ?? null,
+        before: {
+          expectedReadyAt: order.expectedReadyAt?.toISOString() ?? null,
+          bookingNumber: order.bookingNumber,
+          bookingDate: order.bookingDate?.toISOString() ?? null,
+        },
+        after: {
+          expectedReadyAt: updated.expectedReadyAt?.toISOString() ?? null,
+          bookingNumber: updated.bookingNumber,
+          bookingDate: updated.bookingDate?.toISOString() ?? null,
+        },
       },
+      occurredAt: this.now(),
+    });
+
+    return redact(updated, false);
+  }
+
+  /**
+   * Records a payment document the accountant uploaded for the order. The
+   * bytes already sit at the storage provider; this only attaches the
+   * descriptor. Held by `payments.record`, the same permission that records
+   * the money the document evidences.
+   */
+  async attachPaymentDocument(
+    context: AccessContext,
+    rawInput: unknown,
+  ): Promise<OrderReadDto> {
+    this.assertHolds(context, "payments.record");
+    const input = paymentDocumentInputSchema.parse(rawInput);
+
+    const order = await this.dependencies.store.findById(input.orderId);
+    if (!order) {
+      throw new OrderCommandError("NOT_FOUND", "Order not found.");
+    }
+
+    const updated = await this.dependencies.store.addPaymentDocument({
+      orderId: order.id,
+      expectedRevision: input.expectedRevision,
+      document: {
+        publicId: input.publicId,
+        assetVersion: input.assetVersion,
+        format: input.format,
+        bytes: input.bytes,
+        label: input.label,
+        uploadedBy: context.userId,
+        uploadedAt: this.now(),
+      },
+      updatedBy: context.userId,
+    });
+    if (!updated) {
+      throw new OrderCommandError(
+        "REVISION_CONFLICT",
+        "The order changed while this action was on screen.",
+      );
+    }
+
+    await this.dependencies.auditRepository.append({
+      actor: { type: "user", userId: context.userId },
+      action: "order.paymentDocumentAttached",
+      resourceType: ORDER_RESOURCE_TYPE,
+      resourceId: order.id,
+      businessUnitIds: order.businessUnitIds,
+      requestId: context.requestId,
+      metadata: { label: input.label, format: input.format },
+      occurredAt: this.now(),
+    });
+
+    return redact(updated, false);
+  }
+
+  async removePaymentDocument(
+    context: AccessContext,
+    input: { orderId: string; expectedRevision: number; documentId: string },
+  ): Promise<OrderReadDto> {
+    this.assertHolds(context, "payments.record");
+
+    const order = await this.dependencies.store.findById(input.orderId);
+    if (!order) {
+      throw new OrderCommandError("NOT_FOUND", "Order not found.");
+    }
+    const existing = order.paymentDocuments.find(
+      (document) => document.id === input.documentId,
+    );
+    if (!existing) {
+      throw new OrderCommandError("NOT_FOUND", "Document not found.");
+    }
+
+    const updated = await this.dependencies.store.removePaymentDocument({
+      orderId: order.id,
+      expectedRevision: input.expectedRevision,
+      documentId: input.documentId,
+      updatedBy: context.userId,
+    });
+    if (!updated) {
+      throw new OrderCommandError(
+        "REVISION_CONFLICT",
+        "The order changed while this action was on screen.",
+      );
+    }
+
+    await this.dependencies.auditRepository.append({
+      actor: { type: "user", userId: context.userId },
+      action: "order.paymentDocumentRemoved",
+      resourceType: ORDER_RESOURCE_TYPE,
+      resourceId: order.id,
+      businessUnitIds: order.businessUnitIds,
+      requestId: context.requestId,
+      metadata: { label: existing.label, publicId: existing.publicId },
       occurredAt: this.now(),
     });
 

@@ -53,6 +53,10 @@ function footerNavigation(
       label: dictionary.nav.news,
     },
     {
+      href: localePath(locale, "/shop") as Route,
+      label: dictionary.nav.shop,
+    },
+    {
       href: localePath(locale, "/contact") as Route,
       label: dictionary.nav.contact,
     },
@@ -162,7 +166,7 @@ export function PublicFooter({
           The mark already appears in the wordmark above; repeating it here
           would show the same logo twice in one footer.
         */}
-        <p className="text-ivory/52 pt-7 text-xs leading-6">
+        <p className="text-ivory/52 pt-7 text-center text-xs leading-6">
           {dictionary.footer.copyright}
         </p>
       </Container>

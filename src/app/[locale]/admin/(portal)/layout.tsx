@@ -41,7 +41,12 @@ export default async function ProtectedAdminLayout({
   // shared operational reads. Each page still guards its own permission —
   // this gate only decides whether the shell renders, so it is auditless and
   // reuses the request-cached session and snapshot.
-  const entry = await resolvePortalEntry(["content.read", "orders.read"]);
+  const entry = await resolvePortalEntry([
+    "content.read",
+    "orders.read",
+    "shop.read",
+    "shopOrders.read",
+  ]);
 
   if (entry.kind === "unauthenticated") {
     redirect(`/${locale}/admin/sign-in` as Route);

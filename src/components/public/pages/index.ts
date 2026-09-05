@@ -7,3 +7,5 @@ export * from "./news";
 export * from "./products";
 export * from "./search";
 export * from "./shared";
+export * from "./shop";
+export * from "./shop-order-form";

@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 import type { PublicDictionary } from "@/lib/i18n/dictionary";
 
 import { VideoEmbed } from "@/components/public/video-embed";
@@ -145,7 +147,21 @@ export function LacquerProcessPage({
       </section>
 
       <section className="bg-burgundy text-ivory relative isolate py-20 lg:py-28">
-        <div className="lacquer-grain" aria-hidden="true" />
+        {/* Lacquer texture pinned to the viewport so the tall list never
+            stretches it; the sticky frame scrolls with the section. */}
+        <div className="absolute inset-0 -z-10" aria-hidden="true">
+          <div className="sticky top-0 h-screen w-full">
+            <div className="relative h-full w-full">
+              <Image
+                src="/lacquer-process/nen.jpg"
+                alt=""
+                fill
+                sizes="100vw"
+                className="object-cover object-center"
+              />
+            </div>
+          </div>
+        </div>
         <div className="relative mx-auto max-w-7xl px-[var(--space-page)]">
           <p className="text-gold text-xs font-bold tracking-[0.2em] uppercase">
             {data.stepsLabel}

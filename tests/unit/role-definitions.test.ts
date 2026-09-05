@@ -37,6 +37,14 @@ const restrictedCommercialPermissions = [
   "products.readSellingPrice",
   "quotes.readSellingPrice",
   "finance.readProfit",
+  // Revenue is recognised per invoice, and a customer receipt or receivable
+  // reveals the price it settles, so these stay with the same two roles.
+  "invoices.read",
+  "invoices.manage",
+  "payments.read",
+  "payments.record",
+  "receivables.read",
+  "customers.read",
 ] as const satisfies readonly Permission[];
 
 const commerciallyBlindRoles = [
@@ -132,6 +140,40 @@ describe("separation of duties", () => {
     expect(permissions.has("expenses.post")).toBe(false);
   });
 
+  it("lets the Factory Accountant record actual factory cost without seeing any customer money", () => {
+    const permissions = permissionsOf("FACTORY_ACCOUNTANT");
+
+    expect(permissions.has("expenses.create")).toBe(true);
+    expect(permissions.has("expenses.read")).toBe(true);
+    for (const permission of [
+      "payments.read",
+      "payments.record",
+      "payments.refund",
+      "receivables.read",
+      "invoices.read",
+      "customers.read",
+      "orders.updateExportProgress",
+    ] as const) {
+      expect(permissions.has(permission)).toBe(false);
+    }
+  });
+
+  it("keeps the order file's export progress and invoices with the Company Accountant", () => {
+    const permissions = permissionsOf("COMPANY_ACCOUNTANT");
+
+    for (const permission of [
+      "orders.updateExportProgress",
+      "invoices.manage",
+      "payments.record",
+      "payments.refund",
+      "finance.manageFxSnapshot",
+      "customers.create",
+      "customers.update",
+    ] as const) {
+      expect(permissions.has(permission)).toBe(true);
+    }
+  });
+
   it("lets the Factory Accountant request price changes and advances, not approve them", () => {
     const permissions = permissionsOf("FACTORY_ACCOUNTANT");
 
@@ -156,5 +198,54 @@ describe("separation of duties", () => {
     expect(permissionsOf("WAREHOUSE_MANAGER").has("production.approveQc")).toBe(
       false,
     );
+  });
+});
+
+describe("the Content Creator publishes the website and nothing else", () => {
+  const creator = permissionsOf("CONTENT_CREATOR");
+
+  it("holds the full editorial workflow at global scope", () => {
+    const seed = getRoleDefinitionSeed("CONTENT_CREATOR");
+    for (const permission of [
+      "content.read",
+      "content.create",
+      "content.update",
+      "content.publish",
+      "content.archive",
+      "media.upload",
+      "shop.manage",
+      "shop.publish",
+    ] as const) {
+      expect(creator.has(permission)).toBe(true);
+    }
+    expect(seed?.permissions.every((entry) => entry.scope === "all")).toBe(
+      true,
+    );
+  });
+
+  it("never sees orders, prices, or finance", () => {
+    for (const permission of [
+      "orders.read",
+      "shopOrders.read",
+      "shopOrders.manage",
+      "products.readSellingPrice",
+      "products.readCost",
+      "finance.readProfit",
+      "payments.read",
+      "users.read",
+    ] as const) {
+      expect(creator.has(permission)).toBe(false);
+    }
+  });
+
+  it("leaves shop orders with the Director and the Company Accountant", () => {
+    expect(rolesGranting("shopOrders.manage")).toEqual([
+      "COMPANY_ACCOUNTANT",
+      "DIRECTOR",
+    ]);
+    expect(rolesGranting("shop.publish")).toEqual([
+      "CONTENT_CREATOR",
+      "DIRECTOR",
+    ]);
   });
 });

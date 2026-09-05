@@ -124,6 +124,9 @@ export const permissionCatalog = [
   "orders.requestCancel",
   "orders.cancel",
   "orders.close",
+  // Export progress the Company Accountant keeps on the order file: expected
+  // ready date and booking. Payment documents ride on `payments.record`.
+  "orders.updateExportProgress",
   "deliveries.read",
   "deliveries.plan",
   "deliveries.update",
@@ -202,6 +205,11 @@ export const permissionCatalog = [
   "finance.readCost",
   "finance.readProfit",
   "finance.manageFxSnapshot",
+  // Sales invoices (INV): revenue is recognised per invoice, so the invoice
+  // amount is as commercial as the selling price and stays with the Director
+  // and the Company Accountant.
+  "invoices.read",
+  "invoices.manage",
 
   // Packing, shipping, trade documents.
   "packing.read",
@@ -232,6 +240,15 @@ export const permissionCatalog = [
   "approvals.read",
   "approvals.request",
   "approvals.decide",
+
+  // Retail shop: items sold from stock at a public retail price, and the
+  // guest orders visitors place against them. The retail price is public
+  // data and is unrelated to the internal selling price (RBAC rule 1).
+  "shop.read",
+  "shop.manage",
+  "shop.publish",
+  "shopOrders.read",
+  "shopOrders.manage",
 ] as const;
 
 export type Permission = (typeof permissionCatalog)[number];
@@ -301,6 +318,7 @@ export const globallyScopedPermissions = [
   "reports.readConsolidated",
   "reports.sendDigest",
   "approvals.decide",
+  "shop.publish",
 ] as const satisfies readonly Permission[];
 
 const globallyScopedPermissionSet: ReadonlySet<string> = new Set<string>(

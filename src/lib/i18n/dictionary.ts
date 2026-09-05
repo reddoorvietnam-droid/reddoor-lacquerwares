@@ -43,6 +43,7 @@ export type PublicDictionary = {
     collections: string;
     process: string;
     news: string;
+    shop: string;
     contact: string;
   };
   home: {
@@ -71,6 +72,8 @@ export type PublicDictionary = {
     processIntro: string;
     newsTitle: string;
     newsIntro: string;
+    shopTitle: string;
+    shopIntro: string;
     contactTitle: string;
     contactIntro: string;
     searchTitle: string;
@@ -175,6 +178,35 @@ export type PublicDictionary = {
     shareFacebook: string;
     shareLinkedIn: string;
     shareEmail: string;
+  };
+  shop: {
+    heroEyebrow: string;
+    emptyTitle: string;
+    emptyDescription: string;
+    inStock: string;
+    soldOut: string;
+    price: string;
+    quantity: string;
+    viewItem: string;
+    backToShop: string;
+    orderTitle: string;
+    orderDescription: string;
+    shippingNote: string;
+    fullName: string;
+    phone: string;
+    email: string;
+    address: string;
+    note: string;
+    submit: string;
+    submitting: string;
+    successTitle: string;
+    successDescription: string;
+    orderCode: string;
+    errorSoldOut: string;
+    errorInsufficientStock: string;
+    errorRateLimited: string;
+    errorInvalid: string;
+    errorUnavailable: string;
   };
   contact: {
     fullName: string;

@@ -33,6 +33,7 @@ const dictionary = {
     collections: "Collections",
     process: "Procédé de laque",
     news: "Actualités",
+    shop: "Boutique",
     contact: "Contact",
   },
   home: {
@@ -72,6 +73,9 @@ const dictionary = {
     contactTitle: "Contact et demande de devis",
     contactIntro:
       "Contactez Red Door pour recevoir un catalogue, un devis ou échanger sur une commande particulière. Nous travaillons en direct avec détaillants, designers et marques du monde entier.",
+    shopTitle: "Boutique",
+    shopIntro:
+      "Des pièces en laque disponibles à l’atelier, à commander directement. Nous confirmons chaque commande et indiquons les frais de port avant l’expédition.",
     searchTitle: "Rechercher",
     privacyTitle: "Politique de confidentialité",
     termsTitle: "Conditions d'utilisation",
@@ -158,8 +162,7 @@ const dictionary = {
   },
   processPage: {
     video1Eyebrow: "L'art de la laque vietnamienne",
-    video1Title:
-      "Le voyage minutieux de la laque brute aux chefs-d'œuvre",
+    video1Title: "Le voyage minutieux de la laque brute aux chefs-d'œuvre",
     video1Paragraph1:
       "La peinture sur laque est un fleuron des beaux-arts vietnamiens, héritière d'un savoir-faire séculaire transmis avec passion.",
     video1Paragraph2:
@@ -186,6 +189,40 @@ const dictionary = {
     shareFacebook: "Partager sur Facebook",
     shareLinkedIn: "Partager sur LinkedIn",
     shareEmail: "Partager par e-mail",
+  },
+  shop: {
+    heroEyebrow: "Boutique Red Door",
+    emptyTitle: "La boutique se prépare",
+    emptyDescription:
+      "Aucun article n’est encore en vente. Revenez bientôt ou contactez-nous pour un devis.",
+    inStock: "En stock",
+    soldOut: "Épuisé",
+    price: "Prix",
+    quantity: "Quantité",
+    viewItem: "Voir l’article",
+    backToShop: "Retour à la boutique",
+    orderTitle: "Passer commande",
+    orderDescription:
+      "Renseignez vos coordonnées ; nous vous contacterons par téléphone ou e-mail pour confirmer la commande.",
+    shippingNote:
+      "Prix hors frais de port. Le directeur conviendra des frais de port avec vous avant l’expédition.",
+    fullName: "Nom complet",
+    phone: "Téléphone",
+    email: "E-mail",
+    address: "Adresse de livraison",
+    note: "Remarque (facultatif)",
+    submit: "Envoyer la commande",
+    submitting: "Envoi…",
+    successTitle: "Nous avons reçu votre commande",
+    successDescription:
+      "Merci. Un e-mail de confirmation vous est envoyé et nous vous recontacterons rapidement au sujet de la livraison.",
+    orderCode: "Numéro de commande",
+    errorSoldOut: "Cet article vient d’être épuisé.",
+    errorInsufficientStock: "La quantité dépasse le stock disponible.",
+    errorRateLimited: "Trop de tentatives. Réessayez dans quelques minutes.",
+    errorInvalid: "Veuillez vérifier les champs obligatoires.",
+    errorUnavailable:
+      "La commande n’a pas pu être envoyée. Réessayez ou contactez-nous directement.",
   },
   contact: {
     fullName: "Nom complet",

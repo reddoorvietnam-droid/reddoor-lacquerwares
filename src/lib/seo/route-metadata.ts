@@ -11,11 +11,13 @@ import {
   getPublicCollectionRepository,
   getPublicNewsRepository,
   getPublicProductRepository,
+  getPublicShopRepository,
 } from "@/lib/public/repositories";
 
 const collectionRepository = getPublicCollectionRepository();
 const newsRepository = getPublicNewsRepository();
 const productRepository = getPublicProductRepository();
+const shopRepository = getPublicShopRepository();
 
 export type DemoStaticPage =
   | "accessibility"
@@ -28,6 +30,7 @@ export type DemoStaticPage =
   | "process"
   | "products"
   | "search"
+  | "shop"
   | "terms";
 
 type StaticDefinition = {
@@ -107,6 +110,13 @@ const STATIC_DEFINITIONS: Record<DemoStaticPage, StaticDefinition> = {
     copy: (dictionary) => ({
       title: dictionary.pages.searchTitle,
       description: dictionary.meta.siteDescription,
+    }),
+  },
+  shop: {
+    path: "/shop",
+    copy: (dictionary) => ({
+      title: dictionary.pages.shopTitle,
+      description: dictionary.pages.shopIntro,
     }),
   },
   terms: {
@@ -205,5 +215,27 @@ export async function getDemoNewsMetadata(
     siteName: dictionary.meta.siteName,
     isDemo: article.isDemo,
     kind: "article",
+  });
+}
+
+export async function getShopItemMetadata(
+  localeValue: string,
+  slug: string,
+): Promise<Metadata> {
+  if (!isLocale(localeValue)) return {};
+
+  const [dictionary, item] = await Promise.all([
+    getDictionary(localeValue),
+    shopRepository.getBySlug(localeValue, slug),
+  ]);
+  if (!item) return {};
+
+  return buildPublicMetadata({
+    locale: localeValue,
+    path: `/shop/${encodeSeoSlug(item.slug)}`,
+    title: item.name,
+    description: item.summary,
+    siteName: dictionary.meta.siteName,
+    isDemo: false,
   });
 }

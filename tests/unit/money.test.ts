@@ -43,7 +43,7 @@ describe("money construction", () => {
       amount: "1250.50",
       currency: "USD",
     });
-    expect(money("-0.01", "EUR")).toEqual({ amount: "-0.01", currency: "EUR" });
+    expect(money("-0.01", "USD")).toEqual({ amount: "-0.01", currency: "USD" });
     expect(money("  12.50  ", "USD").amount).toBe("12.50");
   });
 
@@ -51,7 +51,7 @@ describe("money construction", () => {
     ["1250.5", "VND"],
     ["0.1", "VND"],
     ["1250.005", "USD"],
-    ["0.001", "EUR"],
+    ["0.001", "USD"],
   ])(
     "rejects %s as %s because it exceeds the currency scale",
     (amount, currency) => {
@@ -66,15 +66,15 @@ describe("money construction", () => {
     },
   );
 
-  it("rejects an unsupported currency", () => {
+  it("rejects an unsupported currency, including the retired EUR", () => {
     expect(() => money("10.00", "GBP")).toThrow(MoneyError);
+    expect(() => money("10.00", "EUR")).toThrow(MoneyError);
   });
 
   it("builds a zero for every supported currency", () => {
     expect(supportedCurrencies.map((currency) => zero(currency))).toEqual([
       { amount: "0", currency: "VND" },
       { amount: "0.00", currency: "USD" },
-      { amount: "0.00", currency: "EUR" },
     ]);
   });
 });
@@ -112,13 +112,13 @@ describe("money arithmetic", () => {
   });
 
   it("refuses to combine two currencies", () => {
-    expect(() => add(money("1.00", "USD"), money("1.00", "EUR"))).toThrow(
+    expect(() => add(money("1.00", "USD"), money("1", "VND"))).toThrow(
       MoneyError,
     );
     expect(() => subtract(money("1.00", "USD"), money("1", "VND"))).toThrow(
       MoneyError,
     );
-    expect(() => compare(money("1.00", "USD"), money("1.00", "EUR"))).toThrow(
+    expect(() => compare(money("1.00", "USD"), money("1", "VND"))).toThrow(
       MoneyError,
     );
   });
@@ -216,7 +216,7 @@ describe("money conversion", () => {
 
   it("refuses a snapshot that does not convert the value's currency", () => {
     expect(() =>
-      convert(money("100.00", "EUR"), snapshot("USD", "VND", "25400.5")),
+      convert(money("100", "VND"), snapshot("USD", "VND", "25400.5")),
     ).toThrow(MoneyError);
   });
 });
@@ -230,7 +230,7 @@ describe("money comparison", () => {
 
   it("treats a different currency as unequal instead of comparable", () => {
     expect(equals(money("1.00", "USD"), money("1.00", "USD"))).toBe(true);
-    expect(equals(money("1.00", "USD"), money("1.00", "EUR"))).toBe(false);
+    expect(equals(money("1.00", "USD"), money("1", "VND"))).toBe(false);
   });
 
   it("reports zero and negative amounts", () => {

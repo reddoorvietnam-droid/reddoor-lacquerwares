@@ -9,14 +9,18 @@ import { Decimal } from "decimal.js";
  * or a profit figure.
  */
 
-export const supportedCurrencies = ["VND", "USD", "EUR"] as const;
+/**
+ * The company invoices in USD and VND only (confirmed with the accountant on
+ * 2026-09-05). Reports convert USD to VND through the rate the accountant
+ * enters; see `@/domains/finance` for the rate table and the snapshots.
+ */
+export const supportedCurrencies = ["VND", "USD"] as const;
 export type Currency = (typeof supportedCurrencies)[number];
 
 /** Minor units used when rounding and formatting each currency. */
 const currencyScale: Record<Currency, number> = {
   VND: 0,
   USD: 2,
-  EUR: 2,
 };
 
 export type Money = {

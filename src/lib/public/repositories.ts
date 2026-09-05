@@ -12,6 +12,9 @@ import { mongoPublicNewsRepository } from "@/domains/news/public-mongo-repositor
 import { demoProductRepository } from "@/domains/products/demo-repository";
 import type { PublicProductRepository } from "@/domains/products/public-contract";
 import { mongoPublicProductRepository } from "@/domains/products/public-mongo-repository";
+import { demoShopRepository } from "@/domains/shop/demo-repository";
+import type { PublicShopRepository } from "@/domains/shop/public-contract";
+import { mongoPublicShopRepository } from "@/domains/shop/public-mongo-repository";
 import { requireMongoPublicDataSource } from "@/lib/data-source";
 
 /**
@@ -48,4 +51,10 @@ export function getPublicCollectionRepository(): PublicCollectionRepository {
   return requireMongoPublicDataSource()
     ? mongoPublicCollectionRepository
     : demoCollectionRepository;
+}
+
+export function getPublicShopRepository(): PublicShopRepository {
+  return requireMongoPublicDataSource()
+    ? mongoPublicShopRepository
+    : demoShopRepository;
 }

@@ -10,12 +10,14 @@ import {
   getPublicContentRepository,
   getPublicNewsRepository,
   getPublicProductRepository,
+  getPublicShopRepository,
 } from "@/lib/public/repositories";
 
 const collectionRepository = getPublicCollectionRepository();
 const contentRepository = getPublicContentRepository();
 const newsRepository = getPublicNewsRepository();
 const productRepository = getPublicProductRepository();
+const shopRepository = getPublicShopRepository();
 
 const STATIC_PUBLIC_PATHS = [
   "",
@@ -24,6 +26,7 @@ const STATIC_PUBLIC_PATHS = [
   "/collections",
   "/process",
   "/news",
+  "/shop",
   "/contact",
   "/privacy",
   "/terms",
@@ -33,12 +36,14 @@ const STATIC_PUBLIC_PATHS = [
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const localizedSources = await Promise.all(
     locales.map(async (locale): Promise<PublicSitemapSource[]> => {
-      const [content, products, collections, articles] = await Promise.all([
-        contentRepository.getSnapshot(locale),
-        productRepository.list(locale),
-        collectionRepository.list(locale),
-        newsRepository.list(locale),
-      ]);
+      const [content, products, collections, articles, shopItems] =
+        await Promise.all([
+          contentRepository.getSnapshot(locale),
+          productRepository.list(locale),
+          collectionRepository.list(locale),
+          newsRepository.list(locale),
+          shopRepository.list(locale),
+        ]);
 
       return [
         ...STATIC_PUBLIC_PATHS.map((path) => ({
@@ -74,6 +79,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           path: `/news/${article.slug}`,
           isDemo: article.isDemo,
           status: "published" as const,
+        })),
+        ...shopItems.map((item) => ({
+          key: `shop:${item.id}`,
+          locale,
+          path: `/shop/${item.slug}`,
+          isDemo: false,
+          status: "published" as const,
+          lastModified: item.updatedAt,
         })),
       ];
     }),

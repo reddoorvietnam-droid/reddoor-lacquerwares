@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { Types } from "mongoose";
 
 import { createOrderAction } from "@/app/[locale]/admin/(portal)/orders/actions";
+import { customerCommandService } from "@/domains/customers/runtime";
 import { getBusinessUnitModel } from "@/domains/identity/models";
 import { supportedCurrencies } from "@/lib/money";
 import {
@@ -22,10 +23,15 @@ const copy = {
     eyebrow: "Đơn hàng",
     title: "Nhận đơn hàng từ khách hàng",
     description:
-      "Bước 1 của quy trình: ghi nhận đơn hàng vào sổ. Đơn được tạo ở bước «Nhận đơn hàng»; kế toán công ty mở hồ sơ ở bước tiếp theo. Giá bán là trường nhạy cảm — nhập tại đây nếu đã chốt, chỉ Giám đốc và Kế toán công ty đọc lại được.",
+      "Bước 1 của quy trình: ghi nhận đơn hàng vào sổ. Chọn khách hàng từ danh sách để công nợ và tiền trả trước cộng đúng theo khách. Giá bán là trường nhạy cảm, chỉ Giám đốc và Kế toán công ty đọc lại được.",
     back: "← Sổ đơn hàng",
     codeLabel: "Mã đơn (bỏ trống để hệ thống tự sinh)",
-    customerLabel: "Tên khách hàng",
+    customerLabel: "Khách hàng",
+    customerPick: "— Chọn khách hàng —",
+    customerHint: "Chưa có khách? Thêm ở trang Khách hàng rồi quay lại.",
+    customersLink: "Mở danh sách khách hàng →",
+    noCustomerAccess:
+      "Bạn không có quyền xem danh sách khách hàng, nên không tạo được đơn. Nhờ kế toán công ty tạo đơn.",
     unitsLabel: "Đơn vị kinh doanh thực hiện",
     unitsHint:
       "Chọn ít nhất một đơn vị. Bạn chỉ tạo được đơn trong các đơn vị mình được cấp quyền.",
@@ -39,6 +45,8 @@ const copy = {
     errors: {
       FORBIDDEN: "Bạn không có quyền tạo đơn trong các đơn vị đã chọn.",
       DUPLICATE_ORDER_CODE: "Mã đơn này đã tồn tại.",
+      CUSTOMER_NOT_FOUND: "Chưa chọn khách hàng hoặc khách hàng không tồn tại.",
+      CUSTOMER_ARCHIVED: "Khách hàng này đã lưu trữ, khôi phục trước khi tạo đơn.",
       INVALID_PRICE: "Giá bán không hợp lệ với loại tiền đã chọn.",
       INVALID_INPUT: "Dữ liệu nhập chưa hợp lệ.",
       UNAVAILABLE: "Hệ thống tạm thời không phản hồi.",
@@ -48,10 +56,15 @@ const copy = {
     eyebrow: "Orders",
     title: "Customer order received",
     description:
-      "Step 1 of the process: enter the order into the book. It starts in the «received» stage; the Company Accountant opens the file next. The selling price is a sensitive field — enter it here if agreed; only the Director and the Company Accountant can read it back.",
+      "Step 1 of the process: enter the order into the book. Pick the customer from the list so receivables and advances add up per customer. The selling price is a sensitive field; only the Director and the Company Accountant can read it back.",
     back: "← Order book",
     codeLabel: "Order code (leave empty to auto-generate)",
-    customerLabel: "Customer name",
+    customerLabel: "Customer",
+    customerPick: "— Pick a customer —",
+    customerHint: "Customer missing? Add it on the Customers page and come back.",
+    customersLink: "Open the customer list →",
+    noCustomerAccess:
+      "You cannot read the customer list, so you cannot create an order. Ask the Company Accountant.",
     unitsLabel: "Executing business units",
     unitsHint:
       "Pick at least one. You can only create orders inside units you hold a grant for.",
@@ -65,6 +78,8 @@ const copy = {
     errors: {
       FORBIDDEN: "You lack the permission to create orders in these units.",
       DUPLICATE_ORDER_CODE: "This order code already exists.",
+      CUSTOMER_NOT_FOUND: "No customer chosen, or the customer does not exist.",
+      CUSTOMER_ARCHIVED: "This customer is archived; restore it before creating an order.",
       INVALID_PRICE: "The price is not valid for the chosen currency.",
       INVALID_INPUT: "The submitted data is not valid.",
       UNAVAILABLE: "The system is temporarily unavailable.",
@@ -113,12 +128,16 @@ export default async function AdminNewOrderPage({
 
   const [units, coverages] = await Promise.all([
     listBusinessUnits(),
-    resolvePermissionCoverages(["orders.create"] as const),
+    resolvePermissionCoverages(["orders.create", "customers.read"] as const),
   ]);
   const creatable = coverages["orders.create"];
   const offeredUnits = creatable.global
     ? units
     : units.filter((unit) => creatable.businessUnitIds.includes(unit.id));
+  const canPickCustomer = coverages["customers.read"].global;
+  const customers = canPickCustomer
+    ? await customerCommandService.list({ status: "active" })
+    : [];
 
   const fieldClass =
     "border-burgundy/20 focus:border-burgundy/50 w-full rounded-xl border bg-white px-4 py-3 text-sm outline-none";
@@ -149,6 +168,10 @@ export default async function AdminNewOrderPage({
         <p className="border-gold/40 bg-gold/10 text-charcoal/75 mt-8 rounded-2xl border px-5 py-4 text-sm leading-6">
           {text.noUnits}
         </p>
+      ) : !canPickCustomer ? (
+        <p className="border-gold/40 bg-gold/10 text-charcoal/75 mt-8 rounded-2xl border px-5 py-4 text-sm leading-6">
+          {text.noCustomerAccess}
+        </p>
       ) : (
         <form action={createOrderAction} className="mt-10 space-y-6">
           <input type="hidden" name="locale" value={locale} />
@@ -160,13 +183,31 @@ export default async function AdminNewOrderPage({
             >
               {text.customerLabel}
             </label>
-            <input
+            <select
               id="order-customer"
-              name="customerName"
+              name="customerId"
               required
-              maxLength={240}
+              defaultValue=""
               className={fieldClass}
-            />
+            >
+              <option value="" disabled>
+                {text.customerPick}
+              </option>
+              {customers.map((customer) => (
+                <option key={customer.id} value={customer.id}>
+                  {customer.code ? `${customer.name} (${customer.code})` : customer.name}
+                </option>
+              ))}
+            </select>
+            <p className="text-charcoal/50 mt-2 text-xs">
+              {text.customerHint}{" "}
+              <Link
+                href={`/${locale}/admin/customers` as Route}
+                className="text-burgundy font-semibold hover:underline"
+              >
+                {text.customersLink}
+              </Link>
+            </p>
           </div>
 
           <div>

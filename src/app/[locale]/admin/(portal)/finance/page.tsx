@@ -3,8 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { financeCommandService } from "@/domains/finance/runtime";
-import type { OrderReadDto } from "@/domains/orders/contracts";
-import { orderCommandService } from "@/domains/orders/runtime";
+import type { ReceivablesReport } from "@/domains/finance/receivables";
 import {
   ContentAccessDeniedError,
   requireListAccess,
@@ -12,7 +11,7 @@ import {
 } from "@/lib/auth";
 import { isLocale } from "@/lib/i18n/config";
 import { resolveAdminLocale } from "@/lib/i18n/admin";
-import { add, subtract, zero, type Currency, type Money } from "@/lib/money";
+import { formatMoney } from "@/lib/money";
 
 import {
   EntryTable,
@@ -28,40 +27,39 @@ const copy = {
     eyebrow: "Tài chính",
     title: "Tổng quan tài chính",
     description:
-      "Bức tranh dòng tiền theo luồng đã chốt: Đơn hàng → Thanh toán → Thu/Chi → Chi phí → Công nợ. Doanh thu tính theo giá bán đơn hàng; số liệu tách riêng từng loại tiền tệ.",
-    revenue: "Doanh thu (giá bán các đơn)",
+      "Doanh thu ghi theo hóa đơn (INV), công nợ tính theo từng hóa đơn, tiền khách trả dư giữ lại để bù đơn sau. Số liệu tách riêng từng loại tiền; doanh thu USD quy đổi về VND theo tỷ giá ghi trên từng hóa đơn.",
+    revenue: "Doanh thu (theo hóa đơn)",
+    revenueVnd: "Quy đổi VND",
+    revenueVndIncomplete: "Thiếu tỷ giá trên một số hóa đơn USD",
     collected: "Đã thu",
     spent: "Đã chi",
     outstanding: "Còn phải thu",
-    overdueOrders: "Đơn quá hạn thanh toán",
+    credit: "Khách trả trước / trả dư",
+    overdueInvoices: "Hóa đơn quá hạn",
     recentTitle: "Phiếu gần đây",
-    viewLedger: "Mở sổ thu – chi",
-    viewReceivables: "Xem công nợ",
+    viewInvoices: "Hóa đơn",
+    viewReceivables: "Công nợ",
+    viewLedger: "Sổ thu – chi",
   },
   en: {
     eyebrow: "Finance",
     title: "Finance overview",
     description:
-      "The cash picture along the confirmed flow: Order → Payment → Ledger → Costs → Receivables. Revenue follows the order selling price; figures are kept per currency.",
-    revenue: "Revenue (order prices)",
+      "Revenue follows the invoices (INV), receivables are per invoice, and customer overpayments are kept to offset later orders. Figures are kept per currency; USD revenue converts to VND through the rate on each invoice.",
+    revenue: "Revenue (invoiced)",
+    revenueVnd: "In VND",
+    revenueVndIncomplete: "Some USD invoices carry no rate",
     collected: "Collected",
     spent: "Spent",
     outstanding: "Outstanding",
-    overdueOrders: "Orders past due date",
+    credit: "Customer advances / credit",
+    overdueInvoices: "Overdue invoices",
     recentTitle: "Recent entries",
-    viewLedger: "Open the cash ledger",
-    viewReceivables: "View receivables",
+    viewInvoices: "Invoices",
+    viewReceivables: "Receivables",
+    viewLedger: "Cash ledger",
   },
 } as const;
-
-function isPositive(value: Money): boolean {
-  return !value.amount.startsWith("-") && Number(value.amount) !== 0;
-}
-
-function addInto(totals: Map<Currency, Money>, value: Money): void {
-  const current = totals.get(value.currency);
-  totals.set(value.currency, current ? add(current, value) : value);
-}
 
 export default async function FinanceOverviewPage({
   params,
@@ -87,22 +85,12 @@ export default async function FinanceOverviewPage({
   }
 
   const coverages = await resolvePermissionCoverages([
-    "orders.readSellingPrice",
+    "invoices.read",
+    "receivables.read",
   ] as const);
-  const priceVisible = coverages["orders.readSellingPrice"].global;
+  const revenueVisible = coverages["invoices.read"].global;
 
   const entries = await financeCommandService.list({ scope, limit: 500 });
-
-  let orders: OrderReadDto[] = [];
-  try {
-    const { scope: orderScope } = await requireListAccess("orders.read");
-    orders = (await orderCommandService.list(orderScope, priceVisible)).filter(
-      (order) => order.stage !== "cancelled",
-    );
-  } catch (cause) {
-    if (!(cause instanceof ContentAccessDeniedError)) throw cause;
-  }
-
   const collected = sumEntriesByCurrency(
     entries.filter((entry) => entry.kind === "receipt"),
   );
@@ -110,77 +98,60 @@ export default async function FinanceOverviewPage({
     entries.filter((entry) => entry.kind === "expense"),
   );
 
-  let revenue: Money[] = [];
-  let outstanding: Money[] = [];
-  let overdueCount = 0;
-
-  if (priceVisible) {
-    const pricedOrders = orders.filter((order) => order.sellingPrice !== null);
-    const paidByOrder = await financeCommandService.sumActiveByOrder(
-      pricedOrders.map((order) => order.id),
-      "receipt",
-    );
-
-    const revenueTotals = new Map<Currency, Money>();
-    const outstandingTotals = new Map<Currency, Money>();
-    const now = new Date();
-
-    for (const order of pricedOrders) {
-      if (!order.sellingPrice) continue;
-      addInto(revenueTotals, order.sellingPrice);
-
-      const paid =
-        (paidByOrder.get(order.id) ?? []).find(
-          (value) => value.currency === order.sellingPrice?.currency,
-        ) ?? zero(order.sellingPrice.currency);
-      const remaining = subtract(order.sellingPrice, paid);
-      if (isPositive(remaining)) {
-        addInto(outstandingTotals, remaining);
-        if (order.paymentDueAt && order.paymentDueAt < now) {
-          overdueCount += 1;
-        }
-      }
-    }
-
-    revenue = [...revenueTotals.values()];
-    outstanding = [...outstandingTotals.values()];
+  let report: ReceivablesReport | null = null;
+  if (revenueVisible) {
+    report = await financeCommandService.receivables(scope);
   }
 
-  const cards: { label: string; value: string; tone: string }[] = [
-    ...(priceVisible
-      ? [
-          {
-            label: text.revenue,
-            value: formatTotals(revenue, locale),
-            tone: "text-burgundy",
-          },
-        ]
-      : []),
-    {
-      label: text.collected,
-      value: formatTotals(collected, locale),
-      tone: "text-emerald-700",
-    },
-    {
-      label: text.spent,
-      value: formatTotals(spent, locale),
-      tone: "text-lacquer",
-    },
-    ...(priceVisible
-      ? [
-          {
-            label: text.outstanding,
-            value: formatTotals(outstanding, locale),
-            tone: "text-lacquer",
-          },
-          {
-            label: text.overdueOrders,
-            value: String(overdueCount),
-            tone: overdueCount > 0 ? "text-lacquer" : "text-charcoal/70",
-          },
-        ]
-      : []),
-  ];
+  const cards: { label: string; value: string; hint?: string; tone: string }[] =
+    [
+      ...(report
+        ? [
+            {
+              label: text.revenue,
+              value: formatTotals(report.totals.revenue, locale),
+              hint: `${text.revenueVnd}: ${formatMoney(report.totals.revenueVnd, locale)}${
+                report.totals.revenueVndComplete
+                  ? ""
+                  : ` · ${text.revenueVndIncomplete}`
+              }`,
+              tone: "text-burgundy",
+            },
+          ]
+        : []),
+      {
+        label: text.collected,
+        value: formatTotals(collected, locale),
+        tone: "text-emerald-700",
+      },
+      {
+        label: text.spent,
+        value: formatTotals(spent, locale),
+        tone: "text-lacquer",
+      },
+      ...(report
+        ? [
+            {
+              label: text.outstanding,
+              value: formatTotals(report.totals.outstanding, locale),
+              tone: "text-lacquer",
+            },
+            {
+              label: text.credit,
+              value: formatTotals(report.totals.credit, locale),
+              tone: "text-emerald-700",
+            },
+            {
+              label: text.overdueInvoices,
+              value: String(report.totals.overdueInvoiceCount),
+              tone:
+                report.totals.overdueInvoiceCount > 0
+                  ? "text-lacquer"
+                  : "text-charcoal/70",
+            },
+          ]
+        : []),
+    ];
 
   return (
     <div>
@@ -206,22 +177,35 @@ export default async function FinanceOverviewPage({
             <p className={`mt-3 font-mono text-xl font-semibold ${card.tone}`}>
               {card.value}
             </p>
+            {card.hint ? (
+              <p className="text-charcoal/50 mt-2 text-xs">{card.hint}</p>
+            ) : null}
           </section>
         ))}
       </div>
 
       <div className="mt-8 flex flex-wrap gap-3">
+        {revenueVisible ? (
+          <Link
+            href={`/${locale}/admin/finance/invoices` as Route}
+            className="bg-lacquer text-ivory hover:bg-burgundy inline-flex min-h-11 items-center rounded-full px-6 text-sm font-semibold"
+          >
+            {text.viewInvoices}
+          </Link>
+        ) : null}
+        {coverages["receivables.read"].global ? (
+          <Link
+            href={`/${locale}/admin/finance/receivables` as Route}
+            className="text-burgundy border-burgundy/25 hover:bg-ivory/70 inline-flex min-h-11 items-center rounded-full border px-6 text-sm font-semibold"
+          >
+            {text.viewReceivables}
+          </Link>
+        ) : null}
         <Link
           href={`/${locale}/admin/finance/ledger` as Route}
-          className="bg-lacquer text-ivory hover:bg-burgundy inline-flex min-h-11 items-center rounded-full px-6 text-sm font-semibold"
-        >
-          {text.viewLedger}
-        </Link>
-        <Link
-          href={`/${locale}/admin/finance/receivables` as Route}
           className="text-burgundy border-burgundy/25 hover:bg-ivory/70 inline-flex min-h-11 items-center rounded-full border px-6 text-sm font-semibold"
         >
-          {text.viewReceivables}
+          {text.viewLedger}
         </Link>
       </div>
 

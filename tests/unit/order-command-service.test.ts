@@ -1,9 +1,5 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
-import type {
-  AuditEventInput,
-  AuditRepository,
-} from "@/domains/audit/contracts";
 import {
   ApprovalError,
   type ApprovalRepository,
@@ -14,12 +10,6 @@ import { ApprovalService } from "@/domains/approvals/service";
 import {
   approvalSummaryForOrder,
   generateOrderCode,
-  OrderCommandError,
-  type NewOrderRecord,
-  type OrderListFilter,
-  type OrderRecordDto,
-  type OrderStore,
-  type OrderTransitionWrite,
 } from "@/domains/orders/contracts";
 import { OrderCommandService } from "@/domains/orders/service";
 import {
@@ -27,178 +17,23 @@ import {
   transitionNeedsReason,
 } from "@/domains/orders/workflow";
 import { ContentAccessDeniedError } from "@/lib/auth/authorization";
-import type {
-  AccessContext,
-  EffectivePermission,
-} from "@/lib/auth/authorization";
-import type { Permission } from "@/domains/identity/permissions";
 
-const actorId = "aaaaaaaaaaaaaaaaaaaaaaaa";
-const otherActorId = "abababababababababababab";
-const unitId = "111111111111111111111111";
-const occurredAt = new Date("2026-08-27T09:30:00.000Z");
+import {
+  accessContext as buildContext,
+  actorId,
+  auditRepository,
+  FakeCustomerStore,
+  FakeOrderStore,
+  occurredAt,
+  otherActorId,
+  unitId,
+} from "./helpers/finance-fakes";
 
-function accessContext(
-  permissions: readonly Permission[],
-  scope: EffectivePermission["scope"] = "assignedBusinessUnits",
+const accessContext = (
+  permissions: Parameters<typeof buildContext>[0],
+  scope: Parameters<typeof buildContext>[1] = "assignedBusinessUnits",
   userId: string = actorId,
-): AccessContext {
-  return {
-    actorType: "user",
-    userId,
-    userStatus: "active",
-    authzVersion: 1,
-    requestId: "request-123",
-    permissions: permissions.map((permission) => ({
-      permission,
-      scope,
-      businessUnitIds: scope === "assignedBusinessUnits" ? [unitId] : [],
-      roleKeys: ["TEST"],
-    })),
-  };
-}
-
-class FakeOrderStore implements OrderStore {
-  orders = new Map<string, OrderRecordDto>();
-  private sequence = 0;
-
-  seed(partial: Partial<OrderRecordDto>): OrderRecordDto {
-    const id = partial.id ?? `${++this.sequence}`.padStart(24, "0");
-    const record: OrderRecordDto = {
-      id,
-      orderCode: partial.orderCode ?? `RD-TEST-${this.sequence}`,
-      customerName: partial.customerName ?? "Khách A",
-      businessUnitIds: partial.businessUnitIds ?? [unitId],
-      stage: partial.stage ?? "received",
-      qcPassed: partial.qcPassed ?? false,
-      sellingPrice: partial.sellingPrice ?? null,
-      paymentDueAt: partial.paymentDueAt ?? null,
-      notes: partial.notes ?? null,
-      stageHistory: partial.stageHistory ?? [],
-      createdBy: partial.createdBy ?? actorId,
-      updatedBy: partial.updatedBy ?? actorId,
-      createdAt: occurredAt,
-      updatedAt: occurredAt,
-      revision: partial.revision ?? 0,
-    };
-    this.orders.set(id, record);
-    return record;
-  }
-
-  async insert(record: NewOrderRecord): Promise<OrderRecordDto> {
-    for (const existing of this.orders.values()) {
-      if (existing.orderCode === record.orderCode) {
-        throw new OrderCommandError("DUPLICATE_ORDER_CODE", "duplicate");
-      }
-    }
-    return this.seed({
-      orderCode: record.orderCode,
-      customerName: record.customerName,
-      businessUnitIds: record.businessUnitIds,
-      sellingPrice: record.sellingPrice,
-      notes: record.notes,
-      createdBy: record.createdBy,
-      updatedBy: record.createdBy,
-    });
-  }
-
-  async findById(orderId: string): Promise<OrderRecordDto | null> {
-    return this.orders.get(orderId) ?? null;
-  }
-
-  async list(filter: OrderListFilter): Promise<OrderRecordDto[]> {
-    const all = [...this.orders.values()];
-    if (filter.kind === "all") return all;
-    if (filter.kind === "businessUnits") {
-      return all.filter((order) =>
-        order.businessUnitIds.some((id) => filter.businessUnitIds.includes(id)),
-      );
-    }
-    return all.filter((order) => order.createdBy === filter.userId);
-  }
-
-  async applyTransition(
-    input: OrderTransitionWrite,
-  ): Promise<OrderRecordDto | null> {
-    const order = this.orders.get(input.orderId);
-    if (!order || order.revision !== input.expectedRevision) return null;
-    const updated: OrderRecordDto = {
-      ...order,
-      stage: input.to,
-      qcPassed: input.qcPassed,
-      stageHistory: [...order.stageHistory, input.historyEntry],
-      updatedBy: input.updatedBy,
-      revision: order.revision + 1,
-    };
-    this.orders.set(order.id, updated);
-    return updated;
-  }
-
-  async setQcPassed(input: {
-    orderId: string;
-    expectedRevision: number;
-    updatedBy: string;
-  }): Promise<OrderRecordDto | null> {
-    const order = this.orders.get(input.orderId);
-    if (
-      !order ||
-      order.revision !== input.expectedRevision ||
-      order.stage !== "qualityControl"
-    ) {
-      return null;
-    }
-    const updated: OrderRecordDto = {
-      ...order,
-      qcPassed: true,
-      updatedBy: input.updatedBy,
-      revision: order.revision + 1,
-    };
-    this.orders.set(order.id, updated);
-    return updated;
-  }
-
-  async setSellingPrice(input: {
-    orderId: string;
-    expectedRevision: number;
-    sellingPrice: { amount: string; currency: "VND" | "USD" | "EUR" };
-    updatedBy: string;
-  }): Promise<OrderRecordDto | null> {
-    const order = this.orders.get(input.orderId);
-    if (
-      !order ||
-      order.revision !== input.expectedRevision ||
-      (order.stage !== "received" && order.stage !== "fileOpened")
-    ) {
-      return null;
-    }
-    const updated: OrderRecordDto = {
-      ...order,
-      sellingPrice: input.sellingPrice,
-      updatedBy: input.updatedBy,
-      revision: order.revision + 1,
-    };
-    this.orders.set(order.id, updated);
-    return updated;
-  }
-
-  async setPaymentDueAt(input: {
-    orderId: string;
-    expectedRevision: number;
-    paymentDueAt: Date | null;
-    updatedBy: string;
-  }): Promise<OrderRecordDto | null> {
-    const order = this.orders.get(input.orderId);
-    if (!order || order.revision !== input.expectedRevision) return null;
-    const updated: OrderRecordDto = {
-      ...order,
-      paymentDueAt: input.paymentDueAt,
-      updatedBy: input.updatedBy,
-      revision: order.revision + 1,
-    };
-    this.orders.set(order.id, updated);
-    return updated;
-  }
-}
+) => buildContext(permissions, scope, userId);
 
 class FakeApprovalRepository implements ApprovalRepository {
   requests: ApprovalRequest[] = [];
@@ -306,19 +141,9 @@ class FakeApprovalRepository implements ApprovalRepository {
   }
 }
 
-function auditRepository(): AuditRepository & { events: AuditEventInput[] } {
-  const events: AuditEventInput[] = [];
-  return {
-    events,
-    append: vi.fn(async (event: AuditEventInput) => {
-      events.push(event);
-      return { id: "audit", occurredAt: event.occurredAt };
-    }),
-  };
-}
-
 function build() {
   const store = new FakeOrderStore();
+  const customers = new FakeCustomerStore();
   const approvals = new FakeApprovalRepository();
   const audit = auditRepository();
   const approvalService = new ApprovalService({
@@ -328,12 +153,13 @@ function build() {
   });
   const service = new OrderCommandService({
     store,
+    customerStore: customers,
     approvalRepository: approvals,
     approvalService,
     auditRepository: audit,
     now: () => occurredAt,
   });
-  return { store, approvals, audit, approvalService, service };
+  return { store, customers, approvals, audit, approvalService, service };
 }
 
 describe("generateOrderCode", () => {
@@ -353,43 +179,69 @@ describe("transitionNeedsReason", () => {
 });
 
 describe("OrderCommandService.create", () => {
-  it("creates an order in the received stage with a normalized price", async () => {
-    const { service, audit } = build();
+  it("creates an order in the received stage for a customer from the list, with a normalized price", async () => {
+    const { service, customers, audit } = build();
+    const customer = customers.seed({ name: "Công ty Kiso" });
     const context = accessContext(["orders.create"]);
 
     const order = await service.create(context, {
-      customerName: "Khách A",
+      customerId: customer.id,
       businessUnitIds: [unitId],
       sellingPrice: { amount: "1250.5", currency: "USD" },
       notes: null,
     });
 
     expect(order.stage).toBe("received");
+    expect(order.customerId).toBe(customer.id);
+    expect(order.customerName).toBe("Công ty Kiso");
     expect(order.sellingPrice).toEqual({ amount: "1250.50", currency: "USD" });
+    expect(order.paymentDocuments).toEqual([]);
+    expect(order.expectedReadyAt).toBeNull();
     expect(audit.events.map((event) => event.action)).toContain(
       "order.created",
     );
   });
 
+  it("refuses an unknown or archived customer", async () => {
+    const { service, customers } = build();
+    const archived = customers.seed({ status: "archived" });
+    const context = accessContext(["orders.create"]);
+
+    await expect(
+      service.create(context, {
+        customerId: "ffffffffffffffffffffffff",
+        businessUnitIds: [unitId],
+      }),
+    ).rejects.toMatchObject({ code: "CUSTOMER_NOT_FOUND" });
+    await expect(
+      service.create(context, {
+        customerId: archived.id,
+        businessUnitIds: [unitId],
+      }),
+    ).rejects.toMatchObject({ code: "CUSTOMER_ARCHIVED" });
+  });
+
   it("refuses a context without orders.create", async () => {
-    const { service } = build();
+    const { service, customers } = build();
+    const customer = customers.seed();
     await expect(
       service.create(accessContext(["orders.read"]), {
-        customerName: "Khách A",
+        customerId: customer.id,
         businessUnitIds: [unitId],
       }),
     ).rejects.toBeInstanceOf(ContentAccessDeniedError);
   });
 
   it("retries an auto-generated code on collision but not a manual one", async () => {
-    const { service, store } = build();
+    const { service, store, customers } = build();
+    const customer = customers.seed();
     const context = accessContext(["orders.create"]);
     store.seed({ orderCode: "RD-MANUAL" });
 
     await expect(
       service.create(context, {
         orderCode: "RD-MANUAL",
-        customerName: "Khách A",
+        customerId: customer.id,
         businessUnitIds: [unitId],
       }),
     ).rejects.toMatchObject({ code: "DUPLICATE_ORDER_CODE" });
@@ -538,6 +390,125 @@ describe("OrderCommandService price redaction", () => {
       amount: "100.00",
       currency: "USD",
     });
+  });
+});
+
+describe("OrderCommandService export progress", () => {
+  it("records the expected ready date and booking, treating blanks as unset", async () => {
+    const { service, store, audit } = build();
+    const order = store.seed({ stage: "inProduction" });
+    const context = accessContext(["orders.updateExportProgress"]);
+
+    const updated = await service.setExportProgress(context, {
+      orderId: order.id,
+      expectedRevision: 0,
+      expectedReadyAt: "2026-10-15",
+      bookingNumber: "  BK-778 ",
+      bookingDate: "",
+    });
+
+    expect(updated.expectedReadyAt?.toISOString()).toBe(
+      "2026-10-15T00:00:00.000Z",
+    );
+    expect(updated.bookingNumber).toBe("BK-778");
+    expect(updated.bookingDate).toBeNull();
+    expect(updated.revision).toBe(1);
+    expect(audit.events.map((event) => event.action)).toContain(
+      "order.exportProgressSet",
+    );
+
+    const cleared = await service.setExportProgress(context, {
+      orderId: order.id,
+      expectedRevision: 1,
+      expectedReadyAt: "",
+      bookingNumber: "",
+      bookingDate: "2026-10-20",
+    });
+    expect(cleared.expectedReadyAt).toBeNull();
+    expect(cleared.bookingNumber).toBeNull();
+    expect(cleared.bookingDate?.toISOString()).toBe("2026-10-20T00:00:00.000Z");
+  });
+
+  it("refuses a closed or cancelled order, a stale revision, and a context without the permission", async () => {
+    const { service, store } = build();
+    const cancelled = store.seed({ stage: "cancelled" });
+    const open = store.seed({ stage: "received", revision: 2 });
+    const context = accessContext(["orders.updateExportProgress"]);
+
+    await expect(
+      service.setExportProgress(context, {
+        orderId: cancelled.id,
+        expectedRevision: 0,
+        bookingNumber: "X",
+      }),
+    ).rejects.toMatchObject({ code: "STAGE_MISMATCH" });
+    await expect(
+      service.setExportProgress(context, {
+        orderId: open.id,
+        expectedRevision: 1,
+        bookingNumber: "X",
+      }),
+    ).rejects.toMatchObject({ code: "REVISION_CONFLICT" });
+    await expect(
+      service.setExportProgress(accessContext(["orders.updateDraft"]), {
+        orderId: open.id,
+        expectedRevision: 2,
+        bookingNumber: "X",
+      }),
+    ).rejects.toBeInstanceOf(ContentAccessDeniedError);
+  });
+});
+
+describe("OrderCommandService payment documents", () => {
+  it("attaches and removes a payment document under payments.record", async () => {
+    const { service, store, audit } = build();
+    const order = store.seed({ stage: "invoiced" });
+    const context = accessContext(["payments.record"]);
+
+    const attached = await service.attachPaymentDocument(context, {
+      orderId: order.id,
+      expectedRevision: 0,
+      publicId: "reddoor/orders/abc/def",
+      assetVersion: 3,
+      format: "pdf",
+      bytes: 1024,
+      label: "Ủy nhiệm chi 05/09",
+    });
+    expect(attached.paymentDocuments).toHaveLength(1);
+    expect(attached.paymentDocuments[0]?.uploadedBy).toBe(actorId);
+    expect(attached.paymentDocuments[0]?.uploadedAt).toEqual(occurredAt);
+
+    const removed = await service.removePaymentDocument(context, {
+      orderId: order.id,
+      expectedRevision: attached.revision,
+      documentId: attached.paymentDocuments[0]!.id,
+    });
+    expect(removed.paymentDocuments).toEqual([]);
+    expect(audit.events.map((event) => event.action)).toEqual(
+      expect.arrayContaining([
+        "order.paymentDocumentAttached",
+        "order.paymentDocumentRemoved",
+      ]),
+    );
+
+    await expect(
+      service.removePaymentDocument(context, {
+        orderId: order.id,
+        expectedRevision: removed.revision,
+        documentId: "ffffffffffffffffffffffff",
+      }),
+    ).rejects.toMatchObject({ code: "NOT_FOUND" });
+    await expect(
+      service.attachPaymentDocument(accessContext(["orders.read"]), {
+        orderId: order.id,
+        expectedRevision: removed.revision,
+        publicId: "x",
+        assetVersion: 1,
+        format: "pdf",
+        bytes: 1,
+        label: "x",
+      }),
+    ).rejects.toBeInstanceOf(ContentAccessDeniedError);
   });
 });
 

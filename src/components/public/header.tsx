@@ -10,6 +10,7 @@ import { Container } from "../ui/container";
 import { LocaleSwitcher } from "./locale-switcher";
 import { LogoWordmark } from "./logo";
 import { MobileNavigation } from "./mobile-navigation";
+import { PublicNavLink } from "./nav-link";
 import type { PublicNavigationItem } from "./navigation";
 
 export type PublicHeaderProps = {
@@ -45,6 +46,10 @@ function createNavigation(
     {
       href: localePath(locale, "/news") as Route,
       label: dictionary.nav.news,
+    },
+    {
+      href: localePath(locale, "/shop") as Route,
+      label: dictionary.nav.shop,
     },
     {
       href: localePath(locale, "/contact") as Route,
@@ -97,12 +102,13 @@ export function PublicHeader({
           <ul className="flex items-center">
             {navigation.map((item) => (
               <li key={item.href}>
-                <Link
+                <PublicNavLink
                   href={item.href}
-                  className="text-charcoal/72 hover:text-lacquer relative flex min-h-11 items-center px-2.5 text-[0.7rem] font-semibold tracking-[0.06em] whitespace-nowrap uppercase transition-colors 2xl:px-3.5 2xl:text-[0.72rem]"
+                  className="text-charcoal/72 hover:text-lacquer after:bg-lacquer relative flex min-h-11 items-center px-2.5 text-[0.7rem] font-semibold tracking-[0.06em] whitespace-nowrap uppercase transition-colors after:absolute after:inset-x-2.5 after:bottom-1.5 after:h-0.5 after:origin-left after:scale-x-0 after:rounded-full after:transition-transform after:duration-300 after:ease-[var(--ease-brand)] 2xl:px-3.5 2xl:text-[0.72rem] 2xl:after:inset-x-3.5"
+                  activeClassName="text-lacquer font-bold after:scale-x-100"
                 >
                   {item.label}
-                </Link>
+                </PublicNavLink>
               </li>
             ))}
           </ul>

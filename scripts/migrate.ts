@@ -23,6 +23,14 @@ import {
   getUserModel,
 } from "@/domains/identity/models";
 import { getAuditEventModel } from "@/domains/audit/model";
+import { getCustomerModel } from "@/domains/customers/persistence/models";
+import {
+  getFinanceEntryModel,
+  getFxRateModel,
+  getSalesInvoiceModel,
+} from "@/domains/finance/persistence/models";
+import { getSalesOrderModel } from "@/domains/orders/persistence/models";
+import { getSupplierModel } from "@/domains/suppliers/persistence/models";
 import { connectToDatabase } from "@/lib/db/mongoose";
 
 function collectModels(): Model<unknown>[] {
@@ -33,6 +41,14 @@ function collectModels(): Model<unknown>[] {
     getBusinessUnitModel(),
     getSecurityBootstrapClaimModel(),
     getAuditEventModel(),
+    // Finance and order book: the unique invoice number and customer /
+    // supplier codes only hold once these indexes exist.
+    getCustomerModel(),
+    getSupplierModel(),
+    getSalesOrderModel(),
+    getSalesInvoiceModel(),
+    getFinanceEntryModel(),
+    getFxRateModel(),
   ] as unknown as Model<unknown>[];
 }
 

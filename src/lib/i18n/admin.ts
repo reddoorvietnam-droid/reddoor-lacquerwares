@@ -11,6 +11,8 @@ type AdminCopy = {
   navigation: {
     overview: string;
     orders: string;
+    customers: string;
+    suppliers: string;
     operations: string;
     approvals: string;
     organization: string;
@@ -18,13 +20,17 @@ type AdminCopy = {
     products: string;
     news: string;
     collections: string;
+    shop: string;
+    shopOrders: string;
     settings: string;
     financeGroup: string;
     financeOverview: string;
+    invoices: string;
     payments: string;
     ledger: string;
     expenses: string;
     receivables: string;
+    fxRates: string;
   };
   operations: {
     eyebrow: string;
@@ -227,6 +233,8 @@ const adminDictionaries = {
     navigation: {
       overview: "Tổng quan",
       orders: "Sổ đơn hàng",
+      customers: "Khách hàng",
+      suppliers: "Nhà cung cấp",
       operations: "Quy trình đơn hàng",
       approvals: "Phê duyệt",
       organization: "Cơ cấu tổ chức",
@@ -234,13 +242,17 @@ const adminDictionaries = {
       products: "Sản phẩm",
       news: "Tin tức",
       collections: "Bộ sưu tập",
+      shop: "Cửa hàng",
+      shopOrders: "Đơn cửa hàng",
       settings: "Thiết lập",
       financeGroup: "Tài chính",
       financeOverview: "Tổng quan tài chính",
-      payments: "Thanh toán đơn hàng",
+      invoices: "Hóa đơn (INV)",
+      payments: "Tiền khách trả",
       ledger: "Thu – Chi",
       expenses: "Chi phí đơn hàng",
       receivables: "Công nợ khách hàng",
+      fxRates: "Tỷ giá USD",
     },
     operations: {
       eyebrow: "Quy trình vận hành",
@@ -492,6 +504,8 @@ const adminDictionaries = {
     navigation: {
       overview: "Overview",
       orders: "Order book",
+      customers: "Customers",
+      suppliers: "Suppliers",
       operations: "Order process",
       approvals: "Approvals",
       organization: "Organisation",
@@ -499,13 +513,17 @@ const adminDictionaries = {
       products: "Products",
       news: "News",
       collections: "Collections",
+      shop: "Shop",
+      shopOrders: "Shop orders",
       settings: "Settings",
       financeGroup: "Finance",
       financeOverview: "Finance overview",
-      payments: "Order payments",
+      invoices: "Invoices (INV)",
+      payments: "Customer payments",
       ledger: "Cash ledger",
       expenses: "Order costs",
       receivables: "Receivables",
+      fxRates: "USD rates",
     },
     operations: {
       eyebrow: "Operating process",

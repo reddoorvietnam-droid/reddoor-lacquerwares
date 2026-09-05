@@ -1,7 +1,9 @@
 import { notFound } from "next/navigation";
 
+import { orderCostCategories } from "@/domains/finance/contracts";
 import { financeCommandService } from "@/domains/finance/runtime";
 import { orderCommandService } from "@/domains/orders/runtime";
+import { supplierCommandService } from "@/domains/suppliers/runtime";
 import {
   ContentAccessDeniedError,
   coverageReaches,
@@ -11,7 +13,7 @@ import {
 import { isLocale } from "@/lib/i18n/config";
 import { resolveAdminLocale } from "@/lib/i18n/admin";
 
-import { FinanceEntryForm } from "../entry-form";
+import { FinanceEntryForm, type EntryFormOption } from "../entry-form";
 import {
   EntryTable,
   formatTotals,
@@ -26,7 +28,7 @@ const copy = {
     eyebrow: "Tài chính",
     title: "Chi phí đơn hàng",
     description:
-      "Ghi từng khoản chi phí phát sinh cho một đơn hàng — nguyên vật liệu, nhân công, gia công, vận chuyển, đóng gói. Tổng chi phí của đơn được cộng từ các phiếu còn hiệu lực.",
+      "Ghi từng khoản chi thực tế ở xưởng cho một đơn hàng — nguyên vật liệu, nhân công, gia công, vận chuyển, đóng gói. Chọn nhà cung cấp từ danh sách, hoặc gõ diễn giải nếu không có. Tổng chi phí của đơn được cộng từ các phiếu còn hiệu lực.",
     formTitle: "Ghi phiếu chi theo đơn",
     spent: "Tổng đã chi (phiếu còn hiệu lực)",
   },
@@ -34,7 +36,7 @@ const copy = {
     eyebrow: "Finance",
     title: "Order costs",
     description:
-      "Record each cost incurred for an order — materials, labor, outsourcing, shipping, packaging. An order's total cost is the sum of its active expense entries.",
+      "Record each actual factory cost for an order — materials, labor, outsourcing, shipping, packaging. Pick the supplier from the list, or type a description when there is none. An order's total cost is the sum of its active expense entries.",
     formTitle: "Record an order cost",
     spent: "Spent (active entries)",
   },
@@ -71,21 +73,30 @@ export default async function FinanceExpensesPage({
     coverages["expenses.create"].global ||
     coverages["expenses.create"].businessUnitIds.length > 0;
 
-  const entries = await financeCommandService.list({
-    scope,
-    entryKind: "expense",
-  });
+  const entries = (
+    await financeCommandService.list({ scope, entryKind: "expense" })
+  ).filter((entry) => entry.category !== "refund");
 
-  let orders: Awaited<ReturnType<typeof orderCommandService.list>> = [];
+  let orders: EntryFormOption[] = [];
+  let suppliers: EntryFormOption[] = [];
   if (canRecord) {
     try {
       const { scope: orderScope } = await requireListAccess("orders.read");
-      orders = (await orderCommandService.list(orderScope, false)).filter(
-        (order) => order.stage !== "cancelled",
-      );
+      orders = (await orderCommandService.list(orderScope, false))
+        .filter((order) => order.stage !== "cancelled")
+        .map((order) => ({
+          value: order.id,
+          label: `${order.orderCode} · ${order.customerName}`,
+        }));
     } catch (cause) {
       if (!(cause instanceof ContentAccessDeniedError)) throw cause;
     }
+    suppliers = (await supplierCommandService.list({ status: "active" })).map(
+      (supplier) => ({
+        value: supplier.id,
+        label: supplier.code ? `${supplier.name} (${supplier.code})` : supplier.name,
+      }),
+    );
   }
 
   const totals = sumEntriesByCurrency(entries);
@@ -115,15 +126,11 @@ export default async function FinanceExpensesPage({
             locale={locale}
             title={text.formTitle}
             returnTo="expenses"
-            categories={[
-              "materials",
-              "labor",
-              "outsourcing",
-              "shipping",
-              "packaging",
-            ]}
+            categories={orderCostCategories}
             orders={orders}
             orderRequired
+            suppliers={suppliers}
+            showCounterparty
           />
         </div>
       ) : null}

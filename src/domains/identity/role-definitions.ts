@@ -10,16 +10,19 @@ export const systemRoleKeys = [
   "WAREHOUSE_MANAGER",
   "FACTORY_ACCOUNTANT",
   "COMPANY_ACCOUNTANT",
+  "CONTENT_CREATOR",
 ] as const;
 
 export type SystemRoleKey = (typeof systemRoleKeys)[number];
 
 /**
  * Role keys that existed in earlier seeds and were merged into a surviving
- * role. The five surviving roles mirror the five actual people on the client's
- * staff thread: the Director, the Factory Manager, the Storekeeper, the
- * Factory Accountant (who also purchases), and the Company Accountant (who
- * also coordinates orders). The seed script uses this map to deactivate the
+ * role. The five operational roles mirror the five actual people on the
+ * client's staff thread: the Director, the Factory Manager, the Storekeeper,
+ * the Factory Accountant (who also purchases), and the Company Accountant (who
+ * also coordinates orders). The Content Creator was added later for the
+ * website editor; it is not a revival of the retired `CONTENT_EDITOR` key,
+ * which stays retired. The seed script uses this map to deactivate the
  * retired definitions and to replace any grants they still carry with a grant
  * on the surviving role.
  */
@@ -215,7 +218,10 @@ export const roleDefinitionSeeds = [
   },
   {
     key: "FACTORY_ACCOUNTANT",
-    labels: { vi: "Kế toán nhà máy & mua hàng", en: "Factory Accountant & Purchasing" },
+    labels: {
+      vi: "Kế toán nhà máy & mua hàng",
+      en: "Factory Accountant & Purchasing",
+    },
     summary: {
       vi: "Chi phí nhà máy và xưởng phụ, lao động, nhà cung cấp, đơn mua nguyên liệu, tạm ứng và thay đổi đơn giá.",
       en: "Factory and sub-workshop cost, labor, suppliers, material purchase orders, advances, and unit-price changes.",
@@ -232,7 +238,8 @@ export const roleDefinitionSeeds = [
         "expenses.create",
         "expenses.updateDraft",
         "expenses.submit",
-        "payments.read",
+        // No `payments.read`: a customer receipt reveals what the customer
+        // paid and, through it, the selling price (confirmed 2026-09-05).
         "payables.read",
         "finance.readCost",
         "inventory.readValue",
@@ -312,6 +319,8 @@ export const roleDefinitionSeeds = [
         "orders.requestPriceAdjustment",
         "orders.approvePriceAdjustment",
         "orders.requestCancel",
+        // Export progress on the order file: expected ready date and booking.
+        "orders.updateExportProgress",
         "deliveries.plan",
         "deliveries.update",
         "packing.create",
@@ -345,6 +354,9 @@ export const roleDefinitionSeeds = [
         "finance.readCost",
         "finance.readProfit",
         "finance.manageFxSnapshot",
+        // Sales invoices: revenue is recognised per INV.
+        "invoices.read",
+        "invoices.manage",
         "labor.readSalary",
         "labor.confirmPayroll",
         "production.readLaborQuantity",
@@ -359,8 +371,41 @@ export const roleDefinitionSeeds = [
         "notifications.retry",
         "media.upload",
         "approvals.request",
+        // Retail shop orders placed by visitors: the accountant receives,
+        // confirms, completes, and cancels them alongside the Director.
+        "shopOrders.read",
+        "shopOrders.manage",
       ],
       own: ["media.updateOwnMetadata"],
+    }),
+  },
+  {
+    key: "CONTENT_CREATOR",
+    labels: { vi: "Biên tập nội dung", en: "Content Creator" },
+    summary: {
+      vi: "Viết và xuất bản tin tức, sản phẩm, bộ sưu tập và mặt hàng cửa hàng trên website. Không xem đơn hàng hay tài chính.",
+      en: "Writes and publishes news, products, collections, and shop items on the website. No access to orders or finance.",
+    },
+    // Confirmed rule: the Director and the Content Creator are the only two
+    // people who publish, and each may edit the other's work — so every
+    // editorial write is global, not `own`. The shop retail price is public
+    // data; the role still holds no internal price, order, or finance read.
+    permissions: grants({
+      all: [
+        "content.read",
+        "content.create",
+        "content.update",
+        "content.review",
+        "content.publish",
+        "content.archive",
+        "media.read",
+        "media.upload",
+        "media.updateOwnMetadata",
+        "media.softDelete",
+        "shop.read",
+        "shop.manage",
+        "shop.publish",
+      ],
     }),
   },
 ] as const satisfies readonly RoleDefinitionSeed[];

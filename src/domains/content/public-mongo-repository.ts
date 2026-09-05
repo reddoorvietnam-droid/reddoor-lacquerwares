@@ -21,7 +21,11 @@ import type {
 } from "@/domains/content/public-contract";
 import { connectToDatabase } from "@/lib/db/mongoose";
 import type { Locale } from "@/lib/i18n/config";
-import { pendingImage, pickTranslation } from "@/lib/public/published-mapping";
+import {
+  deliveredImage,
+  pendingImage,
+  pickTranslation,
+} from "@/lib/public/published-mapping";
 
 /**
  * Builds the public content snapshot from what the CMS has published.
@@ -233,28 +237,66 @@ async function getCompany(locale: Locale): Promise<PublicCompanyProfile> {
   };
 }
 
+/**
+ * Photographs already delivered for the history timeline, keyed by the
+ * content entry `code`. No media pipeline serves CMS uploads yet, so these
+ * files live under `public/about-us/` and are matched here; a milestone
+ * without an entry keeps rendering its reserved slot.
+ */
+const HISTORY_IMAGES: Readonly<Record<string, string>> = {
+  "history-lang-nghe": "/about-us/ha_thai.jpg",
+  "history-red-door": "/about-us/red_door.jpg",
+  "history-xuat-khau": "/about-us/vuon_ra_the_gioi.jpg",
+  "history-sgs": "/about-us/chuan_muc_chau_au.jpg",
+  "history-moi-nam": "/about-us/bo_su_tap.jpg",
+};
+
 async function listHistory(
   locale: Locale,
 ): Promise<readonly PublicHistoryMilestone[]> {
   const resolved = await cachedEntries(locale);
   return resolved
     .filter((entry) => entry.type === "section")
-    .map((entry, index) => ({
-      id: entry.id,
-      marker: null,
-      isDemo: false,
-      sortOrder: index,
-      // "history.01 · Làng nghề" → "Làng nghề": the digits exist only to
-      // order the timeline; the visitor sees the era label alone.
-      periodLabel: entry.placement.replace(
-        /^history[\s.·-]*(?:\d+[\s.·-]*)?/,
-        "",
-      ),
-      title: entry.title,
-      summary: entry.summary,
-      image: pendingImage(`history-${entry.code}`, entry.title, 1000, 750),
-    }));
+    .map((entry, index) => {
+      const delivered = HISTORY_IMAGES[entry.code];
+      return {
+        id: entry.id,
+        marker: null,
+        isDemo: false,
+        sortOrder: index,
+        // "history.01 · Làng nghề" → "Làng nghề": the digits exist only to
+        // order the timeline; the visitor sees the era label alone.
+        periodLabel: entry.placement.replace(
+          /^history[\s.·-]*(?:\d+[\s.·-]*)?/,
+          "",
+        ),
+        title: entry.title,
+        summary: entry.summary,
+        image: delivered
+          ? deliveredImage(
+              `history-${entry.code}`,
+              delivered,
+              entry.title,
+              3000,
+              2000,
+            )
+          : pendingImage(`history-${entry.code}`, entry.title, 1000, 750),
+      };
+    });
 }
+
+/**
+ * Photographs already delivered for the lacquer process steps, keyed by the
+ * content entry `code`; files live under `public/lacquer-process/`. A stage
+ * without a delivered photo keeps rendering its reserved slot.
+ */
+const PROCESS_IMAGES: Readonly<Record<string, string>> = {
+  "process-lam-voc": "/lacquer-process/lam_voc.jpg",
+  "process-hom-lot": "/lacquer-process/hom_va_lot.jpg",
+  "process-phu-son-mai-nuoc": "/lacquer-process/phu_son.jpg",
+  "process-trang-tri": "/lacquer-process/trang_tri.jpg",
+  "process-danh-bong": "/lacquer-process/danh_bong.jpg",
+};
 
 async function listProcess(
   locale: Locale,
@@ -262,16 +304,27 @@ async function listProcess(
   const resolved = await cachedEntries(locale);
   return resolved
     .filter((entry) => entry.type === "processStage")
-    .map((entry, index) => ({
-      id: entry.id,
-      marker: null,
-      isDemo: false,
-      sortOrder: index,
-      stepLabel: entry.placement,
-      title: entry.title,
-      summary: entry.summary,
-      image: pendingImage(`process-${entry.code}`, entry.title, 1200, 900),
-    }));
+    .map((entry, index) => {
+      const delivered = PROCESS_IMAGES[entry.code];
+      return {
+        id: entry.id,
+        marker: null,
+        isDemo: false,
+        sortOrder: index,
+        stepLabel: entry.placement,
+        title: entry.title,
+        summary: entry.summary,
+        image: delivered
+          ? deliveredImage(
+              `process-${entry.code}`,
+              delivered,
+              entry.title,
+              2400,
+              1792,
+            )
+          : pendingImage(`process-${entry.code}`, entry.title, 1200, 900),
+      };
+    });
 }
 
 export const mongoPublicContentRepository: PublicContentRepository = {

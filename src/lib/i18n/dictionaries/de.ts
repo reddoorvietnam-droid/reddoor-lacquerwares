@@ -34,6 +34,7 @@ const dictionary = {
     collections: "Kollektionen",
     process: "Lackverfahren",
     news: "Neuigkeiten",
+    shop: "Shop",
     contact: "Kontakt",
   },
   home: {
@@ -73,6 +74,9 @@ const dictionary = {
     contactTitle: "Kontakt und Angebotsanfrage",
     contactIntro:
       "Kontaktieren Sie Red Door für einen Katalog, ein Angebot oder ein Gespräch über einen Sonderauftrag. Wir arbeiten direkt mit Händlern, Designern und Marken weltweit.",
+    shopTitle: "Shop",
+    shopIntro:
+      "Lackwaren, die in der Werkstatt vorrätig sind und direkt bestellt werden können. Wir bestätigen jede Bestellung und nennen die Versandkosten vor dem Versand.",
     searchTitle: "Suchen",
     privacyTitle: "Datenschutzerklärung",
     termsTitle: "Nutzungsbedingungen",
@@ -159,8 +163,7 @@ const dictionary = {
   },
   processPage: {
     video1Eyebrow: "Vietnamesische Lackkunst",
-    video1Title:
-      "Die kunstvolle Reise vom rohen Naturlack zum Meisterwerk",
+    video1Title: "Die kunstvolle Reise vom rohen Naturlack zum Meisterwerk",
     video1Paragraph1:
       "Die vietnamesische Lackmalerei ist eine außergewöhnliche Kunstform, genährt aus über Generationen gehüteten Traditionen.",
     video1Paragraph2:
@@ -187,6 +190,41 @@ const dictionary = {
     shareFacebook: "Auf Facebook teilen",
     shareLinkedIn: "Auf LinkedIn teilen",
     shareEmail: "Per E-Mail teilen",
+  },
+  shop: {
+    heroEyebrow: "Red Door Shop",
+    emptyTitle: "Der Shop wird vorbereitet",
+    emptyDescription:
+      "Noch keine Artikel im Verkauf. Schauen Sie bald wieder vorbei oder fragen Sie ein Angebot an.",
+    inStock: "Auf Lager",
+    soldOut: "Ausverkauft",
+    price: "Preis",
+    quantity: "Menge",
+    viewItem: "Artikel ansehen",
+    backToShop: "Zurück zum Shop",
+    orderTitle: "Bestellen",
+    orderDescription:
+      "Geben Sie Ihre Daten ein; wir melden uns telefonisch oder per E-Mail zur Bestätigung.",
+    shippingNote:
+      "Preise ohne Versand. Der Direktor stimmt die Versandkosten vor dem Versand mit Ihnen ab.",
+    fullName: "Vollständiger Name",
+    phone: "Telefon",
+    email: "E-Mail",
+    address: "Lieferadresse",
+    note: "Anmerkung (optional)",
+    submit: "Bestellung senden",
+    submitting: "Wird gesendet…",
+    successTitle: "Wir haben Ihre Bestellung erhalten",
+    successDescription:
+      "Vielen Dank. Eine Bestätigung ist unterwegs, und wir melden uns in Kürze wegen des Versands.",
+    orderCode: "Bestellnummer",
+    errorSoldOut: "Dieser Artikel ist gerade ausverkauft.",
+    errorInsufficientStock: "Die Menge übersteigt den verfügbaren Bestand.",
+    errorRateLimited:
+      "Zu viele Versuche. Bitte in einigen Minuten erneut versuchen.",
+    errorInvalid: "Bitte prüfen Sie die Pflichtfelder.",
+    errorUnavailable:
+      "Die Bestellung konnte nicht gesendet werden. Bitte erneut versuchen oder uns direkt kontaktieren.",
   },
   contact: {
     fullName: "Vollständiger Name",

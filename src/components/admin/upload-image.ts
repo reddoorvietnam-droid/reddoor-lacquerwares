@@ -12,12 +12,17 @@ export type UploadedAsset = {
   width: number;
   height: number;
   bytes: number;
+  /** Provider format such as `jpg`, `png`, `pdf`. */
+  format: string;
 };
 
 export type UploadTarget =
   | { kind: "collection"; id: string; locale: string }
   | { kind: "article"; id: string }
-  | { kind: "product"; id: string };
+  | { kind: "product"; id: string }
+  | { kind: "shopItem"; id: string }
+  | { kind: "orderDocument"; id: string }
+  | { kind: "invoiceDocument"; id: string };
 
 export class UploadFailure extends Error {
   constructor(readonly stage: "sign" | "store") {
@@ -55,6 +60,7 @@ export async function uploadImage(
     width?: number;
     height?: number;
     bytes: number;
+    format?: string;
   }>((resolve, reject) => {
     // XMLHttpRequest rather than fetch, for upload progress events.
     const request = new XMLHttpRequest();
@@ -81,5 +87,6 @@ export async function uploadImage(
     width: asset.width ?? 1,
     height: asset.height ?? 1,
     bytes: asset.bytes,
+    format: (asset.format ?? file.name.split(".").pop() ?? "bin").toLowerCase(),
   };
 }

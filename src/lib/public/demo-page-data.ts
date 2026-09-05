@@ -81,6 +81,16 @@ export type DemoSearchQuery = {
   scope: string;
 };
 
+function pageHeroMedia(alt: string): PublicPageMedia {
+  return {
+    id: "shared-page-hero",
+    src: "/nen_about_us_rd.jpg",
+    alt,
+    width: 1676,
+    height: 619,
+  };
+}
+
 /**
  * Maps a domain image record to the shape the page components render.
  *
@@ -582,7 +592,7 @@ export async function getDemoProductListingPageData(
       },
     ],
     heroEyebrow: content.company.eyebrow,
-    heroMedia: toPageMedia(content.company.heroImage),
+    heroMedia: pageHeroMedia(content.company.eyebrow),
     pagination:
       pageCount > 1
         ? {
@@ -774,7 +784,7 @@ export async function getDemoCollectionListingPageData(
     emptyDescription: dictionary.pages.collectionsIntro,
     emptyTitle: dictionary.pages.collectionsTitle,
     heroEyebrow: content.company.eyebrow,
-    heroMedia: toPageMedia(content.company.heroImage),
+    heroMedia: pageHeroMedia(content.company.eyebrow),
     pagination: null,
     resultSummary: `${collections.length} · ${dictionary.pages.collectionsTitle}`,
     yearLinks: [],
@@ -798,7 +808,7 @@ export async function getDemoLacquerProcessPageData(
     },
     closingTitle: dictionary.home.contactTitle,
     heroEyebrow: content.company.eyebrow,
-    heroMedia: toPageMedia(content.company.heroImage),
+    heroMedia: pageHeroMedia(content.company.eyebrow),
     overviewVideos: [
       {
         id: "video-art-craft",
@@ -877,7 +887,7 @@ export async function getDemoNewsListingPageData(
       : null,
     featuredLabel: dictionary.common.featured,
     heroEyebrow: content.company.eyebrow,
-    heroMedia: toPageMedia(content.company.heroImage),
+    heroMedia: pageHeroMedia(content.company.eyebrow),
     items: articles
       .filter((article) => article.id !== featuredArticle?.id)
       .map((article) => mapNewsCard(locale, dictionary, article)),
@@ -1093,7 +1103,7 @@ export async function getDemoContactRequestQuotePageData(
     formEyebrow: dictionary.common.requestQuote,
     formTitle: dictionary.home.contactTitle,
     heroEyebrow: content.company.eyebrow,
-    heroMedia: toPageMedia(content.company.heroImage),
+    heroMedia: pageHeroMedia(content.company.eyebrow),
     interestOptions: products.map((product) => ({
       value: product.id,
       label: product.name,

@@ -51,6 +51,20 @@ export async function AdminShell({
           anyOf: ["orders.read"],
         },
         {
+          // The customer list belongs to the people who invoice and collect
+          // money; other roles see the customer name on the order.
+          href: `${basePath}/customers` as Route,
+          label: copy.navigation.customers,
+          anyOf: ["customers.read"],
+        },
+        {
+          // The supplier list is kept by whoever records factory cost; other
+          // roles only pick from it inside the cost form.
+          href: `${basePath}/suppliers` as Route,
+          label: copy.navigation.suppliers,
+          anyOf: ["suppliers.update"],
+        },
+        {
           // The workflow reference is for the people who move orders through
           // it, not for every role that can read the order book.
           href: `${basePath}/operations` as Route,
@@ -90,6 +104,18 @@ export async function AdminShell({
           anyOf: ["content.read"],
         },
         {
+          href: `${basePath}/shop` as Route,
+          label: copy.navigation.shop,
+          anyOf: ["shop.read"],
+        },
+        {
+          // Guest orders are handled by the accountant and the Director;
+          // the content creator never sees them.
+          href: `${basePath}/shop/orders` as Route,
+          label: copy.navigation.shopOrders,
+          anyOf: ["shopOrders.read"],
+        },
+        {
           href: `${basePath}/settings` as Route,
           label: copy.navigation.settings,
           anyOf: ["settings.read"],
@@ -105,9 +131,19 @@ export async function AdminShell({
           anyOf: ["payments.read"],
         },
         {
+          href: `${basePath}/finance/invoices` as Route,
+          label: copy.navigation.invoices,
+          anyOf: ["invoices.read"],
+        },
+        {
           href: `${basePath}/finance/payments` as Route,
           label: copy.navigation.payments,
           anyOf: ["payments.read"],
+        },
+        {
+          href: `${basePath}/finance/receivables` as Route,
+          label: copy.navigation.receivables,
+          anyOf: ["receivables.read"],
         },
         {
           // The ledger page reads receipts, so it guards on payments.read;
@@ -122,9 +158,9 @@ export async function AdminShell({
           anyOf: ["expenses.read"],
         },
         {
-          href: `${basePath}/finance/receivables` as Route,
-          label: copy.navigation.receivables,
-          anyOf: ["receivables.read"],
+          href: `${basePath}/finance/fx` as Route,
+          label: copy.navigation.fxRates,
+          anyOf: ["finance.manageFxSnapshot"],
         },
       ],
     },

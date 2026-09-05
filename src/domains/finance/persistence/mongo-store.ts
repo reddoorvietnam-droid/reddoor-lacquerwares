@@ -3,19 +3,31 @@ import "server-only";
 import { Types } from "mongoose";
 
 import type {
+  FinanceActiveFilter,
   FinanceEntryAmount,
   FinanceEntryCategory,
   FinanceEntryKind,
   FinanceEntryRecordDto,
   FinanceEntryStore,
   FinanceListFilter,
+  FinanceListScope,
+  FinancePaymentMethod,
   NewFinanceEntryRecord,
   OrderAmountTotals,
-  FinancePaymentMethod,
+  ReceiptAllocation,
 } from "@/domains/finance/contracts";
 import { getFinanceEntryModel } from "@/domains/finance/persistence/models";
 import { connectToDatabase } from "@/lib/db/mongoose";
 import { money, sum, zero, type Currency, type Money } from "@/lib/money";
+
+type AllocationDocument = {
+  target: "invoice" | "order";
+  invoiceId?: Types.ObjectId | null;
+  invoiceNumber?: string | null;
+  orderId: Types.ObjectId;
+  orderCode: string;
+  amount: string;
+};
 
 type FinanceEntryDocument = {
   _id: Types.ObjectId;
@@ -23,11 +35,15 @@ type FinanceEntryDocument = {
   category: FinanceEntryCategory;
   orderId: Types.ObjectId | null;
   orderCode: string | null;
+  customerId?: Types.ObjectId | null;
+  supplierId?: Types.ObjectId | null;
   counterparty: string;
   amount: FinanceEntryAmount;
   method: FinancePaymentMethod;
   occurredAt: Date;
   note: string | null;
+  allocations?: AllocationDocument[];
+  fxRateToVnd?: string | null;
   status: "active" | "voided";
   voidReason: string | null;
   businessUnitIds: Types.ObjectId[];
@@ -38,6 +54,45 @@ type FinanceEntryDocument = {
   revision: number;
 };
 
+function allocationToDto(document: AllocationDocument): ReceiptAllocation {
+  if (document.target === "invoice" && document.invoiceId) {
+    return {
+      target: "invoice",
+      invoiceId: document.invoiceId.toHexString(),
+      invoiceNumber: document.invoiceNumber ?? "",
+      orderId: document.orderId.toHexString(),
+      orderCode: document.orderCode,
+      amount: document.amount,
+    };
+  }
+  return {
+    target: "order",
+    orderId: document.orderId.toHexString(),
+    orderCode: document.orderCode,
+    amount: document.amount,
+  };
+}
+
+function allocationToDocument(allocation: ReceiptAllocation) {
+  return allocation.target === "invoice"
+    ? {
+        target: "invoice",
+        invoiceId: new Types.ObjectId(allocation.invoiceId),
+        invoiceNumber: allocation.invoiceNumber,
+        orderId: new Types.ObjectId(allocation.orderId),
+        orderCode: allocation.orderCode,
+        amount: allocation.amount,
+      }
+    : {
+        target: "order",
+        invoiceId: null,
+        invoiceNumber: null,
+        orderId: new Types.ObjectId(allocation.orderId),
+        orderCode: allocation.orderCode,
+        amount: allocation.amount,
+      };
+}
+
 function toDto(document: FinanceEntryDocument): FinanceEntryRecordDto {
   return {
     id: document._id.toHexString(),
@@ -45,6 +100,8 @@ function toDto(document: FinanceEntryDocument): FinanceEntryRecordDto {
     category: document.category,
     orderId: document.orderId ? document.orderId.toHexString() : null,
     orderCode: document.orderCode ?? null,
+    customerId: document.customerId ? document.customerId.toHexString() : null,
+    supplierId: document.supplierId ? document.supplierId.toHexString() : null,
     counterparty: document.counterparty,
     amount: {
       amount: document.amount.amount,
@@ -53,6 +110,8 @@ function toDto(document: FinanceEntryDocument): FinanceEntryRecordDto {
     method: document.method,
     occurredAt: document.occurredAt,
     note: document.note ?? null,
+    allocations: (document.allocations ?? []).map(allocationToDto),
+    fxRateToVnd: document.fxRateToVnd ?? null,
     status: document.status,
     voidReason: document.voidReason ?? null,
     businessUnitIds: document.businessUnitIds.map((id) => id.toHexString()),
@@ -62,6 +121,20 @@ function toDto(document: FinanceEntryDocument): FinanceEntryRecordDto {
     updatedAt: document.updatedAt,
     revision: document.revision,
   };
+}
+
+function scopeQuery(scope: FinanceListScope | undefined) {
+  if (!scope || scope.kind === "all") return {};
+  if (scope.kind === "businessUnits") {
+    return {
+      businessUnitIds: {
+        $in: scope.businessUnitIds
+          .filter(Types.ObjectId.isValid)
+          .map((id) => new Types.ObjectId(id)),
+      },
+    };
+  }
+  return { createdBy: new Types.ObjectId(scope.userId) };
 }
 
 export class MongoFinanceEntryStore implements FinanceEntryStore {
@@ -74,11 +147,19 @@ export class MongoFinanceEntryStore implements FinanceEntryStore {
       category: record.category,
       orderId: record.orderId ? new Types.ObjectId(record.orderId) : null,
       orderCode: record.orderCode,
+      customerId: record.customerId
+        ? new Types.ObjectId(record.customerId)
+        : null,
+      supplierId: record.supplierId
+        ? new Types.ObjectId(record.supplierId)
+        : null,
       counterparty: record.counterparty,
       amount: record.amount,
       method: record.method,
       occurredAt: record.occurredAt,
       note: record.note,
+      allocations: record.allocations.map(allocationToDocument),
+      fxRateToVnd: record.fxRateToVnd,
       status: "active",
       voidReason: null,
       businessUnitIds: record.businessUnitIds.map(
@@ -104,29 +185,46 @@ export class MongoFinanceEntryStore implements FinanceEntryStore {
   async list(filter: FinanceListFilter): Promise<FinanceEntryRecordDto[]> {
     await connectToDatabase();
 
-    const scopeQuery =
-      filter.scope.kind === "all"
-        ? {}
-        : filter.scope.kind === "businessUnits"
-          ? {
-              businessUnitIds: {
-                $in: filter.scope.businessUnitIds
-                  .filter(Types.ObjectId.isValid)
-                  .map((id) => new Types.ObjectId(id)),
-              },
-            }
-          : { createdBy: new Types.ObjectId(filter.scope.userId) };
-
     const documents = await getFinanceEntryModel()
       .find({
-        ...scopeQuery,
+        ...scopeQuery(filter.scope),
         ...(filter.entryKind ? { kind: filter.entryKind } : {}),
         ...(filter.orderId && Types.ObjectId.isValid(filter.orderId)
           ? { orderId: new Types.ObjectId(filter.orderId) }
           : {}),
+        ...(filter.customerId && Types.ObjectId.isValid(filter.customerId)
+          ? { customerId: new Types.ObjectId(filter.customerId) }
+          : {}),
+        ...(filter.supplierId && Types.ObjectId.isValid(filter.supplierId)
+          ? { supplierId: new Types.ObjectId(filter.supplierId) }
+          : {}),
       })
       .sort({ occurredAt: -1, _id: -1 })
       .limit(filter.limit ?? 200)
+      .lean<FinanceEntryDocument[]>()
+      .exec();
+    return documents.map(toDto);
+  }
+
+  async listActive(
+    filter: FinanceActiveFilter,
+  ): Promise<FinanceEntryRecordDto[]> {
+    await connectToDatabase();
+
+    const documents = await getFinanceEntryModel()
+      .find({
+        ...scopeQuery(filter.scope),
+        status: "active",
+        ...(filter.kind ? { kind: filter.kind } : {}),
+        ...(filter.category ? { category: filter.category } : {}),
+        ...(filter.orderId && Types.ObjectId.isValid(filter.orderId)
+          ? { orderId: new Types.ObjectId(filter.orderId) }
+          : {}),
+        ...(filter.customerId && Types.ObjectId.isValid(filter.customerId)
+          ? { customerId: new Types.ObjectId(filter.customerId) }
+          : {}),
+      })
+      .sort({ occurredAt: -1, _id: -1 })
       .lean<FinanceEntryDocument[]>()
       .exec();
     return documents.map(toDto);
@@ -151,6 +249,35 @@ export class MongoFinanceEntryStore implements FinanceEntryStore {
           $set: {
             status: "voided",
             voidReason: input.reason,
+            updatedBy: new Types.ObjectId(input.updatedBy),
+          },
+          $inc: { revision: 1 },
+        },
+        { new: true },
+      )
+      .lean<FinanceEntryDocument>()
+      .exec();
+    return document ? toDto(document) : null;
+  }
+
+  async setAllocations(input: {
+    entryId: string;
+    expectedRevision: number;
+    allocations: readonly ReceiptAllocation[];
+    updatedBy: string;
+  }): Promise<FinanceEntryRecordDto | null> {
+    await connectToDatabase();
+
+    const document = await getFinanceEntryModel()
+      .findOneAndUpdate(
+        {
+          _id: new Types.ObjectId(input.entryId),
+          revision: input.expectedRevision,
+          status: "active",
+        },
+        {
+          $set: {
+            allocations: input.allocations.map(allocationToDocument),
             updatedBy: new Types.ObjectId(input.updatedBy),
           },
           $inc: { revision: 1 },

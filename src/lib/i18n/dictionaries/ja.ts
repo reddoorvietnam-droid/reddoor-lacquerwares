@@ -33,6 +33,7 @@ const dictionary = {
     collections: "コレクション",
     process: "漆の工程",
     news: "ニュース",
+    shop: "ショップ",
     contact: "お問い合わせ",
   },
   home: {
@@ -72,6 +73,9 @@ const dictionary = {
     contactTitle: "お問い合わせ・見積もり依頼",
     contactIntro:
       "カタログのご請求、お見積もり、特注のご相談は Red Door まで。世界中の小売店、デザイナー、ブランドと直接お取引しています。",
+    shopTitle: "ショップ",
+    shopIntro:
+      "工房に在庫のある漆器を直接ご注文いただけます。ご注文を確認し、発送前に送料をご案内します。",
     searchTitle: "検索",
     privacyTitle: "プライバシーポリシー",
     termsTitle: "利用規約",
@@ -181,6 +185,40 @@ const dictionary = {
     shareFacebook: "Facebookで共有",
     shareLinkedIn: "LinkedInで共有",
     shareEmail: "メールで共有",
+  },
+  shop: {
+    heroEyebrow: "Red Door ショップ",
+    emptyTitle: "ショップは準備中です",
+    emptyDescription:
+      "まだ販売中の商品はありません。しばらくしてから再度ご覧いただくか、お見積もりをご依頼ください。",
+    inStock: "在庫あり",
+    soldOut: "売り切れ",
+    price: "価格",
+    quantity: "数量",
+    viewItem: "商品を見る",
+    backToShop: "ショップに戻る",
+    orderTitle: "ご注文",
+    orderDescription:
+      "必要事項をご記入ください。お電話またはメールでご注文を確認いたします。",
+    shippingNote:
+      "価格に送料は含まれません。発送前にディレクターが送料をご相談します。",
+    fullName: "お名前",
+    phone: "電話番号",
+    email: "メールアドレス",
+    address: "お届け先住所",
+    note: "備考（任意）",
+    submit: "注文を送信",
+    submitting: "送信中…",
+    successTitle: "ご注文を受け付けました",
+    successDescription:
+      "ありがとうございます。確認メールをお送りしました。送料について追ってご連絡いたします。",
+    orderCode: "注文番号",
+    errorSoldOut: "この商品は売り切れました。",
+    errorInsufficientStock: "数量が在庫を超えています。",
+    errorRateLimited: "送信回数が多すぎます。数分後に再度お試しください。",
+    errorInvalid: "必須項目をご確認ください。",
+    errorUnavailable:
+      "現在ご注文を送信できません。再度お試しいただくか、直接ご連絡ください。",
   },
   contact: {
     fullName: "氏名",

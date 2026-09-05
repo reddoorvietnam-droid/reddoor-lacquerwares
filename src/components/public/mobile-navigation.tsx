@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils/cn";
 import { Button, buttonVariants } from "../ui/button";
 import { LocaleSwitcher } from "./locale-switcher";
 import { LogoWordmark } from "./logo";
+import { PublicNavLink } from "./nav-link";
 import type { PublicNavigationItem } from "./navigation";
 
 export type MobileNavigationProps = {
@@ -160,19 +161,20 @@ export function MobileNavigation({
             <ul className="divide-burgundy/10 divide-y">
               {items.map((item, index) => (
                 <li key={item.href}>
-                  <Link
+                  <PublicNavLink
                     href={item.href}
                     onClick={closeMenu}
-                    className="text-burgundy group flex min-h-14 items-center justify-between py-3 font-serif text-2xl tracking-[-0.02em]"
+                    className="text-burgundy group flex min-h-14 items-center justify-between py-3 font-serif text-2xl tracking-[-0.02em] transition-colors"
+                    activeClassName="text-lacquer -mx-3 px-3 bg-lacquer/6 rounded-lg"
                   >
                     <span>{item.label}</span>
                     <span
-                      className="text-gold-ink font-sans text-xs tracking-[0.12em] transition-transform motion-safe:group-hover:translate-x-1"
+                      className="text-gold-ink font-sans text-xs tracking-[0.12em] transition-transform group-data-active:text-lacquer motion-safe:group-hover:translate-x-1"
                       aria-hidden="true"
                     >
                       {String(index + 1).padStart(2, "0")}
                     </span>
-                  </Link>
+                  </PublicNavLink>
                 </li>
               ))}
             </ul>

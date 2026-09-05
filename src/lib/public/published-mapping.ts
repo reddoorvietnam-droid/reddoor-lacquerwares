@@ -40,6 +40,35 @@ export function pendingImage(
   };
 }
 
+export type DeliveredImageSlot = {
+  readonly assetKey: string;
+  readonly src: string;
+  readonly alt: string;
+  readonly width: number;
+  readonly height: number;
+  readonly assetPending: false;
+  readonly replacementHint: string;
+};
+
+/** A photograph that has landed under `public/` and no longer needs a slot. */
+export function deliveredImage(
+  assetKey: string,
+  src: string,
+  alt: string,
+  width: number,
+  height: number,
+): DeliveredImageSlot {
+  return {
+    assetKey,
+    src,
+    alt,
+    width,
+    height,
+    assetPending: false,
+    replacementHint: "",
+  };
+}
+
 /**
  * The structured block subset that carries running text. Block payloads are
  * validated by the CMS at write time; reading tolerates anything and keeps

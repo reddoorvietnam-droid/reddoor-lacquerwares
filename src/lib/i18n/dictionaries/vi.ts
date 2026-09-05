@@ -33,6 +33,7 @@ const dictionary = {
     collections: "Bộ sưu tập",
     process: "Kỹ thuật sơn mài",
     news: "Tin tức",
+    shop: "Cửa hàng",
     contact: "Liên hệ",
   },
   home: {
@@ -72,6 +73,9 @@ const dictionary = {
     contactTitle: "Liên hệ và yêu cầu báo giá",
     contactIntro:
       "Liên hệ với Red Door để nhận catalogue, báo giá hoặc trao đổi về đơn hàng riêng. Chúng tôi làm việc trực tiếp với các nhà bán lẻ, nhà thiết kế và thương hiệu trên toàn thế giới.",
+    shopTitle: "Cửa hàng",
+    shopIntro:
+      "Những món sơn mài có sẵn tại xưởng, đặt mua trực tiếp. Chúng tôi xác nhận đơn và thông báo phí vận chuyển trước khi giao.",
     searchTitle: "Tìm kiếm",
     privacyTitle: "Chính sách quyền riêng tư",
     termsTitle: "Điều khoản sử dụng",
@@ -181,6 +185,40 @@ const dictionary = {
     shareFacebook: "Chia sẻ lên Facebook",
     shareLinkedIn: "Chia sẻ lên LinkedIn",
     shareEmail: "Chia sẻ qua email",
+  },
+  shop: {
+    heroEyebrow: "Cửa hàng Red Door",
+    emptyTitle: "Cửa hàng đang được chuẩn bị",
+    emptyDescription:
+      "Chưa có mặt hàng nào được đưa lên bán. Vui lòng quay lại sau hoặc liên hệ để nhận báo giá.",
+    inStock: "Còn hàng",
+    soldOut: "Hết hàng",
+    price: "Giá",
+    quantity: "Số lượng",
+    viewItem: "Xem mặt hàng",
+    backToShop: "Về cửa hàng",
+    orderTitle: "Đặt mua",
+    orderDescription:
+      "Điền thông tin, chúng tôi sẽ liên hệ xác nhận đơn qua điện thoại hoặc email.",
+    shippingNote:
+      "Giá chưa gồm phí vận chuyển. Giám đốc sẽ trao đổi phí vận chuyển với bạn trước khi giao hàng.",
+    fullName: "Họ và tên",
+    phone: "Số điện thoại",
+    email: "Email",
+    address: "Địa chỉ nhận hàng",
+    note: "Ghi chú (tuỳ chọn)",
+    submit: "Gửi đơn đặt mua",
+    submitting: "Đang gửi…",
+    successTitle: "Đã nhận đơn của bạn",
+    successDescription:
+      "Cảm ơn bạn. Chúng tôi đã gửi email xác nhận và sẽ liên hệ sớm để chốt phí vận chuyển.",
+    orderCode: "Mã đơn",
+    errorSoldOut: "Mặt hàng vừa hết hàng.",
+    errorInsufficientStock: "Số lượng vượt quá tồn kho hiện có.",
+    errorRateLimited: "Bạn gửi quá nhiều lần. Vui lòng thử lại sau ít phút.",
+    errorInvalid: "Vui lòng kiểm tra lại các trường bắt buộc.",
+    errorUnavailable:
+      "Không gửi được đơn lúc này. Vui lòng thử lại hoặc liên hệ trực tiếp.",
   },
   contact: {
     fullName: "Họ và tên",

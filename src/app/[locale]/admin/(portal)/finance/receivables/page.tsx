@@ -1,27 +1,18 @@
+import type { Route } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { financeCommandService } from "@/domains/finance/runtime";
-import type { OrderReadDto } from "@/domains/orders/contracts";
-import { orderCommandService } from "@/domains/orders/runtime";
 import {
   ContentAccessDeniedError,
-  coverageReaches,
   requireListAccess,
   resolvePermissionCoverages,
 } from "@/lib/auth";
 import { isLocale } from "@/lib/i18n/config";
 import { resolveAdminLocale } from "@/lib/i18n/admin";
-import {
-  add,
-  formatMoney,
-  subtract,
-  zero,
-  type Currency,
-  type Money,
-} from "@/lib/money";
+import { formatMoney, type Money } from "@/lib/money";
 
-import { setPaymentDueAtAction } from "../actions";
-import { formatTotals, OutcomeBanner } from "../shared";
+import { formatDate, formatTotals, OutcomeBanner } from "../shared";
 
 export const dynamic = "force-dynamic";
 
@@ -30,51 +21,59 @@ const copy = {
     eyebrow: "Tài chính",
     title: "Công nợ khách hàng",
     description:
-      "Mỗi đơn hàng có giá bán: công nợ = giá bán trừ tổng đã thu. Đơn quá hạn thanh toán mà còn thiếu tiền được đánh dấu đỏ. Hạn thanh toán do kế toán đặt cho từng đơn.",
-    priceHiddenNote:
-      "Bạn không có quyền xem giá bán nên cột công nợ bị ẩn — chỉ hiển thị số đã thu và hạn thanh toán.",
-    empty: "Chưa có đơn hàng nào có giá bán trong phạm vi của bạn.",
-    codeColumn: "Mã đơn",
+      "Mỗi hóa đơn có hạn thanh toán riêng: còn thiếu = giá trị hóa đơn trừ tiền đã gắn vào hóa đơn (kể cả tiền cọc của đơn). Hóa đơn quá hạn mà còn thiếu được đánh dấu đỏ. Tiền khách chuyển chưa gắn vào đâu là tiền trả trước, hiện ở cột trả trước và tự bù cho hóa đơn sau.",
+    outstandingTotal: "Tổng còn phải thu",
+    creditTotal: "Tổng khách trả trước",
+    overdueTotal: "Hóa đơn quá hạn",
+    invoicesTitle: "Theo hóa đơn",
+    emptyInvoices: "Chưa có hóa đơn nào trong phạm vi của bạn.",
+    invoiceColumn: "Hóa đơn",
+    orderColumn: "Đơn hàng",
     customerColumn: "Khách hàng",
-    priceColumn: "Giá bán",
-    paidColumn: "Đã thu",
-    remainingColumn: "Còn thiếu",
     dueColumn: "Hạn thanh toán",
+    amountColumn: "Giá trị",
+    paidColumn: "Đã trả",
+    remainingColumn: "Còn thiếu",
     statusColumn: "Trạng thái",
     overdue: "Quá hạn",
     settled: "Đã đủ",
     open: "Còn nợ",
-    noDue: "Chưa đặt",
-    saveDue: "Lưu",
-    outstandingTotal: "Tổng còn phải thu",
-    byCustomerTitle: "Công nợ theo khách hàng",
-    byCustomerCustomer: "Khách hàng",
-    byCustomerRemaining: "Còn thiếu",
+    customersTitle: "Theo khách hàng",
+    invoicedColumn: "Đã xuất hóa đơn",
+    receivedColumn: "Đã thu",
+    refundedColumn: "Đã hoàn",
+    creditColumn: "Trả trước / dư",
+    balanceColumn: "Cân đối",
+    balanceHint: "Cân đối = còn thiếu trừ trả trước. Âm nghĩa là khách đang trả dư.",
   },
   en: {
     eyebrow: "Finance",
     title: "Customer receivables",
     description:
-      "For each priced order: outstanding = selling price minus collected. An order past its due date with money still owed is flagged. The accountant sets each order's due date.",
-    priceHiddenNote:
-      "You cannot read selling prices, so the outstanding column is hidden — only collected amounts and due dates are shown.",
-    empty: "No priced orders inside your scope yet.",
-    codeColumn: "Code",
+      "Each invoice has its own due date: open = invoice amount minus the money applied to it (including the order's deposit). An overdue invoice with money still owed is flagged. Money a customer transferred without a target is an advance, shown in its own column and offset against the next invoice.",
+    outstandingTotal: "Total outstanding",
+    creditTotal: "Total customer advances",
+    overdueTotal: "Overdue invoices",
+    invoicesTitle: "By invoice",
+    emptyInvoices: "No invoices inside your scope yet.",
+    invoiceColumn: "Invoice",
+    orderColumn: "Order",
     customerColumn: "Customer",
-    priceColumn: "Price",
-    paidColumn: "Collected",
-    remainingColumn: "Outstanding",
     dueColumn: "Due date",
+    amountColumn: "Amount",
+    paidColumn: "Paid",
+    remainingColumn: "Open",
     statusColumn: "Status",
     overdue: "Overdue",
     settled: "Settled",
     open: "Open",
-    noDue: "Not set",
-    saveDue: "Save",
-    outstandingTotal: "Total outstanding",
-    byCustomerTitle: "Receivables by customer",
-    byCustomerCustomer: "Customer",
-    byCustomerRemaining: "Outstanding",
+    customersTitle: "By customer",
+    invoicedColumn: "Invoiced",
+    receivedColumn: "Received",
+    refundedColumn: "Refunded",
+    creditColumn: "Advance / credit",
+    balanceColumn: "Balance",
+    balanceHint: "Balance = outstanding minus advance. Negative means the customer is in advance.",
   },
 } as const;
 
@@ -97,86 +96,24 @@ export default async function FinanceReceivablesPage({
   const locale = resolveAdminLocale(requestedLocale);
   const text = copy[locale];
 
+  let scope;
   try {
-    await requireListAccess("receivables.read");
+    ({ scope } = await requireListAccess("receivables.read"));
   } catch (cause) {
     if (cause instanceof ContentAccessDeniedError) notFound();
     throw cause;
   }
 
-  const coverages = await resolvePermissionCoverages([
-    "orders.readSellingPrice",
-    "payments.record",
-  ] as const);
-  const priceVisible = coverages["orders.readSellingPrice"].global;
+  // Receivables are invoice amounts; without the invoice read there is
+  // nothing this page may show.
+  const coverages = await resolvePermissionCoverages(["invoices.read"] as const);
+  if (!coverages["invoices.read"].global) notFound();
 
-  let orders: OrderReadDto[] = [];
-  try {
-    const { scope } = await requireListAccess("orders.read");
-    orders = (await orderCommandService.list(scope, priceVisible)).filter(
-      (order) => order.stage !== "cancelled",
-    );
-  } catch (cause) {
-    if (!(cause instanceof ContentAccessDeniedError)) throw cause;
-  }
+  const report = await financeCommandService.receivables(scope);
 
-  const pricedOrders = priceVisible
-    ? orders.filter((order) => order.sellingPrice !== null)
-    : orders;
-  const paidByOrder = await financeCommandService.sumActiveByOrder(
-    pricedOrders.map((order) => order.id),
-    "receipt",
-  );
-
-  const now = new Date();
-  const dateFormat = new Intl.DateTimeFormat(locale, { dateStyle: "medium" });
-
-  type Row = {
-    order: OrderReadDto;
-    paid: readonly Money[];
-    remaining: Money | null;
-    overdue: boolean;
-  };
-
-  const rows: Row[] = pricedOrders.map((order) => {
-    const paid = paidByOrder.get(order.id) ?? [];
-    let remaining: Money | null = null;
-    if (order.sellingPrice) {
-      const paidSame =
-        paid.find((value) => value.currency === order.sellingPrice?.currency) ??
-        zero(order.sellingPrice.currency);
-      remaining = subtract(order.sellingPrice, paidSame);
-    }
-    const overdue =
-      remaining !== null &&
-      isPositive(remaining) &&
-      order.paymentDueAt !== null &&
-      order.paymentDueAt.getTime() < now.getTime();
-    return { order, paid, remaining, overdue };
-  });
-
-  const outstandingTotals = new Map<Currency, Money>();
-  for (const row of rows) {
-    if (!row.remaining || !isPositive(row.remaining)) continue;
-    const current = outstandingTotals.get(row.remaining.currency);
-    outstandingTotals.set(
-      row.remaining.currency,
-      current ? add(current, row.remaining) : row.remaining,
-    );
-  }
-
-  const byCustomer = new Map<string, Map<Currency, Money>>();
-  for (const row of rows) {
-    if (!row.remaining || !isPositive(row.remaining)) continue;
-    const totals =
-      byCustomer.get(row.order.customerName) ?? new Map<Currency, Money>();
-    const current = totals.get(row.remaining.currency);
-    totals.set(
-      row.remaining.currency,
-      current ? add(current, row.remaining) : row.remaining,
-    );
-    byCustomer.set(row.order.customerName, totals);
-  }
+  const thClass = "px-5 py-4 font-semibold";
+  const headClass =
+    "border-burgundy/12 text-charcoal/60 border-b text-xs tracking-[0.12em] uppercase";
 
   return (
     <div>
@@ -190,155 +127,127 @@ export default async function FinanceReceivablesPage({
 
       <OutcomeBanner locale={locale} error={error} notice={notice} />
 
-      {!priceVisible ? (
-        <p className="border-gold/45 bg-gold/10 text-charcoal/75 mt-8 max-w-3xl rounded-2xl border px-5 py-4 text-sm">
-          {text.priceHiddenNote}
-        </p>
-      ) : (
-        <p className="text-charcoal/60 mt-8 text-sm">
+      <div className="text-charcoal/60 mt-8 flex flex-wrap gap-x-10 gap-y-2 text-sm">
+        <p>
           {text.outstandingTotal}:{" "}
           <span className="text-lacquer font-mono font-semibold">
-            {formatTotals([...outstandingTotals.values()], locale)}
+            {formatTotals(report.totals.outstanding, locale)}
           </span>
         </p>
-      )}
+        <p>
+          {text.creditTotal}:{" "}
+          <span className="font-mono font-semibold text-emerald-700">
+            {formatTotals(report.totals.credit, locale)}
+          </span>
+        </p>
+        <p>
+          {text.overdueTotal}:{" "}
+          <span
+            className={`font-mono font-semibold ${
+              report.totals.overdueInvoiceCount > 0
+                ? "text-lacquer"
+                : "text-charcoal/70"
+            }`}
+          >
+            {report.totals.overdueInvoiceCount}
+          </span>
+        </p>
+      </div>
 
-      <section className="mt-8">
-        {rows.length === 0 ? (
-          <p className="border-burgundy/15 text-charcoal/60 max-w-3xl rounded-2xl border border-dashed px-6 py-12 text-center text-sm">
-            {text.empty}
+      <section className="mt-10">
+        <h2 className="text-burgundy font-serif text-3xl">{text.invoicesTitle}</h2>
+        {report.invoices.length === 0 ? (
+          <p className="border-burgundy/15 text-charcoal/60 mt-5 max-w-3xl rounded-2xl border border-dashed px-6 py-12 text-center text-sm">
+            {text.emptyInvoices}
           </p>
         ) : (
-          <div className="border-burgundy/15 overflow-x-auto rounded-2xl border bg-white shadow-[0_1rem_3rem_rgb(61_13_16/0.04)]">
-            <table className="w-full min-w-[60rem] border-collapse text-left text-sm">
-              <caption className="sr-only">{text.title}</caption>
+          <div className="border-burgundy/15 mt-5 overflow-x-auto rounded-2xl border bg-white shadow-[0_1rem_3rem_rgb(61_13_16/0.04)]">
+            <table className="w-full min-w-[64rem] border-collapse text-left text-sm">
+              <caption className="sr-only">{text.invoicesTitle}</caption>
               <thead>
-                <tr className="border-burgundy/12 text-charcoal/60 border-b text-xs tracking-[0.12em] uppercase">
-                  <th scope="col" className="px-5 py-4 font-semibold">
-                    {text.codeColumn}
-                  </th>
-                  <th scope="col" className="px-5 py-4 font-semibold">
-                    {text.customerColumn}
-                  </th>
-                  {priceVisible ? (
-                    <th scope="col" className="px-5 py-4 font-semibold">
-                      {text.priceColumn}
-                    </th>
-                  ) : null}
-                  <th scope="col" className="px-5 py-4 font-semibold">
-                    {text.paidColumn}
-                  </th>
-                  {priceVisible ? (
-                    <th scope="col" className="px-5 py-4 font-semibold">
-                      {text.remainingColumn}
-                    </th>
-                  ) : null}
-                  <th scope="col" className="px-5 py-4 font-semibold">
-                    {text.dueColumn}
-                  </th>
-                  <th scope="col" className="px-5 py-4 font-semibold">
-                    {text.statusColumn}
-                  </th>
+                <tr className={headClass}>
+                  <th scope="col" className={thClass}>{text.invoiceColumn}</th>
+                  <th scope="col" className={thClass}>{text.orderColumn}</th>
+                  <th scope="col" className={thClass}>{text.customerColumn}</th>
+                  <th scope="col" className={thClass}>{text.dueColumn}</th>
+                  <th scope="col" className={thClass}>{text.amountColumn}</th>
+                  <th scope="col" className={thClass}>{text.paidColumn}</th>
+                  <th scope="col" className={thClass}>{text.remainingColumn}</th>
+                  <th scope="col" className={thClass}>{text.statusColumn}</th>
                 </tr>
               </thead>
               <tbody>
-                {rows.map(({ order, paid, remaining, overdue }) => {
-                  const canSetDue =
-                    coverages["payments.record"].global ||
-                    coverageReaches(
-                      coverages["payments.record"],
-                      order.businessUnitIds,
-                    );
-                  const settled = remaining !== null && !isPositive(remaining);
+                {report.invoices.map((row) => {
+                  const settled = !isPositive(row.remaining);
+                  const paid = {
+                    amount: row.paid.amount,
+                    currency: row.paid.currency,
+                  };
                   return (
                     <tr
-                      key={order.id}
+                      key={row.invoice.id}
                       className={
-                        overdue
+                        row.overdue
                           ? "border-burgundy/8 bg-lacquer/5 border-b"
                           : "border-burgundy/8 border-b"
                       }
                     >
-                      <th
-                        scope="row"
-                        className="text-burgundy px-5 py-4 text-left font-mono text-xs font-semibold"
-                      >
-                        {order.orderCode}
+                      <th scope="row" className="px-5 py-4 text-left">
+                        <Link
+                          href={
+                            `/${locale}/admin/finance/invoices/${row.invoice.id}` as Route
+                          }
+                          className="text-burgundy font-mono text-xs font-semibold hover:underline"
+                        >
+                          {row.invoice.invoiceNumber}
+                        </Link>
                       </th>
+                      <td className="px-5 py-4 font-mono text-xs">
+                        <Link
+                          href={`/${locale}/admin/orders/${row.invoice.orderId}` as Route}
+                          className="hover:underline"
+                        >
+                          {row.invoice.orderCode}
+                        </Link>
+                      </td>
                       <td className="text-charcoal/75 px-5 py-4">
-                        {order.customerName}
-                      </td>
-                      {priceVisible ? (
-                        <td className="px-5 py-4 font-mono text-xs">
-                          {order.sellingPrice
-                            ? formatMoney(order.sellingPrice, locale)
-                            : "—"}
-                        </td>
-                      ) : null}
-                      <td className="px-5 py-4 font-mono text-xs text-emerald-700">
-                        {paid.length > 0 ? formatTotals(paid, locale) : "—"}
-                      </td>
-                      {priceVisible ? (
-                        <td className="px-5 py-4 font-mono text-xs font-semibold">
-                          {remaining ? (
-                            <span
-                              className={
-                                isPositive(remaining)
-                                  ? "text-lacquer"
-                                  : "text-emerald-700"
-                              }
-                            >
-                              {formatMoney(remaining, locale)}
-                            </span>
-                          ) : (
-                            "—"
-                          )}
-                        </td>
-                      ) : null}
-                      <td className="px-5 py-4 text-xs">
-                        {canSetDue ? (
-                          <form
-                            action={setPaymentDueAtAction}
-                            className="flex items-center gap-2"
+                        {row.invoice.customerId ? (
+                          <Link
+                            href={
+                              `/${locale}/admin/customers/${row.invoice.customerId}` as Route
+                            }
+                            className="hover:underline"
                           >
-                            <input type="hidden" name="locale" value={locale} />
-                            <input
-                              type="hidden"
-                              name="orderId"
-                              value={order.id}
-                            />
-                            <input
-                              type="hidden"
-                              name="expectedRevision"
-                              value={order.revision}
-                            />
-                            <input
-                              type="date"
-                              name="paymentDueAt"
-                              defaultValue={
-                                order.paymentDueAt
-                                  ? order.paymentDueAt
-                                      .toISOString()
-                                      .slice(0, 10)
-                                  : ""
-                              }
-                              className="border-burgundy/20 rounded-lg border bg-white px-2 py-1.5 text-xs"
-                            />
-                            <button
-                              type="submit"
-                              className="text-burgundy border-burgundy/25 hover:bg-ivory/70 rounded-full border px-3 py-1.5 text-xs font-semibold"
-                            >
-                              {text.saveDue}
-                            </button>
-                          </form>
-                        ) : order.paymentDueAt ? (
-                          dateFormat.format(order.paymentDueAt)
+                            {row.invoice.customerName}
+                          </Link>
                         ) : (
-                          <span className="text-charcoal/40">{text.noDue}</span>
+                          row.invoice.customerName
                         )}
                       </td>
+                      <td className="px-5 py-4 text-xs">
+                        {formatDate(row.invoice.dueAt, locale)}
+                      </td>
+                      <td className="px-5 py-4 font-mono text-xs">
+                        {formatMoney(row.invoice.amount, locale)}
+                      </td>
+                      <td className="px-5 py-4 font-mono text-xs text-emerald-700">
+                        {formatMoney(
+                          {
+                            amount: (
+                              Number(paid.amount) + Number(row.depositApplied.amount)
+                            ).toString(),
+                            currency: paid.currency,
+                          },
+                          locale,
+                        )}
+                      </td>
+                      <td className="px-5 py-4 font-mono text-xs font-semibold">
+                        <span className={settled ? "text-emerald-700" : "text-lacquer"}>
+                          {formatMoney(row.remaining, locale)}
+                        </span>
+                      </td>
                       <td className="px-5 py-4">
-                        {overdue ? (
+                        {row.overdue ? (
                           <span className="bg-lacquer/10 text-lacquer inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold">
                             {text.overdue}
                           </span>
@@ -361,35 +270,69 @@ export default async function FinanceReceivablesPage({
         )}
       </section>
 
-      {priceVisible && byCustomer.size > 0 ? (
-        <section className="mt-12 max-w-2xl">
-          <h2 className="text-burgundy font-serif text-3xl">
-            {text.byCustomerTitle}
-          </h2>
+      {report.customers.length > 0 ? (
+        <section className="mt-12">
+          <h2 className="text-burgundy font-serif text-3xl">{text.customersTitle}</h2>
+          <p className="text-charcoal/55 mt-2 text-sm">{text.balanceHint}</p>
           <div className="border-burgundy/15 mt-5 overflow-x-auto rounded-2xl border bg-white shadow-[0_1rem_3rem_rgb(61_13_16/0.04)]">
-            <table className="w-full border-collapse text-left text-sm">
-              <caption className="sr-only">{text.byCustomerTitle}</caption>
+            <table className="w-full min-w-[64rem] border-collapse text-left text-sm">
+              <caption className="sr-only">{text.customersTitle}</caption>
               <thead>
-                <tr className="border-burgundy/12 text-charcoal/60 border-b text-xs tracking-[0.12em] uppercase">
-                  <th scope="col" className="px-5 py-4 font-semibold">
-                    {text.byCustomerCustomer}
-                  </th>
-                  <th scope="col" className="px-5 py-4 font-semibold">
-                    {text.byCustomerRemaining}
-                  </th>
+                <tr className={headClass}>
+                  <th scope="col" className={thClass}>{text.customerColumn}</th>
+                  <th scope="col" className={thClass}>{text.invoicedColumn}</th>
+                  <th scope="col" className={thClass}>{text.receivedColumn}</th>
+                  <th scope="col" className={thClass}>{text.refundedColumn}</th>
+                  <th scope="col" className={thClass}>{text.remainingColumn}</th>
+                  <th scope="col" className={thClass}>{text.creditColumn}</th>
+                  <th scope="col" className={thClass}>{text.balanceColumn}</th>
                 </tr>
               </thead>
               <tbody>
-                {[...byCustomer.entries()].map(([customer, totals]) => (
-                  <tr key={customer} className="border-burgundy/8 border-b">
-                    <th
-                      scope="row"
-                      className="text-charcoal/80 px-5 py-4 text-left font-semibold"
-                    >
-                      {customer}
+                {report.customers.map((row) => (
+                  <tr
+                    key={`${row.customerKey}|${row.currency}`}
+                    className="border-burgundy/8 border-b"
+                  >
+                    <th scope="row" className="text-charcoal/80 px-5 py-4 text-left font-semibold">
+                      {row.customerId ? (
+                        <Link
+                          href={`/${locale}/admin/customers/${row.customerId}` as Route}
+                          className="hover:underline"
+                        >
+                          {row.customerName}
+                        </Link>
+                      ) : (
+                        row.customerName
+                      )}
+                      <span className="text-charcoal/45 ml-2 font-mono text-xs">
+                        {row.currency}
+                      </span>
                     </th>
+                    <td className="px-5 py-4 font-mono text-xs">
+                      {formatMoney(row.invoiced, locale)}
+                    </td>
+                    <td className="px-5 py-4 font-mono text-xs text-emerald-700">
+                      {formatMoney(row.received, locale)}
+                    </td>
+                    <td className="px-5 py-4 font-mono text-xs">
+                      {formatMoney(row.refunded, locale)}
+                    </td>
                     <td className="text-lacquer px-5 py-4 font-mono text-xs font-semibold">
-                      {formatTotals([...totals.values()], locale)}
+                      {formatMoney(row.outstanding, locale)}
+                      {row.overdueInvoiceCount > 0 ? (
+                        <span className="ml-2 text-[0.65rem] font-semibold uppercase">
+                          {text.overdue} ×{row.overdueInvoiceCount}
+                        </span>
+                      ) : null}
+                    </td>
+                    <td className="px-5 py-4 font-mono text-xs font-semibold text-emerald-700">
+                      {formatMoney(row.credit, locale)}
+                    </td>
+                    <td className="px-5 py-4 font-mono text-xs font-semibold">
+                      <span className={isPositive(row.balance) ? "text-lacquer" : "text-emerald-700"}>
+                        {formatMoney(row.balance, locale)}
+                      </span>
                     </td>
                   </tr>
                 ))}

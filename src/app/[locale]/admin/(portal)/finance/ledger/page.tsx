@@ -1,7 +1,9 @@
 import { notFound } from "next/navigation";
 
+import { orderCostCategories } from "@/domains/finance/contracts";
 import { financeCommandService } from "@/domains/finance/runtime";
 import { orderCommandService } from "@/domains/orders/runtime";
+import { supplierCommandService } from "@/domains/suppliers/runtime";
 import {
   ContentAccessDeniedError,
   coverageReaches,
@@ -11,7 +13,7 @@ import {
 import { isLocale } from "@/lib/i18n/config";
 import { resolveAdminLocale } from "@/lib/i18n/admin";
 
-import { FinanceEntryForm } from "../entry-form";
+import { FinanceEntryForm, type EntryFormOption } from "../entry-form";
 import {
   EntryTable,
   formatTotals,
@@ -26,8 +28,8 @@ const copy = {
     eyebrow: "Tài chính",
     title: "Sổ thu – chi",
     description:
-      "Toàn bộ dòng tiền vào và ra, kể cả các khoản không gắn đơn hàng. Mỗi phiếu ghi rõ người nhập; phiếu sai được hủy kèm lý do và giữ nguyên trong sổ.",
-    formTitle: "Ghi phiếu thu / chi",
+      "Toàn bộ dòng tiền vào và ra. Tiền khách trả ghi ở trang «Tiền khách trả»; ở đây ghi các khoản thu khác và chi phí. Mỗi phiếu ghi rõ người nhập; phiếu sai được hủy kèm lý do và giữ nguyên trong sổ.",
+    formTitle: "Ghi phiếu thu khác / phiếu chi",
     inTotal: "Tổng thu",
     outTotal: "Tổng chi",
   },
@@ -35,8 +37,8 @@ const copy = {
     eyebrow: "Finance",
     title: "Cash ledger",
     description:
-      "Every movement of money, including entries not linked to an order. Each entry records who entered it; mistakes are voided with a reason and stay in the book.",
-    formTitle: "Record an entry",
+      "Every movement of money. Customer payments are recorded on the payments page; other income and costs are recorded here. Each entry records who entered it; mistakes are voided with a reason and stay in the book.",
+    formTitle: "Record other income / a cost",
     inTotal: "Total in",
     outTotal: "Total out",
   },
@@ -71,40 +73,44 @@ export default async function FinanceLedgerPage({
     "expenses.create",
     "expenses.reverse",
   ] as const);
-  // The form offers only the categories this session can actually record:
-  // receipts need payments.record, expense entries need expenses.create.
   const holds = (coverage: {
     global: boolean;
     businessUnitIds: readonly string[];
   }) => coverage.global || coverage.businessUnitIds.length > 0;
+  // Only the categories this session can actually record: other income needs
+  // payments.record, costs need expenses.create. Customer payments and
+  // refunds have their own screens because they are tied to a customer.
   const recordableCategories = [
-    ...(holds(coverages["payments.record"])
-      ? (["orderPayment", "otherIncome"] as const)
-      : []),
+    ...(holds(coverages["payments.record"]) ? (["otherIncome"] as const) : []),
     ...(holds(coverages["expenses.create"])
-      ? ([
-          "materials",
-          "labor",
-          "outsourcing",
-          "shipping",
-          "packaging",
-          "generalCost",
-        ] as const)
+      ? ([...orderCostCategories, "generalCost"] as const)
       : []),
   ];
   const canRecord = recordableCategories.length > 0;
 
   const entries = await financeCommandService.list({ scope });
 
-  let orders: Awaited<ReturnType<typeof orderCommandService.list>> = [];
+  let orders: EntryFormOption[] = [];
+  let suppliers: EntryFormOption[] = [];
   if (canRecord) {
     try {
       const { scope: orderScope } = await requireListAccess("orders.read");
-      orders = (await orderCommandService.list(orderScope, false)).filter(
-        (order) => order.stage !== "cancelled",
-      );
+      orders = (await orderCommandService.list(orderScope, false))
+        .filter((order) => order.stage !== "cancelled")
+        .map((order) => ({
+          value: order.id,
+          label: `${order.orderCode} · ${order.customerName}`,
+        }));
     } catch (cause) {
       if (!(cause instanceof ContentAccessDeniedError)) throw cause;
+    }
+    if (holds(coverages["expenses.create"])) {
+      suppliers = (await supplierCommandService.list({ status: "active" })).map(
+        (supplier) => ({
+          value: supplier.id,
+          label: supplier.code ? `${supplier.name} (${supplier.code})` : supplier.name,
+        }),
+      );
     }
   }
 
@@ -150,7 +156,8 @@ export default async function FinanceLedgerPage({
             returnTo="ledger"
             categories={recordableCategories}
             orders={orders}
-            orderRequired={false}
+            suppliers={suppliers}
+            showCounterparty
           />
         </div>
       ) : null}
@@ -161,6 +168,7 @@ export default async function FinanceLedgerPage({
           entries={entries}
           returnTo="ledger"
           showKind
+          showAllocation
           canVoid={(entry) => {
             const coverage =
               entry.kind === "receipt"

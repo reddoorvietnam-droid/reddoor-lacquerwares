@@ -76,7 +76,7 @@ export async function createOrderAction(formData: FormData): Promise<void> {
     });
     const record = await orderCommandService.create(context, {
       ...(orderCode ? { orderCode } : {}),
-      customerName: String(formData.get("customerName") ?? ""),
+      customerId: String(formData.get("customerId") ?? ""),
       businessUnitIds,
       sellingPrice: amount ? { amount, currency } : null,
       notes: notes || null,
@@ -186,6 +186,81 @@ export async function setSellingPriceAction(formData: FormData): Promise<void> {
   }
 
   backToOrder(locale, orderId, code ? { error: code } : { notice: "priceSet" });
+}
+
+/** Expected ready date and carrier booking, kept by the Company Accountant. */
+export async function setExportProgressAction(
+  formData: FormData,
+): Promise<void> {
+  const locale = localeSchema.parse(formData.get("locale"));
+  const orderId = idSchema.parse(formData.get("orderId"));
+
+  let code: string | null = null;
+
+  try {
+    const order = await orderCommandService.findForAuthorization(orderId);
+    if (!order) backToList(locale, "NOT_FOUND");
+
+    const context = await requirePermission("orders.updateExportProgress", {
+      resourceId: order.id,
+      businessUnitIds: order.businessUnitIds,
+    });
+
+    await orderCommandService.setExportProgress(context, {
+      orderId,
+      expectedRevision: String(formData.get("expectedRevision") ?? ""),
+      expectedReadyAt: String(formData.get("expectedReadyAt") ?? "").trim(),
+      bookingNumber: String(formData.get("bookingNumber") ?? ""),
+      bookingDate: String(formData.get("bookingDate") ?? "").trim(),
+    });
+  } catch (error) {
+    unstable_rethrow(error);
+    code = errorCode(error);
+  }
+
+  backToOrder(
+    locale,
+    orderId,
+    code ? { error: code } : { notice: "exportSaved" },
+  );
+}
+
+export async function removePaymentDocumentAction(
+  formData: FormData,
+): Promise<void> {
+  const locale = localeSchema.parse(formData.get("locale"));
+  const orderId = idSchema.parse(formData.get("orderId"));
+
+  let code: string | null = null;
+
+  try {
+    const order = await orderCommandService.findForAuthorization(orderId);
+    if (!order) backToList(locale, "NOT_FOUND");
+
+    const context = await requirePermission("payments.record", {
+      resourceId: order.id,
+      businessUnitIds: order.businessUnitIds,
+    });
+
+    await orderCommandService.removePaymentDocument(context, {
+      orderId,
+      expectedRevision: z.coerce
+        .number()
+        .int()
+        .min(0)
+        .parse(formData.get("expectedRevision")),
+      documentId: idSchema.parse(formData.get("documentId")),
+    });
+  } catch (error) {
+    unstable_rethrow(error);
+    code = errorCode(error);
+  }
+
+  backToOrder(
+    locale,
+    orderId,
+    code ? { error: code } : { notice: "documentRemoved" },
+  );
 }
 
 export async function requestStageApprovalAction(

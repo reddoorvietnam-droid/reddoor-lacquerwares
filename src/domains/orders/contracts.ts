@@ -9,6 +9,11 @@ import { supportedCurrencies, type Currency } from "@/lib/money";
  * The selling price is carried separately from the rest of the record and is
  * stripped by the service unless the reader holds `orders.readSellingPrice` —
  * a resource read never implies the commercial fields (RBAC rule 1).
+ *
+ * Every order points at a customer record (`customerId`) and keeps the
+ * customer's name as a snapshot so lists render without a join. Orders
+ * recorded before the customer list existed carry a null `customerId`; the
+ * receivables view groups those by name.
  */
 
 export type OrderSellingPrice = {
@@ -24,16 +29,35 @@ export type OrderStageHistoryEntry = {
   at: Date;
 };
 
+/** A payment document (bank advice, remittance, L/C copy) stored at Cloudinary. */
+export type OrderPaymentDocument = {
+  id: string;
+  publicId: string;
+  assetVersion: number;
+  /** Provider format such as `pdf`, `jpg`, `png`. */
+  format: string;
+  bytes: number;
+  label: string;
+  uploadedBy: string;
+  uploadedAt: Date;
+};
+
 export type OrderRecordDto = {
   id: string;
   orderCode: string;
+  customerId: string | null;
   customerName: string;
   businessUnitIds: readonly string[];
   stage: OrderStage;
   qcPassed: boolean;
   sellingPrice: OrderSellingPrice | null;
-  /** When the customer's payment falls due; drives the overdue receivables view. */
-  paymentDueAt: Date | null;
+  /** Export progress the Company Accountant keeps: when the goods are expected to be ready. */
+  expectedReadyAt: Date | null;
+  /** Booking reference with the forwarder or carrier. */
+  bookingNumber: string | null;
+  /** Booking / loading date agreed with the carrier. */
+  bookingDate: Date | null;
+  paymentDocuments: readonly OrderPaymentDocument[];
   notes: string | null;
   stageHistory: readonly OrderStageHistoryEntry[];
   createdBy: string;
@@ -56,6 +80,7 @@ export type OrderListFilter =
 
 export type NewOrderRecord = {
   orderCode: string;
+  customerId: string;
   customerName: string;
   businessUnitIds: readonly string[];
   sellingPrice: OrderSellingPrice | null;
@@ -72,10 +97,22 @@ export type OrderTransitionWrite = {
   updatedBy: string;
 };
 
+export type OrderExportProgressWrite = {
+  orderId: string;
+  expectedRevision: number;
+  expectedReadyAt: Date | null;
+  bookingNumber: string | null;
+  bookingDate: Date | null;
+  updatedBy: string;
+};
+
+export type NewOrderPaymentDocument = Omit<OrderPaymentDocument, "id">;
+
 export interface OrderStore {
   insert(record: NewOrderRecord): Promise<OrderRecordDto>;
   findById(orderId: string): Promise<OrderRecordDto | null>;
   list(filter: OrderListFilter): Promise<OrderRecordDto[]>;
+  listByCustomer(customerId: string): Promise<OrderRecordDto[]>;
   /** Conditional on the revision; null means the record moved on. */
   applyTransition(input: OrderTransitionWrite): Promise<OrderRecordDto | null>;
   /** Conditional on the revision; null means the record moved on. */
@@ -92,16 +129,29 @@ export interface OrderStore {
     updatedBy: string;
   }): Promise<OrderRecordDto | null>;
   /** Conditional on the revision; null means the record moved on. */
-  setPaymentDueAt(input: {
+  setExportProgress(
+    input: OrderExportProgressWrite,
+  ): Promise<OrderRecordDto | null>;
+  /** Conditional on the revision; null means the record moved on. */
+  addPaymentDocument(input: {
     orderId: string;
     expectedRevision: number;
-    paymentDueAt: Date | null;
+    document: NewOrderPaymentDocument;
+    updatedBy: string;
+  }): Promise<OrderRecordDto | null>;
+  /** Conditional on the revision; null means the record moved on. */
+  removePaymentDocument(input: {
+    orderId: string;
+    expectedRevision: number;
+    documentId: string;
     updatedBy: string;
   }): Promise<OrderRecordDto | null>;
 }
 
 export const orderCommandErrorCodes = [
   "NOT_FOUND",
+  "CUSTOMER_NOT_FOUND",
+  "CUSTOMER_ARCHIVED",
   "DUPLICATE_ORDER_CODE",
   "REVISION_CONFLICT",
   "STAGE_MISMATCH",
@@ -134,7 +184,7 @@ export const createOrderInputSchema = z.object({
     .regex(/^[A-Z0-9]+(?:-[A-Z0-9]+)*$/)
     .max(40)
     .optional(),
-  customerName: z.string().trim().min(1).max(240),
+  customerId: objectIdSchema,
   businessUnitIds: z.array(objectIdSchema).min(1).max(20),
   sellingPrice: z
     .object({
@@ -156,6 +206,50 @@ export const transitionOrderInputSchema = z.object({
 });
 
 export type TransitionOrderInput = z.infer<typeof transitionOrderInputSchema>;
+
+/** A blank date field means "not set"; anything else must parse as a date. */
+const optionalDate = z
+  .union([z.literal(""), z.coerce.date()])
+  .nullable()
+  .default(null)
+  .transform((value) => (value instanceof Date ? value : null));
+
+export const exportProgressInputSchema = z.object({
+  orderId: objectIdSchema,
+  expectedRevision: z.coerce.number().int().min(0),
+  expectedReadyAt: optionalDate,
+  bookingNumber: z
+    .string()
+    .trim()
+    .max(120)
+    .nullable()
+    .default(null)
+    .transform((value) => (value && value.length > 0 ? value : null)),
+  bookingDate: optionalDate,
+});
+
+export type ExportProgressInput = z.infer<typeof exportProgressInputSchema>;
+
+export const paymentDocumentInputSchema = z.object({
+  orderId: objectIdSchema,
+  expectedRevision: z.coerce.number().int().min(0),
+  publicId: z
+    .string()
+    .trim()
+    .min(1)
+    .max(500)
+    .regex(/^[A-Za-z0-9._\-/]+$/),
+  assetVersion: z.coerce.number().int().min(1),
+  format: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .regex(/^[a-z0-9]{1,10}$/),
+  bytes: z.coerce.number().int().min(1),
+  label: z.string().trim().min(1).max(200),
+});
+
+export type PaymentDocumentInput = z.infer<typeof paymentDocumentInputSchema>;
 
 /* ------------------------------------------------------------------ */
 /* Pure helpers                                                        */

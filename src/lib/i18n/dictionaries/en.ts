@@ -33,6 +33,7 @@ const dictionary = {
     collections: "Collections",
     process: "Lacquer process",
     news: "News",
+    shop: "Shop",
     contact: "Contact",
   },
   home: {
@@ -72,6 +73,9 @@ const dictionary = {
     contactTitle: "Contact and quote request",
     contactIntro:
       "Contact Red Door for a catalogue, a quotation or a conversation about a custom order. We work directly with retailers, designers and brands worldwide.",
+    shopTitle: "Shop",
+    shopIntro:
+      "Lacquerware ready at the workshop, available to order directly. We confirm each order and quote the shipping cost before dispatch.",
     searchTitle: "Search",
     privacyTitle: "Privacy policy",
     termsTitle: "Terms of use",
@@ -184,6 +188,40 @@ const dictionary = {
     shareFacebook: "Share on Facebook",
     shareLinkedIn: "Share on LinkedIn",
     shareEmail: "Share by email",
+  },
+  shop: {
+    heroEyebrow: "Red Door shop",
+    emptyTitle: "The shop is being prepared",
+    emptyDescription:
+      "No items are on sale yet. Please check back soon or contact us for a quote.",
+    inStock: "In stock",
+    soldOut: "Sold out",
+    price: "Price",
+    quantity: "Quantity",
+    viewItem: "View item",
+    backToShop: "Back to shop",
+    orderTitle: "Place an order",
+    orderDescription:
+      "Fill in your details and we will contact you by phone or email to confirm the order.",
+    shippingNote:
+      "Prices exclude shipping. The Director will agree the shipping cost with you before dispatch.",
+    fullName: "Full name",
+    phone: "Phone number",
+    email: "Email",
+    address: "Delivery address",
+    note: "Note (optional)",
+    submit: "Send order",
+    submitting: "Sending…",
+    successTitle: "We have received your order",
+    successDescription:
+      "Thank you. A confirmation email is on its way and we will be in touch shortly about shipping.",
+    orderCode: "Order code",
+    errorSoldOut: "This item has just sold out.",
+    errorInsufficientStock: "The quantity exceeds the stock available.",
+    errorRateLimited: "Too many attempts. Please try again in a few minutes.",
+    errorInvalid: "Please check the required fields.",
+    errorUnavailable:
+      "The order could not be sent right now. Please try again or contact us directly.",
   },
   contact: {
     fullName: "Full name",
