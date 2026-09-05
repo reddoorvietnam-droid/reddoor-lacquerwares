@@ -116,6 +116,12 @@ export async function AdminShell({
           anyOf: ["shopOrders.read"],
         },
         {
+          // Website quote requests: the Director's inbox, nobody else's.
+          href: `${basePath}/quote-requests` as Route,
+          label: copy.navigation.quoteRequests,
+          anyOf: ["quoteRequests.read"],
+        },
+        {
           href: `${basePath}/settings` as Route,
           label: copy.navigation.settings,
           anyOf: ["settings.read"],

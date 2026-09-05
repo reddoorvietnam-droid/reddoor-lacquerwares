@@ -13,6 +13,7 @@ import type {
 import { localePath, type Locale } from "@/lib/i18n/config";
 import type { PublicDictionary } from "@/lib/i18n/dictionary";
 import { formatMoney } from "@/lib/money";
+import { pageHeroMedia } from "@/lib/public/demo-page-data";
 import {
   getPublicContentRepository,
   getPublicShopRepository,
@@ -72,6 +73,7 @@ export async function getShopListingPageData(
   return {
     contentIsDemo: content.isDemo,
     heroEyebrow: dictionary.shop.heroEyebrow,
+    heroMedia: pageHeroMedia(dictionary.shop.heroEyebrow),
     items: items
       .filter((item) => isSafeSeoSlug(item.slug))
       .map((item) => toCard(locale, item)),

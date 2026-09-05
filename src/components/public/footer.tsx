@@ -103,11 +103,10 @@ export function PublicFooter({
   return (
     <footer
       className={cn(
-        "bg-burgundy text-ivory relative isolate overflow-hidden",
+        "bg-burgundy text-ivory border-gold/40 border-t",
         className,
       )}
     >
-      <div className="lacquer-grain" aria-hidden="true" />
       <Container size="wide" className="relative py-14 sm:py-18 lg:py-22">
         <div className="grid gap-12 border-b border-white/12 pb-12 md:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1fr]">
           <div className="max-w-sm">

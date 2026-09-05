@@ -81,7 +81,7 @@ export type DemoSearchQuery = {
   scope: string;
 };
 
-function pageHeroMedia(alt: string): PublicPageMedia {
+export function pageHeroMedia(alt: string): PublicPageMedia {
   return {
     id: "shared-page-hero",
     src: "/nen_about_us_rd.jpg",
@@ -256,7 +256,8 @@ function formatDimensions(
   return `${dimensions.width} × ${dimensions.height} × ${dimensions.depth} ${dimensions.unit}`;
 }
 
-const DEMO_PRODUCT_PAGE_SIZE = 3;
+/** Three rows of the four-column product grid. */
+const DEMO_PRODUCT_PAGE_SIZE = 12;
 const DEMO_PRODUCT_SORT_VALUES = [
   "default",
   "featured",
@@ -396,6 +397,8 @@ export async function getDemoProductListingPageData(
   locale: Locale,
   dictionary: PublicDictionary,
   options: DemoProductListingQuery,
+  // Overridable so pagination can be exercised against the small demo catalogue.
+  { pageSize = DEMO_PRODUCT_PAGE_SIZE }: { pageSize?: number } = {},
 ): Promise<ProductListingPageData> {
   const [content, allProducts, collections] = await Promise.all([
     contentRepository.getSnapshot(locale),
@@ -482,16 +485,10 @@ export async function getDemoProductListingPageData(
     }
     return left.sortOrder - right.sortOrder;
   });
-  const pageCount = Math.max(
-    1,
-    Math.ceil(sortedProducts.length / DEMO_PRODUCT_PAGE_SIZE),
-  );
+  const pageCount = Math.max(1, Math.ceil(sortedProducts.length / pageSize));
   const currentPage = productPage(options.page, pageCount);
-  const pageStart = (currentPage - 1) * DEMO_PRODUCT_PAGE_SIZE;
-  const pageProducts = sortedProducts.slice(
-    pageStart,
-    pageStart + DEMO_PRODUCT_PAGE_SIZE,
-  );
+  const pageStart = (currentPage - 1) * pageSize;
+  const pageProducts = sortedProducts.slice(pageStart, pageStart + pageSize);
   const hasFilters = Boolean(
     query ||
     category ||
@@ -708,7 +705,7 @@ export async function getDemoProductDetailPageData(
     name: product.name,
     primaryActions: [
       {
-        href: `${localePath(locale, "/contact")}#request-quote`,
+        href: `${localePath(locale, "/contact")}?product=${encodeURIComponent(product.id)}#request-quote`,
         label: dictionary.common.requestQuote,
       },
     ],
@@ -999,14 +996,6 @@ export async function getDemoContactRequestQuotePageData(
     productRepository.list(locale),
   ]);
   const contact = content.settings.contact;
-  const regionNames = new Intl.DisplayNames([locale], { type: "region" });
-  const collator = new Intl.Collator(locale);
-  const countryOptions = ["VN", "CN", "JP", "FR", "DE"]
-    .map((countryCode) => ({
-      value: countryCode,
-      label: regionNames.of(countryCode) ?? countryCode,
-    }))
-    .sort((left, right) => collator.compare(left.label, right.label));
   const contactPoints = [
     ...(contact.email
       ? [
@@ -1081,8 +1070,6 @@ export async function getDemoContactRequestQuotePageData(
 
   return {
     contentIsDemo: content.isDemo,
-    acceptedAttachmentTypes: ".pdf,.jpg,.jpeg,.png,.webp",
-    attachmentHelp: dictionary.contact.attachmentHelp,
     consentDescription: dictionary.contact.consentHelp,
     consentLink: {
       href: localePath(locale, "/privacy"),
@@ -1094,22 +1081,13 @@ export async function getDemoContactRequestQuotePageData(
     contactEyebrow: content.company.eyebrow,
     contactPoints,
     contactTitle: dictionary.pages.contactTitle,
-    countryOptions: [
-      ...countryOptions,
-      { value: "OTHER", label: dictionary.contact.countryOther },
-    ],
-    deadlineHelp: dictionary.contact.deadlineHelp,
     formDescription: dictionary.home.contactBody,
     formEyebrow: dictionary.common.requestQuote,
     formTitle: dictionary.home.contactTitle,
     heroEyebrow: content.company.eyebrow,
     heroMedia: pageHeroMedia(content.company.eyebrow),
-    interestOptions: products.map((product) => ({
-      value: product.id,
-      label: product.name,
-    })),
+    locale,
     map: {
-      description: dictionary.contact.mapDescription,
       // `hl` follows the visitor's locale so the map's own labels match the
       // surrounding page rather than defaulting to the pasted URL's language.
       embedUrl: contact.mapEmbedUrl
@@ -1117,13 +1095,13 @@ export async function getDemoContactRequestQuotePageData(
         : null,
       placeUrl: contact.mapUrl,
       placeLinkLabel: dictionary.contact.openInMaps,
-      loadLabel: dictionary.contact.loadMap,
       title: dictionary.contact.mapTitle,
       unavailableDescription: dictionary.contact.mapUnavailable,
     },
-    quantityPlaceholder: dictionary.contact.quantity,
-    submissionUnavailableDescription: dictionary.contact.formNotice,
-    submissionUnavailableTitle: dictionary.contact.formNoticeTitle,
+    productOptions: products.map((product) => ({
+      id: product.id,
+      name: product.name,
+    })),
   };
 }
 

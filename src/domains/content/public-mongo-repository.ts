@@ -210,7 +210,6 @@ async function getSettings(locale: Locale): Promise<PublicSiteSettings> {
         : null,
     },
     socialLinks,
-    quoteSubmissionEnabled: false,
   };
 }
 

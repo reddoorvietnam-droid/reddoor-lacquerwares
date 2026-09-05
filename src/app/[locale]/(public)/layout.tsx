@@ -36,6 +36,21 @@ export default async function PublicLayout({
     getDictionary(locale),
     contentRepository.getSnapshot(locale),
   ]);
+  const contact = content.settings.contact;
+  const addressLines = contact.address ? [contact.address] : [];
+  const contactLinks = [
+    ...(contact.email
+      ? [{ label: contact.email, href: `mailto:${contact.email}` }]
+      : []),
+    ...(contact.phone
+      ? [
+          {
+            label: contact.phone,
+            href: `tel:${contact.phone.replace(/s+/g, "")}`,
+          },
+        ]
+      : []),
+  ];
   const socialLinks = content.settings.socialLinks.flatMap((link) =>
     link.href ? [{ label: link.label, href: link.href, external: true }] : [],
   );
@@ -65,6 +80,8 @@ export default async function PublicLayout({
         dictionary={dictionary}
         brandName={BRAND_NAME}
         brandDescriptor={BRAND_DESCRIPTOR}
+        addressLines={addressLines}
+        contactLinks={contactLinks}
         socialLinks={socialLinks}
       />
     </>

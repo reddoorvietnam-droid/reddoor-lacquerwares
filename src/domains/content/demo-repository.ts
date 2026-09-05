@@ -690,9 +690,6 @@ function makeSnapshot(locale: Locale): PublicContentSnapshot {
       isDemo: false,
     },
     socialLinks: makeSocialLinks(),
-    // Persistence for quote submissions belongs to a later phase; the form
-    // stays visibly disabled rather than silently dropping an enquiry.
-    quoteSubmissionEnabled: false,
   };
 
   return deepFreeze({

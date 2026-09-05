@@ -106,13 +106,13 @@ export function ProductCard({
       <a href={product.href} className="block overflow-hidden">
         <MediaFrame
           media={product.media}
-          sizes="(min-width: 1280px) 30vw, (min-width: 768px) 50vw, 100vw"
-          className="aspect-4/5 rounded-none border-0"
+          sizes="(min-width: 1280px) 22vw, (min-width: 1024px) 30vw, (min-width: 640px) 50vw, 100vw"
+          className="aspect-square rounded-none border-0"
         />
       </a>
-      <div className="p-6 sm:p-7">
+      <div className="p-5">
         <div className="flex flex-wrap items-center gap-2">
-          <p className="text-gold-ink text-xs font-semibold tracking-[0.14em] uppercase">
+          <p className="text-gold-ink text-[0.68rem] font-semibold tracking-[0.14em] uppercase">
             {product.categoryLabel}
           </p>
           {product.statusLabel ? (
@@ -121,25 +121,25 @@ export function ProductCard({
             </span>
           ) : null}
         </div>
-        <Heading className="text-burgundy mt-3 font-serif text-2xl leading-tight tracking-[-0.02em]">
+        <Heading className="text-burgundy mt-2.5 font-serif text-xl leading-tight tracking-[-0.02em]">
           <a href={product.href} className="hover:text-lacquer">
             {product.name}
           </a>
         </Heading>
-        <p className="text-charcoal/62 mt-3 line-clamp-3 leading-7">
+        <p className="text-charcoal/62 mt-2.5 line-clamp-2 text-sm leading-6">
           {product.excerpt}
         </p>
         {product.materialLabel ? (
-          <p className="text-charcoal/64 mt-4 text-xs tracking-[0.1em] uppercase">
+          <p className="text-charcoal/64 mt-3 text-[0.68rem] tracking-[0.1em] uppercase">
             {dictionary.product.material}: {product.materialLabel}
           </p>
         ) : null}
         {product.badges.length > 0 ? (
-          <ul className="mt-5 flex flex-wrap gap-2" aria-label={product.name}>
+          <ul className="mt-3 flex flex-wrap gap-1.5" aria-label={product.name}>
             {product.badges.map((badge) => (
               <li
                 key={badge}
-                className="border-burgundy/12 text-charcoal/64 rounded-full border px-3 py-1 text-xs"
+                className="border-burgundy/12 text-charcoal/64 rounded-full border px-2.5 py-0.5 text-[0.7rem]"
               >
                 {badge}
               </li>
@@ -148,7 +148,7 @@ export function ProductCard({
         ) : null}
         <a
           href={product.href}
-          className="text-burgundy hover:text-lacquer mt-6 inline-flex min-h-11 items-center gap-2 text-sm font-semibold"
+          className="text-burgundy hover:text-lacquer mt-4 inline-flex min-h-10 items-center gap-2 text-sm font-semibold"
         >
           {dictionary.common.explore}
           <span aria-hidden="true">→</span>
@@ -312,7 +312,7 @@ export function ProductListingPage({
         </div>
 
         {data.products.length > 0 ? (
-          <div className="mt-8 grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {data.products.map((product) => (
               <ProductCard
                 key={product.id}

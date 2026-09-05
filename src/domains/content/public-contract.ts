@@ -104,8 +104,6 @@ export interface PublicSiteSettings {
   readonly defaultLocale: Locale;
   readonly contact: PublicContactDetails;
   readonly socialLinks: readonly PublicSocialLink[];
-  /** Still false: submission persistence belongs to a later phase. */
-  readonly quoteSubmissionEnabled: boolean;
 }
 
 export interface PublicContentSnapshot {

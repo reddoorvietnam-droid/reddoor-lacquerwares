@@ -25,6 +25,7 @@ export interface ShopItemCardView {
 export interface ShopListingPageData {
   contentIsDemo: boolean;
   heroEyebrow: string;
+  heroMedia: PublicPageMedia | null;
   items: readonly ShopItemCardView[];
 }
 
@@ -99,7 +100,7 @@ export function ShopListingPage({
         eyebrow={data.heroEyebrow}
         title={dictionary.pages.shopTitle}
         intro={dictionary.pages.shopIntro}
-        media={null}
+        media={data.heroMedia}
       />
 
       <section className="mx-auto max-w-7xl px-[var(--space-page)] py-16 lg:py-24">

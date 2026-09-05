@@ -22,6 +22,7 @@ type AdminCopy = {
     collections: string;
     shop: string;
     shopOrders: string;
+    quoteRequests: string;
     settings: string;
     financeGroup: string;
     financeOverview: string;
@@ -244,6 +245,7 @@ const adminDictionaries = {
       collections: "Bộ sưu tập",
       shop: "Cửa hàng",
       shopOrders: "Đơn cửa hàng",
+      quoteRequests: "Yêu cầu báo giá",
       settings: "Thiết lập",
       financeGroup: "Tài chính",
       financeOverview: "Tổng quan tài chính",
@@ -515,6 +517,7 @@ const adminDictionaries = {
       collections: "Collections",
       shop: "Shop",
       shopOrders: "Shop orders",
+      quoteRequests: "Quote requests",
       settings: "Settings",
       financeGroup: "Finance",
       financeOverview: "Finance overview",

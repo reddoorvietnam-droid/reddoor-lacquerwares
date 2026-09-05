@@ -26,6 +26,16 @@ import { VideoEmbed } from "./video-embed";
  */
 const CRAFT_VIDEO_ID = "dg0B-xHWYj0";
 
+/**
+ * Photograph behind the closing plate: the workshop's red door. The page
+ * opens inside the workshop and ends at its door, beside the address. Swap
+ * the path here to change the picture; nothing else references it.
+ */
+const CLOSING_IMAGE = "/about-us/red_door.jpg";
+
+/** Lacquer texture behind the dark middle movement; the process page uses the same file. */
+const LACQUER_TEXTURE = "/lacquer-process/nen.jpg";
+
 type HomePageProps = {
   locale: Locale;
   dictionary: PublicDictionary;
@@ -53,7 +63,7 @@ export function HomePage({
         place ("/hinh_nen_rd.jpg") so it can be swapped later without touching
         any layout code.
       */}
-      <section className="relative isolate flex h-svh min-h-[36rem] max-h-[64rem] items-center overflow-hidden">
+      <section className="relative isolate flex h-svh max-h-[64rem] min-h-[36rem] items-center overflow-hidden">
         {/* Background photograph — swap src to change the image */}
         <Image
           src="/hinh_nen_rd1.jpg"
@@ -79,7 +89,7 @@ export function HomePage({
         <Container className="relative z-[2]">
           <div className="max-w-[54%] min-w-[22rem]">
             <MotionReveal distance={18}>
-              <p className="text-[0.72rem] font-semibold tracking-[0.2em] uppercase text-[#5a3a2a]">
+              <p className="text-[0.72rem] font-semibold tracking-[0.2em] text-[#5a3a2a] uppercase">
                 {home.eyebrow}
               </p>
             </MotionReveal>
@@ -158,7 +168,7 @@ export function HomePage({
         </Container>
       </section>
 
-      <section className="bg-ivory py-20 sm:py-28 lg:py-36">
+      <section className="bg-ivory pb-20 sm:pb-28 lg:pb-36">
         <Container>
           <MotionRule className="mb-16 lg:mb-24" />
           <SectionHeading
@@ -189,7 +199,7 @@ export function HomePage({
         </Container>
       </section>
 
-      <section className="bg-ivory py-20 sm:py-28 lg:py-36">
+      <section className="bg-ivory pb-20 sm:pb-28 lg:pb-36">
         <Container>
           <MotionRule className="mb-16 lg:mb-24" />
           <div className="flex flex-col gap-8 sm:flex-row sm:items-end sm:justify-between">
@@ -246,12 +256,25 @@ export function HomePage({
       </section>
 
       {/*
-        One dark movement, not two. The collections and the workshop film share
-        a single section: giving each its own dark section would restart the
-        vertical gradient at the join and draw back the very seam this layout
-        is built to remove.
+        One dark movement, not two: the collections and the workshop film share
+        a single section on the same lacquer texture the process page uses,
+        meeting the ivory above and below with hard edges. The texture is
+        pinned to the viewport so the tall section never stretches it.
       */}
-      <section className="surface-deep seam-top seam-bottom text-ivory relative overflow-hidden py-20 sm:py-28 lg:py-36">
+      <section className="bg-burgundy text-ivory relative isolate py-20 sm:py-28 lg:py-36">
+        <div className="absolute inset-0 -z-10" aria-hidden="true">
+          <div className="sticky top-0 h-screen w-full">
+            <div className="relative h-full w-full">
+              <Image
+                src={LACQUER_TEXTURE}
+                alt=""
+                fill
+                sizes="100vw"
+                className="object-cover object-center"
+              />
+            </div>
+          </div>
+        </div>
         <Container className="relative">
           <div className="flex flex-col gap-8 sm:flex-row sm:items-end sm:justify-between">
             <SectionHeading
@@ -405,7 +428,7 @@ export function HomePage({
         </Container>
       </section>
 
-      <section className="bg-ivory py-20 sm:py-28 lg:py-36">
+      <section className="bg-ivory pb-20 sm:pb-28 lg:pb-36">
         <Container>
           <MotionRule className="mb-16 lg:mb-24" />
           <div className="flex flex-col gap-8 sm:flex-row sm:items-end sm:justify-between">
@@ -454,30 +477,85 @@ export function HomePage({
       </section>
 
       {/*
-        The page used to end on a flat bright red wedged between an ivory
-        section and the burgundy footer, which is the hardest colour jump on
-        the site. Same heat, but thrown up into the lacquer ground as light, so
-        the closing section and the footer read as one piece.
+        Closing plate. The page opens on a photograph under an ivory scrim with
+        the type on the left; it closes the same way, mirrored: the red door
+        under a burgundy scrim, the same eyebrow / serif / gold-italic stack at
+        the same measure. The ground runs out to the footer's burgundy along
+        the bottom edge, so plate and footer read as one surface.
       */}
-      <section className="surface-deep surface-deep-warm seam-top text-ivory py-24 sm:py-32 lg:py-40">
-        <Container className="flex flex-col gap-10 lg:flex-row lg:items-end lg:justify-between">
-          <MotionReveal className="max-w-4xl">
-            <p className="eyebrow eyebrow-inverse">{dictionary.nav.contact}</p>
-            <h2 className="mt-6 font-serif text-[clamp(2.5rem,6.2vw,5.5rem)] leading-[0.98] tracking-[-0.045em] text-balance">
-              {home.contactTitle}
-            </h2>
-            <p className="text-ivory/72 mt-7 max-w-2xl text-base leading-8 sm:text-lg">
-              {home.contactBody}
-            </p>
-          </MotionReveal>
-          <Link
-            href={href("/contact")}
-            className={buttonVariants({ variant: "gold", size: "lg" })}
-          >
-            {common.requestQuote}
-            <ArrowUpRight aria-hidden="true" className="size-4" />
-          </Link>
+      <section className="bg-burgundy text-ivory relative isolate flex min-h-[34rem] items-center overflow-hidden py-24 sm:py-28 lg:min-h-[46rem] lg:py-36">
+        <Image
+          src={CLOSING_IMAGE}
+          alt=""
+          fill
+          sizes="100vw"
+          className="object-cover object-[72%_42%]"
+          aria-hidden="true"
+        />
+        {/*
+          The hero's scrim mirrored: opaque lacquer on the left thinning to a
+          tint on the right, so the door and its gold sign stay in view.
+        */}
+        <div
+          className="pointer-events-none absolute inset-0 z-[1]"
+          aria-hidden="true"
+          style={{
+            background:
+              "linear-gradient(to right, rgb(61 13 16 / 0.97) 0%, rgb(61 13 16 / 0.92) 32%, rgb(61 13 16 / 0.6) 56%, rgb(61 13 16 / 0.28) 100%)",
+          }}
+        />
+        {/* Below lg the type spans the photograph, so it needs a flat tint too. */}
+        <div
+          className="bg-burgundy/55 pointer-events-none absolute inset-0 z-[1] lg:hidden"
+          aria-hidden="true"
+        />
+        {/* Lands on the footer's burgundy so there is no edge between the two. */}
+        <div
+          className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-40"
+          aria-hidden="true"
+          style={{
+            background:
+              "linear-gradient(to top, var(--deep-burgundy) 0%, rgb(61 13 16 / 0) 100%)",
+          }}
+        />
+        <Container className="relative z-[2]">
+          <div className="max-w-[54%] min-w-[22rem]">
+            <MotionReveal distance={18}>
+              <p className="text-gold text-[0.72rem] font-semibold tracking-[0.2em] uppercase">
+                {dictionary.nav.contact}
+              </p>
+            </MotionReveal>
+            <MotionReveal delay={0.1} distance={34} blur={10}>
+              <h2 className="text-ivory mt-5 font-serif text-[clamp(2.8rem,5.5vw,4.8rem)] leading-[1.05] font-normal tracking-[-0.035em]">
+                {home.contactTitle}
+                <span className="text-gold mt-1 block translate-x-[0.08em] italic sm:mt-2">
+                  {home.contactTitleAccent}
+                </span>
+              </h2>
+            </MotionReveal>
+            <MotionReveal delay={0.2} distance={18}>
+              <p className="text-ivory/70 mt-7 max-w-[30rem] text-[0.95rem] leading-[1.75] italic">
+                {home.contactBody}
+              </p>
+            </MotionReveal>
+            <MotionReveal delay={0.32} className="mt-8">
+              <Link
+                href={href("/contact")}
+                className={buttonVariants({ variant: "gold", size: "md" })}
+              >
+                {common.requestQuote}
+                <ArrowUpRight aria-hidden="true" className="size-3.5" />
+              </Link>
+            </MotionReveal>
+          </div>
         </Container>
+        {/* Vertical brand text on the right edge, as in the hero */}
+        <p
+          className="text-ivory/30 absolute right-5 bottom-8 z-[2] hidden rotate-180 text-[0.58rem] tracking-[0.3em] uppercase [writing-mode:vertical-rl] xl:block"
+          aria-hidden="true"
+        >
+          {content.company.displayName} · {content.company.tagline}
+        </p>
       </section>
     </main>
   );

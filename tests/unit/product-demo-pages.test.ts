@@ -19,7 +19,10 @@ const EMPTY_QUERY: DemoProductListingQuery = {
   sort: "",
 };
 
-/** Mirrors DEMO_PRODUCT_PAGE_SIZE in `@/lib/public/demo-page-data`. */
+/**
+ * Smaller than the real page size (twelve) so the eight-product demo
+ * catalogue still spans several pages; passed to the listing explicitly.
+ */
 const PAGE_SIZE = 3;
 
 describe("product public pages", () => {
@@ -124,15 +127,25 @@ describe("product public pages", () => {
 
     expect(pageCount).toBeGreaterThan(1);
 
-    const firstPage = await getDemoProductListingPageData("en", dictionary, {
-      ...EMPTY_QUERY,
-      sort: "name-desc",
-    });
-    const lastPage = await getDemoProductListingPageData("en", dictionary, {
-      ...EMPTY_QUERY,
-      page: String(pageCount),
-      sort: "name-desc",
-    });
+    const firstPage = await getDemoProductListingPageData(
+      "en",
+      dictionary,
+      {
+        ...EMPTY_QUERY,
+        sort: "name-desc",
+      },
+      { pageSize: PAGE_SIZE },
+    );
+    const lastPage = await getDemoProductListingPageData(
+      "en",
+      dictionary,
+      {
+        ...EMPTY_QUERY,
+        page: String(pageCount),
+        sort: "name-desc",
+      },
+      { pageSize: PAGE_SIZE },
+    );
 
     expect(firstPage.products.map((product) => product.name)).toEqual(
       expectedNames.slice(0, PAGE_SIZE),
@@ -158,11 +171,16 @@ describe("product public pages", () => {
 
     expect(pageCount).toBeGreaterThan(1);
 
-    const firstPage = await getDemoProductListingPageData("en", dictionary, {
-      ...EMPTY_QUERY,
-      group: "processing",
-      sort: "name-asc",
-    });
+    const firstPage = await getDemoProductListingPageData(
+      "en",
+      dictionary,
+      {
+        ...EMPTY_QUERY,
+        group: "processing",
+        sort: "name-asc",
+      },
+      { pageSize: PAGE_SIZE },
+    );
     const nextHref = firstPage.pagination?.next?.href;
 
     if (!nextHref) throw new Error("Expected a second DEMO product page.");
@@ -172,12 +190,17 @@ describe("product public pages", () => {
     expect(nextUrl.searchParams.get("sort")).toBe("name-asc");
     expect(nextUrl.searchParams.get("page")).toBe("2");
 
-    const clampedPage = await getDemoProductListingPageData("en", dictionary, {
-      ...EMPTY_QUERY,
-      group: "processing",
-      page: "999",
-      sort: "name-asc",
-    });
+    const clampedPage = await getDemoProductListingPageData(
+      "en",
+      dictionary,
+      {
+        ...EMPTY_QUERY,
+        group: "processing",
+        page: "999",
+        sort: "name-asc",
+      },
+      { pageSize: PAGE_SIZE },
+    );
     expect(clampedPage.pagination?.currentLabel).toBe(
       `Page ${pageCount} / ${pageCount}`,
     );

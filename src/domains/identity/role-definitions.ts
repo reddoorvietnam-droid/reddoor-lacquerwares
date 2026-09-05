@@ -290,11 +290,8 @@ export const roleDefinitionSeeds = [
         "customers.readSensitive",
         "customers.create",
         "customers.update",
-        "quoteRequests.read",
-        "quoteRequests.assign",
-        "quoteRequests.update",
-        "quoteRequests.close",
-        "quoteRequests.markSpam",
+        // Website quote requests are the Director's inbox alone (confirmed
+        // 2026-09-05); the accountant works from the quotes that follow.
         "quotes.read",
         "quotes.readSellingPrice",
         "quotes.create",

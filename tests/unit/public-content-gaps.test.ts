@@ -29,19 +29,18 @@ describe("Phase 1 public content safeguards", () => {
     }
   });
 
-  it("provides localized country choices and a click-to-load, locale-matched map", async () => {
+  it("offers the catalogue in the quote form and a locale-matched map", async () => {
     for (const locale of locales) {
       const dictionary = await getDictionary(locale);
       const page = await getDemoContactRequestQuotePageData(locale, dictionary);
-      const optionValues = new Set(
-        page.countryOptions.map((option) => option.value),
-      );
 
-      expect(optionValues).toEqual(
-        new Set(["VN", "CN", "JP", "FR", "DE", "OTHER"]),
-      );
-      expect(page.acceptedAttachmentTypes).toBe(".pdf,.jpg,.jpeg,.png,.webp");
-      expect(page.attachmentHelp).toBe(dictionary.contact.attachmentHelp);
+      expect(page.locale).toBe(locale);
+      expect(page.productOptions.length).toBeGreaterThan(0);
+      expect(
+        page.productOptions.every(
+          (option) => option.id.length > 0 && option.name.length > 0,
+        ),
+      ).toBe(true);
       // The map is now a verified place rather than a missing one, so the
       // assertion moved from "there is none" to "it is the safe kind":
       // keyless embed, no tracking parameters carried over from the pasted

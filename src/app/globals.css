@@ -172,9 +172,6 @@ body {
   position: relative;
   isolation: isolate;
   color: var(--warm-ivory);
-  /* The exact ends of the ground gradient, so a seam can land on them. */
-  --seam-top-into: #451014;
-  --seam-bottom-into: #2e0a0d;
   background:
     radial-gradient(80% 55% at 78% 6%, rgb(138 23 27 / 0.3), transparent 62%),
     radial-gradient(
@@ -183,72 +180,6 @@ body {
       transparent 60%
     ),
     linear-gradient(180deg, #451014 0%, var(--deep-burgundy) 42%, #2e0a0d 100%);
-}
-
-/*
- * The closing call to action: the same ground lit from below by the lacquer
- * red, so the page can end hot without a seventh flat colour block, and can
- * run straight into the burgundy footer instead of colliding with it.
- */
-.surface-deep-warm {
-  --seam-top-into: #3a0c0f;
-  --seam-bottom-into: var(--deep-burgundy);
-  background:
-    radial-gradient(
-      78% 62% at 50% 112%,
-      rgb(138 23 27 / 0.78),
-      transparent 62%
-    ),
-    radial-gradient(55% 50% at 88% 0%, rgb(194 160 82 / 0.1), transparent 58%),
-    linear-gradient(180deg, #3a0c0f 0%, var(--deep-burgundy) 100%);
-}
-
-/*
- * Seams dissolve a dark passage into the light field beside it. A hard colour
- * edge announces "new block"; a soft dissolve reads as the same surface
- * deepening. They are opt-in per edge because not every edge wants one — the
- * closing section runs into the dark footer and must not fade back to ivory.
- *
- * Both rely on the positioning and stacking context set by `.surface-deep`.
- */
-.seam-top::before,
-.seam-bottom::after {
-  content: "";
-  position: absolute;
-  inset-inline: 0;
-  z-index: -1;
-  /* Short enough to read as a soft edge rather than a band of its own. */
-  height: clamp(1.75rem, 3.5vw, 3.5rem);
-  pointer-events: none;
-}
-
-/*
- * Opaque, landing on the exact colour the ground starts at. Fading ivory out
- * by alpha instead would pass through a dusty grey on its way down, which is
- * the one thing a lacquer palette must not do.
- */
-/*
- * Interpolated in oklab, not sRGB. Ramping ivory to a deep lacquer red in
- * sRGB passes through a desaturated mid-tone that reads as dirty grey — the
- * whole reason the seam was visible as a band. oklab keeps the ramp
- * perceptually even, so the same distance reads as soft instead of muddy.
- */
-.seam-top::before {
-  top: 0;
-  background: linear-gradient(
-    180deg in oklab,
-    var(--warm-ivory) 0%,
-    var(--seam-top-into) 100%
-  );
-}
-
-.seam-bottom::after {
-  bottom: 0;
-  background: linear-gradient(
-    0deg in oklab,
-    var(--warm-ivory) 0%,
-    var(--seam-bottom-into) 100%
-  );
 }
 
 /*
