@@ -43,7 +43,7 @@ type ChatResult = {
   sources: Source[];
   proposals: ProposalView[];
   truncated: boolean;
-  provider: { kind: "anthropic" | "mock"; model: string };
+  provider: { kind: "anthropic" | "openai-compatible" | "mock"; model: string };
   dataAt: string;
 };
 
@@ -161,7 +161,7 @@ export function AssistantChat({
   locale: "vi" | "en";
   configured: boolean;
   missing: readonly string[];
-  providerKind: "anthropic" | "mock" | null;
+  providerKind: "anthropic" | "openai-compatible" | "mock" | null;
   suggestions: readonly string[];
   initialPrompt?: string | undefined;
 }) {

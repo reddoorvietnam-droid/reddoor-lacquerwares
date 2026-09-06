@@ -1,6 +1,11 @@
 import { afterEach, describe, expect, it } from "vitest";
 
-import { getBaseEnv, inspectAuthEnv, inspectMongoEnv } from "@/lib/env/server";
+import {
+  getBaseEnv,
+  inspectAiEnv,
+  inspectAuthEnv,
+  inspectMongoEnv,
+} from "@/lib/env/server";
 
 const originalDataSource = process.env.DATA_SOURCE;
 const originalAuthVariables = {
@@ -105,6 +110,85 @@ describe("lazy environment validation", () => {
     expect(inspectAuthEnv()).toMatchObject({
       configured: true,
       value: { ADMIN_EMAILS: undefined },
+    });
+  });
+});
+
+describe("AI provider environment", () => {
+  const keys = [
+    "AI_PROVIDER",
+    "ANTHROPIC_API_KEY",
+    "OPENAI_COMPAT_BASE_URL",
+    "OPENAI_COMPAT_API_KEY",
+    "OPENAI_COMPAT_REASONING_EFFORT",
+    "AI_MODEL",
+  ] as const;
+  const original = Object.fromEntries(
+    keys.map((key) => [key, process.env[key]]),
+  );
+
+  afterEach(() => {
+    for (const key of keys) {
+      const value = original[key];
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
+  });
+
+  it("defaults to Claude and names the missing key", () => {
+    for (const key of keys) delete process.env[key];
+
+    expect(inspectAiEnv()).toEqual({
+      configured: false,
+      invalidKeys: ["ANTHROPIC_API_KEY"],
+    });
+
+    process.env.ANTHROPIC_API_KEY = "sk-ant-test";
+    expect(inspectAiEnv()).toMatchObject({
+      configured: true,
+      value: { AI_PROVIDER: "anthropic", AI_MODEL: "claude-opus-5" },
+    });
+  });
+
+  it("requires base URL, key and an explicit model for an OpenAI-compatible endpoint", () => {
+    for (const key of keys) delete process.env[key];
+    process.env.AI_PROVIDER = "openai-compatible";
+
+    expect(inspectAiEnv()).toEqual({
+      configured: false,
+      invalidKeys: [
+        "OPENAI_COMPAT_BASE_URL",
+        "OPENAI_COMPAT_API_KEY",
+        "AI_MODEL",
+      ],
+    });
+
+    process.env.OPENAI_COMPAT_BASE_URL =
+      "https://generativelanguage.googleapis.com/v1beta/openai/";
+    process.env.OPENAI_COMPAT_API_KEY = "test-key";
+    process.env.AI_MODEL = "gemini-2.5-flash";
+    process.env.OPENAI_COMPAT_REASONING_EFFORT = "low";
+    // No Anthropic key is needed on this path.
+    expect(inspectAiEnv()).toMatchObject({
+      configured: true,
+      value: {
+        AI_PROVIDER: "openai-compatible",
+        AI_MODEL: "gemini-2.5-flash",
+        OPENAI_COMPAT_REASONING_EFFORT: "low",
+      },
+    });
+  });
+
+  it("rejects a malformed endpoint URL by name", () => {
+    for (const key of keys) delete process.env[key];
+    process.env.AI_PROVIDER = "openai-compatible";
+    process.env.OPENAI_COMPAT_BASE_URL = "not a url";
+    process.env.OPENAI_COMPAT_API_KEY = "test-key";
+    process.env.AI_MODEL = "gemini-2.5-flash";
+
+    expect(inspectAiEnv()).toEqual({
+      configured: false,
+      invalidKeys: ["OPENAI_COMPAT_BASE_URL"],
     });
   });
 });

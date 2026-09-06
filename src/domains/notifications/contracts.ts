@@ -186,6 +186,52 @@ export interface WebhookEventStore {
   recordOnce(provider: string, eventId: string, at: Date): Promise<boolean>;
 }
 
+/**
+ * The Zalo OA credential the platform renews itself. One row, written by
+ * the "Connect Zalo" consent and thereafter by renewals. The refresh
+ * token is single-use, so every renewal is a compare-and-set on the token
+ * that was spent; the loser of a race reads the winner's row instead.
+ */
+export type ZaloCredentialDto = {
+  accessToken: string;
+  accessTokenExpiresAt: Date;
+  refreshToken: string;
+  refreshTokenIssuedAt: Date;
+  connectedAt: Date;
+  connectedByUserId: string | null;
+  lastRefreshAt: Date | null;
+  lastRefreshError: string | null;
+  refreshCount: number;
+};
+
+export interface ZaloCredentialStore {
+  load(): Promise<ZaloCredentialDto | null>;
+  /** Replaces the stored row with the pair obtained from a new consent. */
+  replace(input: {
+    accessToken: string;
+    accessTokenExpiresAt: Date;
+    refreshToken: string;
+    connectedByUserId: string | null;
+    at: Date;
+  }): Promise<ZaloCredentialDto>;
+  /**
+   * Stores a renewed pair only while the stored refresh token is still
+   * `expectedRefreshToken`; null means another worker renewed first.
+   */
+  saveRefreshed(input: {
+    expectedRefreshToken: string;
+    accessToken: string;
+    accessTokenExpiresAt: Date;
+    refreshToken: string;
+    at: Date;
+  }): Promise<ZaloCredentialDto | null>;
+  recordRefreshFailure(input: {
+    expectedRefreshToken: string;
+    message: string;
+    at: Date;
+  }): Promise<void>;
+}
+
 /* ------------------------------------------------------------------ */
 /* Channel adapters                                                    */
 /* ------------------------------------------------------------------ */

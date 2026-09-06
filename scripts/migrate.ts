@@ -30,12 +30,22 @@ import {
   getSalesInvoiceModel,
 } from "@/domains/finance/persistence/models";
 import { getSalesOrderModel } from "@/domains/orders/persistence/models";
+import {
+  getSheetCheckModel,
+  getSheetCheckRowModel,
+} from "@/domains/sheet-checks/persistence/models";
 import { getSupplierModel } from "@/domains/suppliers/persistence/models";
+import { getAssistantAttachmentModel } from "@/domains/assistant/attachments/persistence/models";
+import {
+  getAssistantConversationMessageModel,
+  getAssistantConversationModel,
+} from "@/domains/assistant/conversations/persistence/models";
 import { getAssistantProposalModel } from "@/domains/assistant/persistence/models";
 import {
   getChannelLinkModel,
   getNotificationIntentModel,
   getProcessedWebhookEventModel,
+  getZaloCredentialModel,
 } from "@/domains/notifications/persistence/models";
 import { getTaskModel } from "@/domains/tasks/persistence/models";
 import { connectToDatabase } from "@/lib/db/mongoose";
@@ -64,6 +74,17 @@ function collectModels(): Model<unknown>[] {
     getNotificationIntentModel(),
     getChannelLinkModel(),
     getProcessedWebhookEventModel(),
+    getZaloCredentialModel(),
+    // Spreadsheet checks: the TTL indexes are what delete drafts and old
+    // results; without them nothing expires.
+    getSheetCheckModel(),
+    getSheetCheckRowModel(),
+    // Assistant conversations and their attachments: same reasoning, and
+    // the promise made to the customer is stricter — each of the three
+    // collections expires itself, because a TTL delete never cascades.
+    getAssistantConversationModel(),
+    getAssistantConversationMessageModel(),
+    getAssistantAttachmentModel(),
   ] as unknown as Model<unknown>[];
 }
 

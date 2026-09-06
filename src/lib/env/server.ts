@@ -85,17 +85,33 @@ const emailSchema = baseSchema.extend({
   ORDER_NOTIFICATION_EMAILS: z.string().trim().min(1),
 });
 
+const optionalUrl = z.preprocess(
+  (value) =>
+    typeof value === "string" && value.trim() === "" ? undefined : value,
+  z.url().optional(),
+);
+
 /**
- * The AI assistant provider. `anthropic` is the real integration and needs a
- * key; `mock` is a deterministic scripted provider for development and tests
- * that never calls a model — it is refused outright in production so a demo
- * can never masquerade as the live integration.
+ * The AI assistant provider. `anthropic` calls Claude through the official
+ * SDK and needs a key; `openai-compatible` calls any endpoint that speaks the
+ * OpenAI Chat Completions protocol (Gemini's compatibility layer, Groq,
+ * Ollama) and needs the base URL, a key and an explicit model; `mock` is a
+ * deterministic scripted provider for development and tests that never
+ * calls a model — it is refused outright in production so a demo can never
+ * masquerade as the live integration.
  */
 const aiSchema = baseSchema
   .extend({
-    AI_PROVIDER: z.enum(["anthropic", "mock"]).default("anthropic"),
+    AI_PROVIDER: z
+      .enum(["anthropic", "openai-compatible", "mock"])
+      .default("anthropic"),
     ANTHROPIC_API_KEY: optionalText,
-    AI_MODEL: z.string().trim().min(1).default("claude-opus-5"),
+    OPENAI_COMPAT_BASE_URL: optionalUrl,
+    OPENAI_COMPAT_API_KEY: optionalText,
+    /** Sent as `reasoning_effort` when set (Gemini: none/low/medium/high). */
+    OPENAI_COMPAT_REASONING_EFFORT: optionalText,
+    /** Defaults to claude-opus-5 for `anthropic`; required otherwise. */
+    AI_MODEL: optionalText,
     AI_MAX_TOOL_ROUNDS: z.coerce.number().int().min(1).max(12).default(6),
     AI_REQUEST_TIMEOUT_MS: z.coerce
       .number()
@@ -105,14 +121,23 @@ const aiSchema = baseSchema
       .default(90_000),
   })
   .check((ctx) => {
-    const { AI_PROVIDER, ANTHROPIC_API_KEY, NODE_ENV } = ctx.value;
-    if (AI_PROVIDER === "anthropic" && !ANTHROPIC_API_KEY) {
+    const { AI_PROVIDER, NODE_ENV } = ctx.value;
+    const requireKey = (key: keyof typeof ctx.value) => {
+      if (ctx.value[key]) return;
       ctx.issues.push({
         code: "custom",
-        message: "ANTHROPIC_API_KEY is required when AI_PROVIDER=anthropic",
-        path: ["ANTHROPIC_API_KEY"],
+        message: `${key} is required when AI_PROVIDER=${AI_PROVIDER}`,
+        path: [key],
         input: ctx.value,
       });
+    };
+    if (AI_PROVIDER === "anthropic") {
+      requireKey("ANTHROPIC_API_KEY");
+    }
+    if (AI_PROVIDER === "openai-compatible") {
+      requireKey("OPENAI_COMPAT_BASE_URL");
+      requireKey("OPENAI_COMPAT_API_KEY");
+      requireKey("AI_MODEL");
     }
     if (AI_PROVIDER === "mock" && NODE_ENV === "production") {
       ctx.issues.push({
@@ -122,7 +147,11 @@ const aiSchema = baseSchema
         input: ctx.value,
       });
     }
-  });
+  })
+  .transform((value) => ({
+    ...value,
+    AI_MODEL: value.AI_MODEL ?? "claude-opus-5",
+  }));
 
 /** Bearer secret for the scheduled reminder route; never reuse AUTH_SECRET. */
 const cronSchema = baseSchema.extend({
@@ -131,11 +160,16 @@ const cronSchema = baseSchema.extend({
     .min(32, "CRON_SECRET must contain at least 32 characters"),
 });
 
-/** Zalo Official Account credentials, all three needed for the channel. */
+/**
+ * Zalo Official Account application credentials: the app id, the OA secret
+ * key (webhook signature) and the app secret key (OAuth). No token lives
+ * here — the token pair is obtained once through "Connect Zalo" on the
+ * settings page, stored in the database and renewed by the platform.
+ */
 const zaloSchema = baseSchema.extend({
   ZALO_APP_ID: z.string().trim().min(1),
-  ZALO_OA_ACCESS_TOKEN: z.string().trim().min(1),
   ZALO_OA_SECRET_KEY: z.string().trim().min(1),
+  ZALO_APP_SECRET_KEY: z.string().trim().min(1),
 });
 
 /**

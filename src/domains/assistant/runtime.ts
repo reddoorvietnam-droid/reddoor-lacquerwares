@@ -2,9 +2,14 @@ import "server-only";
 
 import { mongoApprovalRepository } from "@/domains/approvals/mongo-repository";
 import { approvalService } from "@/domains/approvals/runtime";
+import { mongoAttachmentStore } from "@/domains/assistant/attachments/persistence/mongo-store";
+import { AttachmentService } from "@/domains/assistant/attachments/service";
+import { mongoConversationStore } from "@/domains/assistant/conversations/persistence/mongo-store";
+import { ConversationService } from "@/domains/assistant/conversations/service";
 import { mongoProposalStore } from "@/domains/assistant/persistence/mongo-store";
 import { AnthropicAssistantProvider } from "@/domains/assistant/providers/anthropic";
 import { MockAssistantProvider } from "@/domains/assistant/providers/mock";
+import { OpenAiCompatibleAssistantProvider } from "@/domains/assistant/providers/openai-compatible";
 import type { AssistantProvider } from "@/domains/assistant/providers/types";
 import { AssistantProposalService } from "@/domains/assistant/service";
 import type {
@@ -22,6 +27,7 @@ import { articleCommandService } from "@/domains/news/runtime";
 import { mongoOrderStore } from "@/domains/orders/persistence/mongo-store";
 import { orderCommandService } from "@/domains/orders/runtime";
 import { productCommandService } from "@/domains/products/runtime";
+import { sheetCheckService } from "@/domains/sheet-checks/runtime";
 import { shopService } from "@/domains/shop/runtime";
 import { taskCommandService } from "@/domains/tasks/runtime";
 import {
@@ -40,6 +46,21 @@ export const assistantProposalService = new AssistantProposalService({
   timeZone: getNotificationEnv().BUSINESS_TIMEZONE,
 });
 
+/**
+ * Attachments and stored conversations. Both are owner-scoped by
+ * construction rather than by permission: the Director holds the whole
+ * permission catalogue at `all`, so "only the person who wrote it" cannot
+ * be expressed as a scope and has to live in the store's filter.
+ */
+export const assistantAttachmentService = new AttachmentService({
+  store: mongoAttachmentStore,
+});
+
+export const assistantConversationService = new ConversationService({
+  store: mongoConversationStore,
+  attachments: mongoAttachmentStore,
+});
+
 export const assistantToolServices: ToolServices = {
   orders: orderCommandService,
   finance: financeCommandService,
@@ -52,6 +73,7 @@ export const assistantToolServices: ToolServices = {
   articles: articleCommandService,
   products: productCommandService,
   shop: shopService,
+  sheetChecks: sheetCheckService,
 };
 
 // Referenced so the approvals repository module is part of the runtime
@@ -70,6 +92,18 @@ export function resolveAssistantProvider(): AssistantAvailability {
   }
   if (env.value.AI_PROVIDER === "mock") {
     return { configured: true, provider: new MockAssistantProvider() };
+  }
+  if (env.value.AI_PROVIDER === "openai-compatible") {
+    return {
+      configured: true,
+      provider: new OpenAiCompatibleAssistantProvider({
+        baseUrl: env.value.OPENAI_COMPAT_BASE_URL!,
+        apiKey: env.value.OPENAI_COMPAT_API_KEY!,
+        model: env.value.AI_MODEL,
+        timeoutMs: env.value.AI_REQUEST_TIMEOUT_MS,
+        reasoningEffort: env.value.OPENAI_COMPAT_REASONING_EFFORT,
+      }),
+    };
   }
   return {
     configured: true,

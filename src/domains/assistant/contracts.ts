@@ -114,6 +114,8 @@ export const assistantErrorCodes = [
   "INVALID_PLAN",
   "REVISION_CONFLICT",
   "INVALID_INPUT",
+  /** The configured model cannot look at an image the person attached. */
+  "ATTACHMENT_UNSUPPORTED",
 ] as const;
 
 export type AssistantErrorCode = (typeof assistantErrorCodes)[number];
@@ -144,11 +146,42 @@ export const chatHistoryMessageSchema = z.object({
   text: z.string().max(8_000),
 });
 
-export const chatRequestSchema = z.object({
-  message: z.string().trim().min(1).max(4_000),
-  history: z.array(chatHistoryMessageSchema).max(20).default([]),
-  locale: z.enum(["vi", "en"]).default("vi"),
-});
+/**
+ * `history` is only read for a conversation the server does not hold: once
+ * `conversationId` names a stored conversation, the transcript is rebuilt
+ * from the owner's own records and whatever the browser sent is ignored,
+ * so a client can never widen its own history. It stays in the schema
+ * because the eval harness and the loop tests drive a turn without ever
+ * touching the database.
+ */
+export const chatRequestSchema = z
+  .object({
+    message: z.string().trim().max(4_000).default(""),
+    history: z.array(chatHistoryMessageSchema).max(20).default([]),
+    locale: z.enum(["vi", "en"]).default("vi"),
+    conversationId: z
+      .string()
+      .regex(/^[a-f0-9]{24}$/)
+      .nullable()
+      .default(null),
+    attachmentIds: z
+      .array(z.string().regex(/^[a-f0-9]{24}$/))
+      .max(3)
+      .default([]),
+  })
+  .check((ctx) => {
+    // A turn has to carry something. An attachment alone is a real
+    // question ("what is in this file?"), so an empty message is accepted
+    // only when at least one file comes with it.
+    if (!ctx.value.message && ctx.value.attachmentIds.length === 0) {
+      ctx.issues.push({
+        code: "custom",
+        message: "A message or at least one attachment is required",
+        path: ["message"],
+        input: ctx.value,
+      });
+    }
+  });
 
 export type ChatRequest = z.infer<typeof chatRequestSchema>;
 
@@ -168,10 +201,16 @@ export type ChatResponse = {
   proposals: readonly AssistantProposalDto[];
   /** True when the model hit its output ceiling; the answer may be cut. */
   truncated: boolean;
-  provider: { kind: "anthropic" | "mock"; model: string };
+  provider: { kind: "anthropic" | "openai-compatible" | "mock"; model: string };
   usage: { inputTokens: number; outputTokens: number };
   /** The instant the data was read, so the reader knows how fresh it is. */
   dataAt: string;
+  /**
+   * The conversation this turn was recorded in, so the browser can send the
+   * next turn to the same one. Null when the turn was not stored — the eval
+   * harness and the loop tests run without a conversation store.
+   */
+  conversationId: string | null;
 };
 
 /* ------------------------------------------------------------------ */

@@ -126,6 +126,12 @@ and to-dos as proposals a person approves, and a work-item list (`/admin/tasks`)
 with email/Zalo reminders driven by an idempotent job. See
 `docs/AI_ASSISTANT.md` for the design, permission matrix, runbook and evidence.
 
+Spreadsheet checks (`/admin/checks`) let finance staff upload a cash-received
+report, a receivables statement or an order list (xlsx/xls/csv) and reconcile
+it, cell by cell, against the invoices, receipts, balances and orders they may
+read; nothing is written back and the file is never stored. See
+`docs/SHEET_CHECKS.md`.
+
 ## Order process
 
 Sales orders follow the company's fifteen-step process, encoded as a state

@@ -161,3 +161,42 @@ processedWebhookEventSchema.index(
 
 export const getProcessedWebhookEventModel = () =>
   getOrCreateModel("ProcessedWebhookEvent", processedWebhookEventSchema);
+
+/**
+ * The Zalo OA credential the platform renews itself: a single row keyed
+ * `"oa"`. See `ZaloTokenProvider` for the renewal rules.
+ */
+export const zaloCredentialSchema = new Schema(
+  {
+    key: { type: String, required: true, enum: ["oa"] },
+    accessToken: { type: String, required: true, maxlength: 2_048 },
+    accessTokenExpiresAt: { type: Date, required: true },
+    refreshToken: { type: String, required: true, maxlength: 2_048 },
+    refreshTokenIssuedAt: { type: Date, required: true },
+    connectedAt: { type: Date, required: true },
+    connectedByUserId: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+    lastRefreshAt: { type: Date, default: null },
+    lastRefreshError: {
+      type: String,
+      trim: true,
+      maxlength: 1_000,
+      default: null,
+    },
+    refreshCount: { type: Number, required: true, min: 0, default: 0 },
+  },
+  timestamps,
+);
+
+zaloCredentialSchema.index(
+  { key: 1 },
+  { unique: true, name: "zalo_credential_key_unique" },
+);
+
+export type ZaloCredentialRecord = InferSchemaType<typeof zaloCredentialSchema>;
+
+export const getZaloCredentialModel = () =>
+  getOrCreateModel("ZaloCredential", zaloCredentialSchema);

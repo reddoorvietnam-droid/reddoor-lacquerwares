@@ -164,6 +164,13 @@ export async function AdminShell({
           anyOf: ["receivables.read"],
         },
         {
+          // The check list guards on documents.read; uploading needs
+          // documents.import and is gated again inside the page.
+          href: `${basePath}/checks` as Route,
+          label: copy.navigation.checks,
+          anyOf: ["documents.read"],
+        },
+        {
           // The ledger page reads receipts, so it guards on payments.read;
           // expense-only readers get the order-costs screen instead.
           href: `${basePath}/finance/ledger` as Route,

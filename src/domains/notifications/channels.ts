@@ -5,8 +5,8 @@ import type {
   EmailChannel,
   ZaloChannel,
 } from "@/domains/notifications/contracts";
+import type { ZaloTokenProvider } from "@/domains/notifications/zalo-token";
 import { sendEmail } from "@/lib/email/resend";
-import { inspectZaloEnv } from "@/lib/env/server";
 import { sendZaloTextMessage } from "@/lib/zalo/oa-client";
 
 /**
@@ -66,13 +66,39 @@ export const resendEmailChannel: EmailChannel = {
   },
 };
 
-export function createZaloChannel(): ZaloChannel | null {
-  const env = inspectZaloEnv();
-  if (!env.configured) return null;
-  const accessToken = env.value.ZALO_OA_ACCESS_TOKEN;
+/**
+ * The Zalo channel over a self-renewing token. Each send takes the current
+ * token from the provider (renewed ahead of expiry); a send Zalo refuses
+ * for a bad token forces one renewal and is retried once, so a token that
+ * expired between runs costs one round trip, not a failed reminder.
+ */
+export function createZaloChannel(
+  tokens: ZaloTokenProvider,
+  sender: typeof sendZaloTextMessage = sendZaloTextMessage,
+): ZaloChannel {
   return {
-    send(input) {
-      return sendZaloTextMessage({ accessToken }, input);
+    async send(input): Promise<ChannelSendResult> {
+      const first = await tokens.getAccessToken();
+      if (!first.ok) {
+        return {
+          ok: false,
+          code: "NOT_CONFIGURED",
+          message: first.message,
+          retryable: true,
+        };
+      }
+      const result = await sender({ accessToken: first.accessToken }, input);
+      if (result.ok || result.code !== "NOT_CONFIGURED") return result;
+
+      const renewed = await tokens.getAccessToken({
+        rejectedAccessToken: first.accessToken,
+      });
+      if (!renewed.ok || renewed.accessToken === first.accessToken) {
+        // Zalo rejected the token and no fresh one could be obtained:
+        // the reminder waits for the next run rather than failing for good.
+        return { ...result, retryable: true };
+      }
+      return sender({ accessToken: renewed.accessToken }, input);
     },
   };
 }

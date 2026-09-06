@@ -14,12 +14,15 @@ import type {
   NotificationKind,
   NotificationStatus,
   WebhookEventStore,
+  ZaloCredentialDto,
+  ZaloCredentialStore,
 } from "@/domains/notifications/contracts";
 import { notificationStatuses } from "@/domains/notifications/contracts";
 import {
   getChannelLinkModel,
   getNotificationIntentModel,
   getProcessedWebhookEventModel,
+  getZaloCredentialModel,
 } from "@/domains/notifications/persistence/models";
 import { connectToDatabase } from "@/lib/db/mongoose";
 
@@ -513,6 +516,123 @@ export class MongoWebhookEventStore implements WebhookEventStore {
   }
 }
 
+type ZaloCredentialDocument = {
+  accessToken: string;
+  accessTokenExpiresAt: Date;
+  refreshToken: string;
+  refreshTokenIssuedAt: Date;
+  connectedAt: Date;
+  connectedByUserId: Types.ObjectId | null;
+  lastRefreshAt: Date | null;
+  lastRefreshError: string | null;
+  refreshCount: number;
+};
+
+function toZaloCredentialDto(doc: ZaloCredentialDocument): ZaloCredentialDto {
+  return {
+    accessToken: doc.accessToken,
+    accessTokenExpiresAt: doc.accessTokenExpiresAt,
+    refreshToken: doc.refreshToken,
+    refreshTokenIssuedAt: doc.refreshTokenIssuedAt,
+    connectedAt: doc.connectedAt,
+    connectedByUserId: doc.connectedByUserId
+      ? doc.connectedByUserId.toString()
+      : null,
+    lastRefreshAt: doc.lastRefreshAt ?? null,
+    lastRefreshError: doc.lastRefreshError ?? null,
+    refreshCount: doc.refreshCount ?? 0,
+  };
+}
+
+export class MongoZaloCredentialStore implements ZaloCredentialStore {
+  async load(): Promise<ZaloCredentialDto | null> {
+    await connectToDatabase();
+    const doc = await getZaloCredentialModel()
+      .findOne({ key: "oa" })
+      .lean<ZaloCredentialDocument | null>()
+      .exec();
+    return doc ? toZaloCredentialDto(doc) : null;
+  }
+
+  async replace(input: {
+    accessToken: string;
+    accessTokenExpiresAt: Date;
+    refreshToken: string;
+    connectedByUserId: string | null;
+    at: Date;
+  }): Promise<ZaloCredentialDto> {
+    await connectToDatabase();
+    const doc = await getZaloCredentialModel()
+      .findOneAndUpdate(
+        { key: "oa" },
+        {
+          $set: {
+            accessToken: input.accessToken,
+            accessTokenExpiresAt: input.accessTokenExpiresAt,
+            refreshToken: input.refreshToken,
+            refreshTokenIssuedAt: input.at,
+            connectedAt: input.at,
+            connectedByUserId: input.connectedByUserId
+              ? new Types.ObjectId(input.connectedByUserId)
+              : null,
+            lastRefreshAt: null,
+            lastRefreshError: null,
+            refreshCount: 0,
+          },
+          $setOnInsert: { key: "oa" },
+        },
+        { upsert: true, returnDocument: "after" },
+      )
+      .lean<ZaloCredentialDocument>()
+      .exec();
+    return toZaloCredentialDto(doc!);
+  }
+
+  async saveRefreshed(input: {
+    expectedRefreshToken: string;
+    accessToken: string;
+    accessTokenExpiresAt: Date;
+    refreshToken: string;
+    at: Date;
+  }): Promise<ZaloCredentialDto | null> {
+    await connectToDatabase();
+    const doc = await getZaloCredentialModel()
+      .findOneAndUpdate(
+        { key: "oa", refreshToken: input.expectedRefreshToken },
+        {
+          $set: {
+            accessToken: input.accessToken,
+            accessTokenExpiresAt: input.accessTokenExpiresAt,
+            refreshToken: input.refreshToken,
+            refreshTokenIssuedAt: input.at,
+            lastRefreshAt: input.at,
+            lastRefreshError: null,
+          },
+          $inc: { refreshCount: 1 },
+        },
+        { returnDocument: "after" },
+      )
+      .lean<ZaloCredentialDocument | null>()
+      .exec();
+    return doc ? toZaloCredentialDto(doc) : null;
+  }
+
+  async recordRefreshFailure(input: {
+    expectedRefreshToken: string;
+    message: string;
+    at: Date;
+  }): Promise<void> {
+    await connectToDatabase();
+    await getZaloCredentialModel()
+      .updateOne(
+        { key: "oa", refreshToken: input.expectedRefreshToken },
+        { $set: { lastRefreshError: input.message.slice(0, 1_000) } },
+      )
+      .exec();
+  }
+}
+
 export const mongoNotificationIntentStore = new MongoNotificationIntentStore();
+export const mongoZaloCredentialStore = new MongoZaloCredentialStore();
 export const mongoChannelLinkStore = new MongoChannelLinkStore();
 export const mongoWebhookEventStore = new MongoWebhookEventStore();

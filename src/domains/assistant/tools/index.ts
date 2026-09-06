@@ -9,6 +9,7 @@ import {
   getReceivablesOverviewTool,
 } from "@/domains/assistant/tools/finance";
 import { getOrderTool, listOrdersTool } from "@/domains/assistant/tools/orders";
+import { sheetCheckTools } from "@/domains/assistant/tools/sheet-checks";
 import {
   listMyTasksTool,
   proposeOrderPlanTool,
@@ -34,6 +35,9 @@ export const assistantTools: readonly AssistantTool<never>[] = [
   proposeOrderPlanTool,
   proposeTasksTool,
   listEditorialWorkTool,
+  // Spreadsheet checks come last so the catalog order (and prompt cache) of
+  // the earlier tools is unchanged for users without documents.read.
+  ...sheetCheckTools,
 ] as unknown as readonly AssistantTool<never>[];
 
 /** Every permission any tool asks about, for one coverage read per request. */

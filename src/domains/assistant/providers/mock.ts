@@ -20,8 +20,35 @@ import type {
  */
 
 const ORDER_CODE = /\bRD-\d{8}-[A-Z0-9]{4}\b/i;
+const OBJECT_ID = /\b[a-f0-9]{24}\b/i;
+const SHEET_CHECK =
+  /(kiểm tra bảng|bảng biểu|bảng đã tải|tệp đã tải|kết quả kiểm tra|sheet check|spreadsheet check|bảng kiểm tra)/i;
 const INJECTION =
   /(ignore (all )?(previous|prior) instructions|bỏ qua (mọi |các )?(chỉ thị|hướng dẫn)|you are now (the )?(admin|director)|từ giờ bạn là (admin|giám đốc))/i;
+
+const ATTACHMENT_HEADER = /^\[Attachment \d+: (.+?) \(([a-z]+)\)\]/;
+
+/**
+ * The attachments of the latest user turn, read back out of the blocks the
+ * loop built. The scripted provider cannot read a file, so it reports what
+ * it was handed instead of pretending to have understood it — that keeps a
+ * mock answer visibly a mock answer.
+ */
+function lastAttachments(
+  messages: readonly Anthropic.MessageParam[],
+): { fileName: string; format: string }[] {
+  const last = messages[messages.length - 1];
+  if (!last || last.role !== "user" || typeof last.content === "string") {
+    return [];
+  }
+  const found: { fileName: string; format: string }[] = [];
+  for (const block of last.content) {
+    if (block.type !== "text") continue;
+    const match = ATTACHMENT_HEADER.exec(block.text);
+    if (match) found.push({ fileName: match[1]!, format: match[2]! });
+  }
+  return found;
+}
 
 function lastUserText(messages: readonly Anthropic.MessageParam[]): string {
   for (let index = messages.length - 1; index >= 0; index -= 1) {
@@ -32,6 +59,10 @@ function lastUserText(messages: readonly Anthropic.MessageParam[]): string {
       .filter(
         (block): block is Anthropic.TextBlockParam => block.type === "text",
       )
+      // An attachment block is the file's content, not the person's
+      // question; matching keywords inside it would pick a tool from
+      // whatever a customer happened to write in their spreadsheet.
+      .filter((block) => !ATTACHMENT_HEADER.test(block.text))
       .map((block) => block.text)
       .join("\n");
     if (text) return text;
@@ -260,6 +291,107 @@ function render(name: string, raw: string, locale: "vi" | "en"): string {
         ? `Đề xuất ${payload.proposalId} gồm ${count} việc đang chờ duyệt. Đây mới là bản nháp: chưa có việc nào được tạo cho đến khi người có quyền duyệt đề xuất trên cổng quản trị.`
         : `Proposal ${payload.proposalId} with ${count} items is pending approval. This is a draft: no task exists until someone with the permission approves it in the portal.`;
     }
+    case "list_sheet_checks": {
+      const items =
+        (payload.items as {
+          fileName: string;
+          templateLabel: string;
+          status: string;
+          createdDay: string;
+          errors: number | null;
+          warnings: number | null;
+        }[]) ?? [];
+      if (items.length === 0)
+        return vi
+          ? "Chưa có bảng kiểm tra nào trong phạm vi của bạn."
+          : "No spreadsheet check in your scope.";
+      return items
+        .map(
+          (c) =>
+            `${c.fileName} · ${c.templateLabel} · ${c.createdDay} · ${c.status === "checked" ? `${c.errors ?? 0} ${vi ? "lỗi" : "errors"}, ${c.warnings ?? 0} ${vi ? "cảnh báo" : "warnings"}` : vi ? "chưa chạy" : "not run"}`,
+        )
+        .join("\n");
+    }
+    case "get_sheet_check": {
+      const summary = payload.summary as
+        | {
+            dataRows: number;
+            errors: number;
+            warnings: number;
+            outcomes: Record<string, number>;
+          }
+        | null
+        | undefined;
+      const head = `${payload.fileName} (${payload.templateLabel})`;
+      if (!summary) {
+        return vi
+          ? `${head}: bảng đã tải nhưng chưa chạy kiểm tra; hãy xác nhận cột trên cổng quản trị.`
+          : `${head}: uploaded but not run yet; confirm the columns in the portal.`;
+      }
+      const lines = [
+        vi
+          ? `${head}: ${summary.dataRows} dòng, ${summary.errors} lỗi, ${summary.warnings} cảnh báo; khớp ${summary.outcomes.matched ?? 0}, lệch ${summary.outcomes.mismatch ?? 0}, không thấy ${summary.outcomes.notFound ?? 0}, không đối chiếu ${summary.outcomes.notCompared ?? 0}.`
+          : `${head}: ${summary.dataRows} rows, ${summary.errors} errors, ${summary.warnings} warnings; matched ${summary.outcomes.matched ?? 0}, mismatch ${summary.outcomes.mismatch ?? 0}, not found ${summary.outcomes.notFound ?? 0}, not compared ${summary.outcomes.notCompared ?? 0}.`,
+      ];
+      const totals =
+        (payload.totals as {
+          fieldLabel: string;
+          currency: string;
+          computed: { display: string };
+          system?: { display: string } | null;
+        }[]) ?? [];
+      for (const line of totals) {
+        lines.push(
+          `${line.fieldLabel} ${line.currency}: ${vi ? "bảng" : "sheet"} ${line.computed.display}${line.system ? ` · ${vi ? "hệ thống" : "system"} ${line.system.display}` : ""}`,
+        );
+      }
+      const sheetIssues = (payload.sheetIssues as { text: string }[]) ?? [];
+      for (const entry of sheetIssues.slice(0, 5))
+        lines.push(`- ${entry.text}`);
+      const rows =
+        (payload.errorRows as {
+          sheetRowNumber: number;
+          issues: string[];
+        }[]) ?? [];
+      for (const row of rows.slice(0, 10)) {
+        lines.push(
+          `${vi ? "Dòng" : "Row"} ${row.sheetRowNumber}: ${row.issues.join("; ")}`,
+        );
+      }
+      const caveatList = (payload.caveats as string[]) ?? [];
+      lines.push(...caveatList);
+      return lines.join("\n");
+    }
+    case "get_sheet_check_row": {
+      const issues = (payload.issues as { text: string }[]) ?? [];
+      const cells =
+        (payload.cells as { header: string | null; text: string }[]) ?? [];
+      const lines = [
+        `${vi ? "Dòng" : "Row"} ${payload.sheetRowNumber} (${payload.outcome ?? (vi ? "chưa chạy" : "not run")}): ${cells
+          .filter((c) => c.text)
+          .map((c) => `${c.header ? `${c.header}=` : ""}${c.text}`)
+          .join(" | ")}`,
+      ];
+      for (const entry of issues) lines.push(`- ${entry.text}`);
+      if (payload.system) {
+        lines.push(
+          `${vi ? "Hệ thống" : "System"}: ${JSON.stringify(payload.system).slice(0, 600)}`,
+        );
+      }
+      return lines.join("\n");
+    }
+    case "propose_sheet_check_follow_ups": {
+      const proposals =
+        (payload.proposals as { proposalId: string; itemCount: number }[]) ??
+        [];
+      if (proposals.length === 0) {
+        return String(payload.nextStep ?? "");
+      }
+      const total = proposals.reduce((sum, p) => sum + p.itemCount, 0);
+      return vi
+        ? `${payload.rowsProposed} dòng cần theo dõi → ${proposals.length} đề xuất (${proposals.map((p) => p.proposalId).join(", ")}) gồm ${total} việc đang chờ duyệt. Đây mới là bản nháp: chưa có việc nào được tạo cho đến khi người có quyền duyệt trên cổng quản trị.`
+        : `${payload.rowsProposed} rows need a follow-up → ${proposals.length} proposal(s) (${proposals.map((p) => p.proposalId).join(", ")}) with ${total} items pending approval. This is a draft: no task exists until someone with the permission approves it in the portal.`;
+    }
     case "list_editorial_work": {
       return raw.slice(0, 1_500);
     }
@@ -302,6 +434,24 @@ export class MockAssistantProvider implements AssistantProvider {
     const today = todayFromSystem(request.system);
     const orderCode = ORDER_CODE.exec(message)?.[0]?.toUpperCase() ?? null;
 
+    const attached = lastAttachments(request.messages);
+    if (attached.length > 0) {
+      const listed = attached
+        .map((file) => `${file.fileName} (${file.format})`)
+        .join(", ");
+      return {
+        content: [
+          text(
+            locale === "vi"
+              ? `Đã nhận ${attached.length} tệp: ${listed}. Provider giả lập không đọc nội dung tệp; hãy cấu hình một mô hình thật để hỏi về nội dung bên trong.`
+              : `Received ${attached.length} file(s): ${listed}. The scripted provider does not read file content; configure a real model to ask about what is inside.`,
+          ),
+        ],
+        stopReason: "end_turn",
+        usage,
+      };
+    }
+
     if (INJECTION.test(message)) {
       return {
         content: [
@@ -323,6 +473,70 @@ export class MockAssistantProvider implements AssistantProvider {
           ? `Tài khoản của bạn không có quyền xem ${what}.`
           : `Your account does not hold the permission to read ${what}.`,
       );
+
+    // Spreadsheet checks are addressed by id (the portal links carry it);
+    // these come first because their wording overlaps with tasks and debt.
+    const checkId = OBJECT_ID.exec(message)?.[0]?.toLowerCase() ?? null;
+    const sheetIntent =
+      SHEET_CHECK.test(lower) ||
+      /(đề xuất việc theo dõi|việc theo dõi cho kiểm tra|follow-?up[- ]?(tasks?)? ?for check)/i.test(
+        lower,
+      );
+    if (sheetIntent) {
+      const sheetDenied = () =>
+        deniedText(
+          locale === "vi" ? "kết quả kiểm tra bảng biểu" : "spreadsheet checks",
+        );
+      if (
+        checkId &&
+        /(đề xuất việc theo dõi|việc theo dõi|follow-?ups?|follow-?up tasks?)/i.test(
+          lower,
+        )
+      ) {
+        if (!wants("propose_sheet_check_follow_ups")) {
+          return { content: [sheetDenied()], stopReason: "end_turn", usage };
+        }
+        return {
+          content: [toolUse("propose_sheet_check_follow_ups", { checkId })],
+          stopReason: "tool_use",
+          usage,
+        };
+      }
+      const rowMatch = /(?:dòng|row)\s*(\d{1,5})/i.exec(message);
+      if (checkId && rowMatch) {
+        if (!wants("get_sheet_check_row")) {
+          return { content: [sheetDenied()], stopReason: "end_turn", usage };
+        }
+        return {
+          content: [
+            toolUse("get_sheet_check_row", {
+              checkId,
+              sheetRowNumber: Number(rowMatch[1]),
+            }),
+          ],
+          stopReason: "tool_use",
+          usage,
+        };
+      }
+      if (checkId) {
+        if (!wants("get_sheet_check")) {
+          return { content: [sheetDenied()], stopReason: "end_turn", usage };
+        }
+        return {
+          content: [toolUse("get_sheet_check", { checkId })],
+          stopReason: "tool_use",
+          usage,
+        };
+      }
+      if (!wants("list_sheet_checks")) {
+        return { content: [sheetDenied()], stopReason: "end_turn", usage };
+      }
+      return {
+        content: [toolUse("list_sheet_checks", {})],
+        stopReason: "tool_use",
+        usage,
+      };
+    }
 
     if (/(kế hoạch|lập kế hoạch|\bplan\b)/i.test(lower) && orderCode) {
       if (!wants("propose_order_plan")) {
@@ -510,8 +724,8 @@ export class MockAssistantProvider implements AssistantProvider {
       content: [
         text(
           locale === "vi"
-            ? "Tôi có thể tra cứu đơn hàng, việc cần làm, phê duyệt đang chờ, công nợ (nếu bạn có quyền) hoặc đề xuất kế hoạch cho một đơn hàng. Hãy nêu mã đơn hoặc việc bạn cần."
-            : "I can look up orders, tasks, pending approvals, receivables (if you hold the permission) or draft a plan for an order. Name the order code or what you need.",
+            ? "Tôi có thể tra cứu đơn hàng, việc cần làm, phê duyệt đang chờ, công nợ, kết quả kiểm tra bảng biểu (nếu bạn có quyền) hoặc đề xuất kế hoạch cho một đơn hàng. Hãy nêu mã đơn hoặc việc bạn cần."
+            : "I can look up orders, tasks, pending approvals, receivables, spreadsheet check results (if you hold the permission) or draft a plan for an order. Name the order code or what you need.",
         ),
       ],
       stopReason: "end_turn",

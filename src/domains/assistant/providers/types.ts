@@ -8,7 +8,7 @@ import type Anthropic from "@anthropic-ai/sdk";
  * imitating the whole SDK response object.
  */
 
-export type ProviderKind = "anthropic" | "mock";
+export type ProviderKind = "anthropic" | "openai-compatible" | "mock";
 
 export type ProviderRequest = {
   system: string;

@@ -27,6 +27,7 @@ Trình duyệt (assistant-chat.tsx, transcript chỉ trong bộ nhớ trang)
   └─ POST /api/assistant/chat  ── requirePermission("assistant.use") ── rate limit 20/5 phút
        └─ runAssistantChat (chat.ts): system prompt + lịch sử text + tool đã lọc theo quyền
             ├─ provider: AnthropicAssistantProvider (claude-opus-5, tool_choice auto, timeout, 1 retry)
+            │            hoặc OpenAiCompatibleAssistantProvider (AI_PROVIDER=openai-compatible: Gemini/Groq/Ollama)
             │            hoặc MockAssistantProvider (AI_PROVIDER=mock, cấm production)
             └─ tool.run(input, context) → requirePermission/requireListAccess thật → service hiện có
                  ├─ orders / approvals / customers / finance (chỉ đọc, redaction giá bán như trang)
@@ -110,22 +111,31 @@ tính). Cần thiết vì `tasks.read` được khai ở cả `assignedBusinessU
    (đổi bằng `AI_MODEL`), `tool_choice: auto`, prompt hệ thống cố định đặt
    trước để cache. Chưa bật `fallbacks` (beta) cho trường hợp mô hình từ
    chối; câu trả lời `refusal` được hiển thị trung thực.
+9. **Provider `openai-compatible`** (`providers/openai-compatible.ts`) gọi
+   mọi endpoint nói giao thức OpenAI Chat Completions (Gemini qua lớp tương
+   thích, Groq, Ollama). Vòng lặp chat vẫn nói định dạng Anthropic; phần dịch
+   hai chiều (message, tool, schema, stop reason) nằm ở `providers/openai-wire.ts`
+   và có test riêng. Không có prompt caching; schema tool được lược về các
+   từ khóa Gemini hiểu. Dùng để test bằng free tier, không dùng cho dữ liệu
+   thật (free tier của Google có thể dùng nội dung gửi lên).
 
 ## 5. Cấu hình và runbook
 
 Biến môi trường (tên, không giá trị; xem `.env.example`):
 
-| Biến                                                        | Ý nghĩa                                                                               |
-| ----------------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| `AI_PROVIDER`                                               | `anthropic` (mặc định) hoặc `mock` (chỉ dev/test)                                     |
-| `ANTHROPIC_API_KEY`                                         | Bắt buộc khi `anthropic`; thiếu → trang trợ lý báo "chưa cấu hình", phần còn lại chạy |
-| `AI_MODEL`, `AI_MAX_TOOL_ROUNDS`, `AI_REQUEST_TIMEOUT_MS`   | Model, số vòng tool, timeout mỗi lượt                                                 |
-| `BUSINESS_TIMEZONE`                                         | Múi giờ nghiệp vụ, mặc định `Asia/Ho_Chi_Minh`                                        |
-| `NOTIFICATION_DELIVERY`                                     | `off` (mặc định) / `test` / `live`                                                    |
-| `NOTIFICATION_TEST_RECIPIENT`                               | Email nhận mọi thông báo ở chế độ `test`                                              |
-| `REMINDER_LEAD_DAYS`, `REMINDER_QUIET_HOURS`                | Nhắc trước hạn N ngày (1); giờ yên lặng `21-7`                                        |
-| `CRON_SECRET`                                               | ≥ 32 ký tự; bearer cho `/api/cron/reminders`; thiếu → route trả 503, chỉ chạy tay     |
-| `ZALO_APP_ID`, `ZALO_OA_ACCESS_TOKEN`, `ZALO_OA_SECRET_KEY` | Kênh Zalo và webhook                                                                  |
+| Biến                                                       | Ý nghĩa                                                                                                                                                  |
+| ---------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `AI_PROVIDER`                                              | `anthropic` (mặc định), `openai-compatible` hoặc `mock` (chỉ dev/test)                                                                                   |
+| `ANTHROPIC_API_KEY`                                        | Bắt buộc khi `anthropic`; thiếu → trang trợ lý báo "chưa cấu hình", phần còn lại chạy                                                                    |
+| `OPENAI_COMPAT_BASE_URL`, `OPENAI_COMPAT_API_KEY`          | Bắt buộc khi `openai-compatible` (Gemini: `https://generativelanguage.googleapis.com/v1beta/openai/` + key AI Studio)                                    |
+| `OPENAI_COMPAT_REASONING_EFFORT`                           | Tùy chọn, gửi nguyên làm `reasoning_effort` (Gemini: `none`/`low`/`medium`/`high`)                                                                       |
+| `AI_MODEL`, `AI_MAX_TOOL_ROUNDS`, `AI_REQUEST_TIMEOUT_MS`  | Model (mặc định `claude-opus-5` với `anthropic`, bắt buộc với `openai-compatible`), số vòng tool, timeout mỗi lượt                                       |
+| `BUSINESS_TIMEZONE`                                        | Múi giờ nghiệp vụ, mặc định `Asia/Ho_Chi_Minh`                                                                                                           |
+| `NOTIFICATION_DELIVERY`                                    | `off` (mặc định) / `test` / `live`                                                                                                                       |
+| `NOTIFICATION_TEST_RECIPIENT`                              | Email nhận mọi thông báo ở chế độ `test`                                                                                                                 |
+| `REMINDER_LEAD_DAYS`, `REMINDER_QUIET_HOURS`               | Nhắc trước hạn N ngày (1); giờ yên lặng `21-7`                                                                                                           |
+| `CRON_SECRET`                                              | ≥ 32 ký tự; bearer cho `/api/cron/reminders`; thiếu → route trả 503, chỉ chạy tay                                                                        |
+| `ZALO_APP_ID`, `ZALO_APP_SECRET_KEY`, `ZALO_OA_SECRET_KEY` | Kênh Zalo và webhook. Không có token trong env: Giám đốc bấm "Kết nối Zalo" ở `/admin/settings` một lần; cặp token lưu ở `zalocredentials` và tự làm mới |
 
 Vận hành:
 
@@ -161,8 +171,31 @@ Vận hành:
 - **Không hỗ trợ gửi vào nhóm Zalo**: không tìm được endpoint nhóm chính
   thức; thiết kế hiện tại gửi riêng cho từng người đã liên kết. Nếu khách hàng
   cần nhóm, cần xác nhận với Zalo về loại OA/ZNS phù hợp.
-- Trạng thái kiểm thử: contract/mock **PASS** (`tests/unit/zalo-webhook.test.ts`),
-  live **BLOCKED** (không có `ZALO_*`).
+- **Kết nối một lần, tự làm mới mãi (2026-09-06)**: access token Zalo hết
+  hạn sau ~25 giờ, refresh token dùng một lần và được thay mới (thêm 3 tháng)
+  sau mỗi lần làm mới. Không có token nào trong env. Giám đốc (quyền
+  `settings.manageSystem`) bấm **Kết nối Zalo** ở `/admin/settings`:
+  `GET /api/zalo/oauth/start` đặt cookie HttpOnly 10 phút (state + PKCE
+  verifier) rồi chuyển sang `oauth.zaloapp.com/v4/oa/permission`; Zalo trả
+  về `GET /api/zalo/oauth/callback`, route so state, kiểm tra lại quyền, đổi
+  code lấy cặp token (`POST /v4/oa/access_token`, header `secret_key`,
+  `grant_type=authorization_code` + `code_verifier`), lưu vào
+  `zalocredentials` (một dòng, key `oa`) và ghi audit
+  `notifications.zaloOaConnected`. Callback URL phải đăng ký trên ứng dụng
+  Zalo (Cài đặt → Đăng nhập → Official Account); trang Cài đặt hiện đúng URL.
+  `ZaloTokenProvider` (`src/domains/notifications/zalo-token.ts`) làm mới khi
+  còn dưới 2 giờ hiệu lực — ở đầu mỗi lần chạy nhắc việc (mọi chế độ gửi) và
+  khi Zalo từ chối token lúc gửi (thử lại một lần). Làm mới là
+  compare-and-set trên refresh token vừa dùng nên hai worker không thể cùng
+  tiêu một token; làm mới thất bại không bỏ token còn hạn. Trang Cài đặt hiện
+  thời điểm kết nối, hạn access/refresh token, số lần làm mới, lỗi gần nhất;
+  cảnh báo khi refresh token còn dưới 10 ngày; nút Kết nối lại khi cần.
+  Lịch: `vercel.json` khai báo cron gọi `/api/cron/reminders` mỗi 30 phút
+  (Vercel tự gửi bearer `CRON_SECRET`), nên token luôn được làm mới kể cả
+  khi không ai đăng nhập. Kết nối lại chỉ cần khi hệ thống ngừng chạy trên
+  3 tháng hoặc quản trị OA thu hồi quyền.
+- Trạng thái kiểm thử: contract/mock **PASS** (`tests/unit/zalo-webhook.test.ts`,
+  `tests/unit/zalo-token.test.ts`), live **BLOCKED** (không có `ZALO_*`).
 
 ## 7. Kiểm thử và bằng chứng
 
@@ -175,7 +208,7 @@ Chạy ngày 2026-09-06 trên máy dev (Windows 11, Node 22.14, MongoDB Atlas de
 | Build sản xuất      | `npm run build`                                                   | PASS — 5 route mới (`/api/assistant/chat`, `/api/cron/reminders`, `/api/zalo/webhook`, `/admin/assistant`, `/admin/tasks`)        |
 | Prettier            | `npm run format:check`                                            | 61 file lệch định dạng **có từ trước** (ví dụ `tests/unit/role-definitions.test.ts`), không thuộc gate CI; file mới/sửa đã format |
 | Unit + eval (mock)  | `npx vitest run`                                                  | PASS — 39 file, 472 test (389 có trước + 83 mới)                                                                                  |
-| Eval live model     | `ASSISTANT_EVAL_LIVE=1 npm run eval:assistant`                    | **BLOCKED** — không có `ANTHROPIC_API_KEY` trên máy này                                                                           |
+| Eval live model     | `ASSISTANT_EVAL_LIVE=1 npm run eval:assistant`                    | Claude: **BLOCKED** — không có `ANTHROPIC_API_KEY`. Gemini 2.5 Flash (`openai-compatible`, free tier): **PASS** 2/2 case chạy thử ngày 2026-09-06 (`wm-own-unit-order`, `ca-remind-tomorrow`); 15 case còn lại **NOT RUN** để giữ quota free |
 | E2E admin (6 role)  | `E2E_ADMIN_BASE_URL=http://localhost:3000 npm run test:e2e:admin` | PASS — 11/11 (10 desktop + 1 mobile Pixel 5), dev server `AI_PROVIDER=mock`                                                       |
 | Gửi email/Zalo thật | —                                                                 | **NOT RUN** (không có test recipient được chỉ định; `NOTIFICATION_DELIVERY=off`)                                                  |
 
@@ -224,7 +257,8 @@ phong. Ở chế độ live các assertion phụ thuộc văn phong được n�
 1. `.env` có `MONGODB_URI`, `AUTH_SECRET`, `DEV_LOGIN_PASSWORD`. Chạy
    `npm run seed`, `npm run migrate`.
 2. Khởi động: `AI_PROVIDER=mock NOTIFICATION_DELIVERY=off npm run dev`
-   (hoặc đặt `ANTHROPIC_API_KEY` và bỏ `AI_PROVIDER` để dùng mô hình thật).
+   (hoặc đặt `ANTHROPIC_API_KEY` và bỏ `AI_PROVIDER` để dùng Claude, hoặc
+   `AI_PROVIDER=openai-compatible` với Gemini free tier — xem mục 5).
 3. Tạo đơn thử: dùng `/admin/orders/new` hoặc script fixture (mã
    `RD-20260906-E2E1`, khách "E2E AI Khách Kế Hoạch"). Mọi bản ghi thử có
    tiền tố `E2E`.

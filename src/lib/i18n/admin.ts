@@ -33,6 +33,7 @@ type AdminCopy = {
     ledger: string;
     expenses: string;
     receivables: string;
+    checks: string;
     fxRates: string;
   };
   operations: {
@@ -227,6 +228,17 @@ type AdminCopy = {
     noteNotificationsOff: string;
     noteNotificationsTest: string;
     noteCron: string;
+    noteZaloNotConnected: string;
+    noteZaloOk: string;
+    noteZaloRenewalFailed: string;
+    noteZaloExpired: string;
+    noteZaloRefreshAging: string;
+    noteZaloCallback: string;
+    zaloConnect: string;
+    zaloReconnect: string;
+    zaloConnected: string;
+    zaloErrorLead: string;
+    zaloErrors: Record<string, string>;
     noteDevLogin: string;
     noteOpenAccess: string;
     noteGoogle: string;
@@ -266,6 +278,7 @@ const adminDictionaries = {
       ledger: "Thu – Chi",
       expenses: "Chi phí đơn hàng",
       receivables: "Công nợ khách hàng",
+      checks: "Kiểm tra bảng biểu",
       fxRates: "Tỷ giá USD",
     },
     operations: {
@@ -499,7 +512,7 @@ const adminDictionaries = {
       featureOpenAccess: "Mở toàn quyền khi phát triển",
       featureCloudinary: "Lưu trữ ảnh Cloudinary",
       featureEmail: "Email thông báo (Resend)",
-      featureAi: "Trợ lý AI (Anthropic)",
+      featureAi: "Trợ lý AI",
       featureNotifications: "Nhắc việc qua email/Zalo",
       featureCron: "Lịch chạy nhắc việc (CRON_SECRET)",
       featureZalo: "Zalo Official Account",
@@ -511,6 +524,34 @@ const adminDictionaries = {
         "NOTIFICATION_DELIVERY=test: mọi nhắc việc được chuyển tới địa chỉ thử nghiệm.",
       noteCron:
         "Chưa có CRON_SECRET: chỉ chạy nhắc việc bằng tay từ trang Việc cần làm.",
+      noteZaloNotConnected:
+        "Chưa kết nối Zalo OA. Bấm Kết nối Zalo, đăng nhập bằng tài khoản quản trị OA và đồng ý; sau đó hệ thống tự làm mới token, không cần thao tác gì thêm.",
+      noteZaloOk:
+        "Đã kết nối {connectedAt}. Token tự làm mới: access token hiệu lực đến {accessUntil}, refresh token đến {refreshUntil}, đã làm mới {count} lần.",
+      noteZaloRenewalFailed:
+        "Làm mới token thất bại lần gần nhất: {error}. Access token hiện tại còn hiệu lực đến {accessUntil}; hệ thống sẽ thử lại ở lần chạy kế tiếp.",
+      noteZaloExpired:
+        "Access token đã hết hạn và không làm mới được: {error}. Bấm Kết nối lại Zalo.",
+      noteZaloRefreshAging:
+        "Refresh token sắp hết hạn 3 tháng ({refreshUntil}): nếu hệ thống không chạy đủ thường xuyên để làm mới, hãy Kết nối lại Zalo.",
+      noteZaloCallback:
+        "URL callback phải đăng ký trên ứng dụng Zalo (Cài đặt → Đăng nhập → Official Account): {url}",
+      zaloConnect: "Kết nối Zalo",
+      zaloReconnect: "Kết nối lại Zalo",
+      zaloConnected:
+        "Đã kết nối Zalo OA. Từ đây hệ thống tự làm mới token và gửi nhắc việc.",
+      zaloErrorLead: "Kết nối Zalo không thành công:",
+      zaloErrors: {
+        STATE_MISMATCH:
+          "phiên kết nối không khớp hoặc đã hết hạn (10 phút). Bấm Kết nối Zalo lại.",
+        DENIED: "bạn đã không đồng ý cấp quyền trên Zalo.",
+        NOT_CONFIGURED:
+          "thiếu biến ZALO_APP_ID, ZALO_APP_SECRET_KEY hoặc ZALO_OA_SECRET_KEY.",
+        FORBIDDEN: "chỉ Giám đốc mới được kết nối Zalo.",
+        EXCHANGE_FAILED:
+          "Zalo từ chối mã cấp quyền. Kiểm tra App Secret Key và URL callback đã đăng ký đúng chưa.",
+        UNAVAILABLE: "không liên lạc được với Zalo. Thử lại sau ít phút.",
+      },
       noteDevLogin:
         "Chỉ dùng khi phát triển — xóa DEV_LOGIN_PASSWORD trước khi vận hành thật.",
       noteOpenAccess:
@@ -552,6 +593,7 @@ const adminDictionaries = {
       ledger: "Cash ledger",
       expenses: "Order costs",
       receivables: "Receivables",
+      checks: "Spreadsheet checks",
       fxRates: "USD rates",
     },
     operations: {
@@ -785,7 +827,7 @@ const adminDictionaries = {
       featureOpenAccess: "Development open access",
       featureCloudinary: "Cloudinary media storage",
       featureEmail: "Notification email (Resend)",
-      featureAi: "AI assistant (Anthropic)",
+      featureAi: "AI assistant",
       featureNotifications: "Reminders by email/Zalo",
       featureCron: "Reminder schedule (CRON_SECRET)",
       featureZalo: "Zalo Official Account",
@@ -797,6 +839,34 @@ const adminDictionaries = {
         "NOTIFICATION_DELIVERY=test: every reminder is redirected to the test recipient.",
       noteCron:
         "No CRON_SECRET: reminders only run manually from the Tasks page.",
+      noteZaloNotConnected:
+        "Zalo OA is not connected. Press Connect Zalo, sign in as the OA admin and approve; from then on the platform renews the token itself.",
+      noteZaloOk:
+        "Connected {connectedAt}. Token renews itself: access token valid until {accessUntil}, refresh token until {refreshUntil}, renewed {count} times.",
+      noteZaloRenewalFailed:
+        "The last renewal failed: {error}. The current access token is valid until {accessUntil}; the next run retries.",
+      noteZaloExpired:
+        "The access token has expired and could not be renewed: {error}. Press Reconnect Zalo.",
+      noteZaloRefreshAging:
+        "The refresh token is near the end of its 3-month life ({refreshUntil}): if the platform does not run often enough to renew it, press Reconnect Zalo.",
+      noteZaloCallback:
+        "Callback URL to register on the Zalo app (Settings → Login → Official Account): {url}",
+      zaloConnect: "Connect Zalo",
+      zaloReconnect: "Reconnect Zalo",
+      zaloConnected:
+        "Zalo OA connected. The platform now renews the token and sends reminders by itself.",
+      zaloErrorLead: "Connecting Zalo failed:",
+      zaloErrors: {
+        STATE_MISMATCH:
+          "the consent session did not match or expired (10 minutes). Press Connect Zalo again.",
+        DENIED: "you declined the permission on Zalo.",
+        NOT_CONFIGURED:
+          "ZALO_APP_ID, ZALO_APP_SECRET_KEY or ZALO_OA_SECRET_KEY is missing.",
+        FORBIDDEN: "only the Director may connect Zalo.",
+        EXCHANGE_FAILED:
+          "Zalo rejected the authorization code. Check the App Secret Key and the registered callback URL.",
+        UNAVAILABLE: "Zalo could not be reached. Try again in a few minutes.",
+      },
       noteDevLogin:
         "Development only — remove DEV_LOGIN_PASSWORD before going live.",
       noteOpenAccess:

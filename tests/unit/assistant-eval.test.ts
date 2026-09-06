@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
 import { AnthropicAssistantProvider } from "@/domains/assistant/providers/anthropic";
+import { OpenAiCompatibleAssistantProvider } from "@/domains/assistant/providers/openai-compatible";
 import type { AssistantProvider } from "@/domains/assistant/providers/types";
 import type { SystemRoleKey } from "@/domains/identity/role-definitions";
 
@@ -12,21 +13,42 @@ import { runCase } from "../eval/harness";
 /**
  * Live mode: `ASSISTANT_EVAL_LIVE=1 ANTHROPIC_API_KEY=… npx vitest run
  * tests/unit/assistant-eval.test.ts` runs the same cases against the real
- * model. Prose-dependent assertions (`expectedText`, exact `expectCalled`
- * order) are relaxed to containment; every permission, payload and
- * proposal assertion stays strict. Without a key the live run is reported
- * as skipped (BLOCKED), never as passed.
+ * model; with `AI_PROVIDER=openai-compatible` plus `OPENAI_COMPAT_BASE_URL`,
+ * `OPENAI_COMPAT_API_KEY` and `AI_MODEL` it runs against that endpoint
+ * instead (mind the free-tier quotas: every case is several requests).
+ * Prose-dependent assertions (`expectedText`, exact `expectCalled` order)
+ * are relaxed to containment; every permission, payload and proposal
+ * assertion stays strict. Without a key the live run is reported as
+ * skipped (BLOCKED), never as passed.
  */
 const live = process.env.ASSISTANT_EVAL_LIVE === "1";
-const liveKey = process.env.ANTHROPIC_API_KEY;
-const liveProvider: AssistantProvider | null =
-  live && liveKey
-    ? new AnthropicAssistantProvider({
-        apiKey: liveKey,
-        model: process.env.AI_MODEL ?? "claude-opus-5",
-        timeoutMs: 120_000,
-      })
-    : null;
+
+function liveProviderFromEnv(): AssistantProvider | null {
+  if (process.env.AI_PROVIDER === "openai-compatible") {
+    const baseUrl = process.env.OPENAI_COMPAT_BASE_URL;
+    const apiKey = process.env.OPENAI_COMPAT_API_KEY;
+    const model = process.env.AI_MODEL;
+    if (!baseUrl || !apiKey || !model) return null;
+    return new OpenAiCompatibleAssistantProvider({
+      baseUrl,
+      apiKey,
+      model,
+      timeoutMs: 120_000,
+      reasoningEffort: process.env.OPENAI_COMPAT_REASONING_EFFORT,
+    });
+  }
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) return null;
+  return new AnthropicAssistantProvider({
+    apiKey,
+    model: process.env.AI_MODEL ?? "claude-opus-5",
+    timeoutMs: 120_000,
+  });
+}
+
+const liveProvider: AssistantProvider | null = live
+  ? liveProviderFromEnv()
+  : null;
 const usageTotals = { inputTokens: 0, outputTokens: 0, cases: 0 };
 
 type EvalCase = {
@@ -70,7 +92,7 @@ const mode = live
 
 describe(`assistant eval ${fixture.version} (${mode})`, () => {
   if (live && !liveProvider) {
-    it.skip("BLOCKED: ASSISTANT_EVAL_LIVE=1 but ANTHROPIC_API_KEY is not set", () =>
+    it.skip("BLOCKED: ASSISTANT_EVAL_LIVE=1 but no provider key is set (ANTHROPIC_API_KEY, or AI_PROVIDER=openai-compatible with OPENAI_COMPAT_* and AI_MODEL)", () =>
       undefined);
     return;
   }

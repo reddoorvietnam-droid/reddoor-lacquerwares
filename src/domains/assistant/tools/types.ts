@@ -10,6 +10,7 @@ import type { Permission } from "@/domains/identity/permissions";
 import type { ArticleCommandService } from "@/domains/news/commands";
 import type { OrderCommandService } from "@/domains/orders/service";
 import type { ProductCommandService } from "@/domains/products/commands";
+import type { SheetCheckService } from "@/domains/sheet-checks/service";
 import type { ShopService } from "@/domains/shop/service";
 import type { TaskCommandService } from "@/domains/tasks/service";
 import type { AccessContext } from "@/lib/auth/authorization";
@@ -50,6 +51,7 @@ export type ToolServices = {
   articles: ArticleCommandService;
   products: ProductCommandService;
   shop: ShopService;
+  sheetChecks: SheetCheckService;
 };
 
 export type ToolContext = {
