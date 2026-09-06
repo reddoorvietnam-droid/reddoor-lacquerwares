@@ -46,6 +46,27 @@ export const attachmentLimits = {
    * transcript it belongs to.
    */
   retentionDays: 7,
+  /**
+   * Characters kept per stored message. The user side is already bounded by
+   * the request schema; the assistant side is raw model output, so the
+   * transcript clamps it rather than letting a long answer fail the write
+   * and throw away a reply the person has already been shown.
+   */
+  maxMessageChars: 8_000,
+  /**
+   * Characters kept of a file name. The transcript stores a snapshot of the
+   * name beside the message, so the two schemas have to agree; clamping at
+   * ingest is what keeps them from drifting apart.
+   */
+  maxFileNameChars: 200,
+  /** Characters kept per reader note, in the record and in its snapshot. */
+  maxNoteChars: 500,
+  /** Conversations returned by one list read, and the ceiling on a request. */
+  conversationPageSize: 20,
+  maxConversationPageSize: 50,
+  /** Messages returned when a conversation is opened. */
+  messagePageSize: 100,
+  maxMessagePageSize: 200,
 } as const;
 
 export type AttachmentLimits = typeof attachmentLimits;

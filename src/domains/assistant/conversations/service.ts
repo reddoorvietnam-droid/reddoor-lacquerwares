@@ -61,6 +61,13 @@ export type RecordTurnInput = {
   now: Date;
   userText: string;
   attachmentIds: readonly string[];
+  /**
+   * The same records the turn was answered from. The caller has already
+   * read them, and re-reading here would let the seven-day sweep land
+   * between the two: the turn would be answered and then refused at
+   * storage. Omitted only by callers that never resolved them.
+   */
+  attachments?: readonly StoredAttachment[];
   assistantText: string;
   trace: readonly ConversationTraceEntry[];
   sources: readonly ConversationSource[];
@@ -76,6 +83,11 @@ export type RecordedTurn = {
 
 function addDays(instant: Date, days: number): Date {
   return new Date(instant.getTime() + days * DAY_MS);
+}
+
+function clampMessage(text: string): string {
+  const cap = attachmentLimits.maxMessageChars;
+  return text.length > cap ? `${text.slice(0, cap - 1)}…` : text;
 }
 
 function clampRetention(days: number | undefined): number {
@@ -156,10 +168,9 @@ export class ConversationService {
    */
   async recordTurn(input: RecordTurnInput): Promise<RecordedTurn> {
     const expiresAt = addDays(input.now, this.retentionDays);
-    const attachments = await this.resolveAttachments(
-      input.ownerUserId,
-      input.attachmentIds,
-    );
+    const attachments =
+      input.attachments ??
+      (await this.resolveAttachments(input.ownerUserId, input.attachmentIds));
 
     const conversation = await this.openConversation(
       input,
@@ -172,12 +183,25 @@ export class ConversationService {
       ownerUserId: input.ownerUserId,
       expiresAt,
     };
+    // The answer is raw model output and the transcript has a hard ceiling.
+    // Cutting it here keeps the reply the person has already been shown;
+    // letting the write fail would discard the whole turn instead.
+    const assistantText = clampMessage(input.assistantText);
     const records: NewConversationMessageRecord[] = [
       {
         ...shared,
         index,
         role: "user",
-        text: input.userText,
+        // A turn may legitimately carry files and no question ("what is in
+        // this?"). The transcript still needs a line to show, and the
+        // stored text must not be empty: the schema requires it, and the
+        // replay skips a turn with nothing to say.
+        text: clampMessage(
+          input.userText ||
+            `(tệp đính kèm: ${attachments
+              .map((attachment) => attachment.fileName)
+              .join(", ")})`,
+        ),
         attachments: attachments.map(toAttachmentDto),
         trace: [],
         sources: [],
@@ -188,18 +212,37 @@ export class ConversationService {
         ...shared,
         index: index + 1,
         role: "assistant",
-        text: input.assistantText,
+        text: assistantText,
         attachments: [],
         trace: [...input.trace],
         sources: [...input.sources],
         proposalIds: [...input.proposalIds],
-        truncated: input.truncated,
+        truncated: input.truncated || assistantText !== input.assistantText,
       },
     ];
-    const appended = await this.dependencies.store.appendMessages(records);
+    // The store rolls back the messages it inserted, but not a header this
+    // call created a moment ago. Without this the owner's list collects an
+    // empty conversation per failed first turn, each one titled after a
+    // question whose answer is nowhere.
+    let appended: ConversationMessageDto[];
+    try {
+      appended = await this.dependencies.store.appendMessages(records);
+    } catch (error) {
+      if (input.conversationId === null) {
+        await this.dependencies.store
+          .deleteForOwner(input.ownerUserId, conversation.id)
+          .catch(() => undefined);
+      }
+      throw error;
+    }
     const userMessage = appended[0];
     const assistantMessage = appended[1];
     if (!userMessage || !assistantMessage) {
+      if (input.conversationId === null) {
+        await this.dependencies.store
+          .deleteForOwner(input.ownerUserId, conversation.id)
+          .catch(() => undefined);
+      }
       throw new ConversationError(
         "UNAVAILABLE",
         "The transcript could not be written.",
@@ -219,6 +262,14 @@ export class ConversationService {
       // and the reader's notes.
       await this.dependencies.attachments.dropImages(input.ownerUserId, ids);
     }
+    // Files attached to earlier turns move with the transcript too. Sliding
+    // only the ones named by this turn would delete a day-0 spreadsheet on
+    // day 7 while the conversation it belongs to lives to day 13.
+    await this.dependencies.attachments.slideExpiry(
+      input.ownerUserId,
+      conversation.id,
+      expiresAt,
+    );
 
     const touched = await this.dependencies.store.touch({
       ownerUserId: input.ownerUserId,
@@ -268,6 +319,21 @@ export class ConversationService {
       }
       return record;
     });
+  }
+
+  /**
+   * The same records, read leniently: a file the sweep has removed is left
+   * out instead of failing the read. Replaying a transcript must not be
+   * refusable — the person is looking at turns that already happened, and
+   * a missing file is answered by saying it is gone, not by an error.
+   */
+  async readAttachments(
+    ownerUserId: string,
+    ids: readonly string[],
+  ): Promise<StoredAttachment[]> {
+    const wanted = [...new Set(ids)];
+    if (wanted.length === 0) return [];
+    return this.dependencies.attachments.findManyForOwner(ownerUserId, wanted);
   }
 
   private async openConversation(

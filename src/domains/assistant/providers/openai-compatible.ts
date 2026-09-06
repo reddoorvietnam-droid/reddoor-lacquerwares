@@ -2,8 +2,12 @@ import "server-only";
 
 import { AssistantError } from "@/domains/assistant/contracts";
 import {
+  type ChatCompletionChunk,
   type ChatCompletionResponse,
+  createStreamAssembler,
   fromChatCompletion,
+  splitSseEvents,
+  sseData,
   toChatCompletionRequest,
 } from "@/domains/assistant/providers/openai-wire";
 import type {
@@ -44,6 +48,7 @@ export class OpenAiCompatibleAssistantProvider implements AssistantProvider {
   }
 
   async complete(request: ProviderRequest): Promise<ProviderResult> {
+    const stream = Boolean(request.onTextDelta);
     const body = JSON.stringify(
       toChatCompletionRequest({
         model: this.model,
@@ -52,12 +57,14 @@ export class OpenAiCompatibleAssistantProvider implements AssistantProvider {
         tools: request.tools,
         maxTokens: request.maxTokens,
         reasoningEffort: this.reasoningEffort,
+        stream,
       }),
     );
 
     for (let attempt = 0; ; attempt += 1) {
-      const response = await this.send(body, request.signal);
+      const response = await this.send(body, request.signal, stream);
       if (response.ok) {
+        if (stream) return this.readStream(response, request);
         let payload: ChatCompletionResponse;
         try {
           payload = (await response.json()) as ChatCompletionResponse;
@@ -95,12 +102,73 @@ export class OpenAiCompatibleAssistantProvider implements AssistantProvider {
     }
   }
 
-  private async send(body: string, signal: AbortSignal): Promise<Response> {
+  /**
+   * Reads a streamed answer. Text reaches the caller as it arrives; the
+   * result is only assembled once the stream ends, because a tool call is
+   * spread over many fragments and half a set of arguments is not valid
+   * JSON. A stream that dies mid-answer is a provider error, not a short
+   * answer — returning what arrived would look like a complete reply.
+   */
+  private async readStream(
+    response: Response,
+    request: ProviderRequest,
+  ): Promise<ProviderResult> {
+    const body = response.body;
+    if (!body) {
+      throw new AssistantError(
+        "PROVIDER_ERROR",
+        "The model provider sent no answer body.",
+      );
+    }
+    const assembler = createStreamAssembler(request.onTextDelta);
+    const reader = body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+    try {
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const { events, rest } = splitSseEvents(buffer);
+        buffer = rest;
+        for (const event of events) {
+          const payload = sseData(event);
+          if (!payload) continue;
+          try {
+            assembler.push(JSON.parse(payload) as ChatCompletionChunk);
+          } catch {
+            // A fragment that is not JSON is a keep-alive or a comment.
+          }
+        }
+      }
+    } catch (error) {
+      if (request.signal.aborted || isAbort(error)) {
+        throw new AssistantError(
+          "PROVIDER_TIMEOUT",
+          "The model did not answer in time.",
+        );
+      }
+      throw new AssistantError(
+        "PROVIDER_ERROR",
+        "The answer stream ended before the model finished.",
+      );
+    } finally {
+      reader.releaseLock();
+    }
+    return assembler.result();
+  }
+
+  private async send(
+    body: string,
+    signal: AbortSignal,
+    stream = false,
+  ): Promise<Response> {
     try {
       return await fetch(this.endpoint, {
         method: "POST",
         headers: {
           "content-type": "application/json",
+          accept: stream ? "text/event-stream" : "application/json",
           authorization: `Bearer ${this.apiKey}`,
         },
         body,

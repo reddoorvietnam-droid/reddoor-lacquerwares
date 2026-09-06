@@ -16,6 +16,15 @@ export type ProviderRequest = {
   tools: readonly Anthropic.Tool[];
   maxTokens: number;
   signal: AbortSignal;
+  /**
+   * Called with each piece of answer text as it arrives, when the caller
+   * wants to show the answer being written. An adapter that cannot stream —
+   * and the scripted provider, which has nothing to stream — simply ignores
+   * it and returns the whole result at the end, so this stays an optional
+   * field rather than a second method every provider and test fake would
+   * have to implement.
+   */
+  onTextDelta?: ((delta: string) => void) | undefined;
 };
 
 export type ProviderResult = {

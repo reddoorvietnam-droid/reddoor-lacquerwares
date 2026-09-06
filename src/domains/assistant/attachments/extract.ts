@@ -48,10 +48,40 @@ async function readAsText(
   return extractPdfText(bytes);
 }
 
+/**
+ * The name is clamped here, once, because it is copied twice more — into
+ * the attachment record and into the snapshot the transcript keeps beside
+ * the message — and a name longer than either schema allows would fail the
+ * write of a turn whose answer has already been produced and paid for.
+ */
+function clampFileName(fileName: string): string {
+  const trimmed = fileName.trim() || "file";
+  if (trimmed.length <= limits.maxFileNameChars) return trimmed;
+  // The extension has to survive: it is half of the format decision, and a
+  // name cut from the left would arrive at the detector as an unknown type.
+  const dot = trimmed.lastIndexOf(".");
+  const extension = dot > 0 ? trimmed.slice(dot) : "";
+  const keep = limits.maxFileNameChars - extension.length;
+  // An extension long enough to fill the budget on its own is not a real
+  // one; cutting the whole name is then the only way to stay inside the cap.
+  return keep > 0
+    ? `${trimmed.slice(0, keep)}${extension}`
+    : trimmed.slice(0, limits.maxFileNameChars);
+}
+
+function clampNotes(notes: readonly string[]): string[] {
+  return notes.map((note) =>
+    note.length > limits.maxNoteChars
+      ? note.slice(0, limits.maxNoteChars)
+      : note,
+  );
+}
+
 export async function extractAttachment(
   input: AttachmentInput,
 ): Promise<ExtractedAttachment> {
-  const { bytes, fileName } = input;
+  const { bytes } = input;
+  const fileName = clampFileName(input.fileName);
   const byteSize = bytes.length;
   if (byteSize === 0) {
     throw new AttachmentError("FILE_EMPTY", "The file carries no bytes.");
@@ -100,7 +130,7 @@ export async function extractAttachment(
     byteSize,
     text: read.text,
     image: null,
-    notes: read.notes,
+    notes: clampNotes(read.notes),
     truncated: read.truncated,
   };
 }

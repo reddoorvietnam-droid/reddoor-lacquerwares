@@ -226,3 +226,87 @@ describe("ConversationService.remove", () => {
     ).rejects.toMatchObject({ code: "NOT_FOUND" });
   });
 });
+
+/**
+ * The clamps and the sliding window, which the schemas rely on but the fake
+ * store cannot enforce: a value too long for MongoDB fails the write, and a
+ * failed write discards an answer the person has already been shown.
+ */
+describe("ConversationService: what it clamps and what it slides", () => {
+  it("gives a files-only turn something to show instead of an empty line", async () => {
+    const { attachments, service } = build();
+    const file = attachments.seed({
+      ownerUserId: owner,
+      fileName: "bang-luong.xlsx",
+      format: "xlsx",
+      kind: "spreadsheet",
+    });
+
+    const result = await service.recordTurn(
+      turn({ userText: "", attachmentIds: [file.id] }),
+    );
+
+    // Empty text fails the schema's `required` and would take the whole
+    // turn down; the replay also skips a turn with nothing to say.
+    expect(result.userMessage.text).toBe("(tệp đính kèm: bang-luong.xlsx)");
+    expect(result.conversation.title).toBe("bang-luong.xlsx");
+  });
+
+  it("cuts an over-long answer and marks the turn truncated rather than losing it", async () => {
+    const { service } = build();
+    const long = "a".repeat(9_000);
+
+    const result = await service.recordTurn(turn({ assistantText: long }));
+
+    expect(result.assistantMessage.text.length).toBe(8_000);
+    expect(result.assistantMessage.text.endsWith("…")).toBe(true);
+    expect(result.assistantMessage.truncated).toBe(true);
+  });
+
+  it("moves a file attached on an earlier turn to the transcript's new expiry", async () => {
+    const { attachments, service } = build();
+    const file = attachments.seed({ ownerUserId: owner });
+    const first = await service.recordTurn(turn({ attachmentIds: [file.id] }));
+
+    await service.recordTurn(
+      turn({
+        conversationId: first.conversation.id,
+        now: aWeekLater,
+        attachmentIds: [],
+      }),
+    );
+
+    // Without the slide the file would be deleted on day 7 while the
+    // conversation it belongs to lived to day 13.
+    const stored = attachments.records.get(file.id);
+    expect(stored?.expiresAt).toEqual(sevenDaysAfterThat);
+  });
+
+  it("leaves nothing behind when the first turn cannot be written", async () => {
+    const { store, service } = build();
+    store.appendMessages = async () => {
+      throw new Error("write failed");
+    };
+
+    await expect(service.recordTurn(turn())).rejects.toThrow("write failed");
+
+    // A header with no messages would sit in the owner's list for seven
+    // days, titled after a question whose answer is nowhere.
+    expect(await service.list(owner, {})).toEqual([]);
+  });
+
+  it("reports NOT_FOUND for a stranger's conversation without deleting anything", async () => {
+    const { store, attachments, service } = build();
+    const theirs = await seedStrangerConversation(store);
+    const theirFile = attachments.seed({
+      ownerUserId: stranger,
+      conversationId: theirs.id,
+    });
+
+    await expect(service.remove(owner, theirs.id)).rejects.toBeInstanceOf(
+      ConversationError,
+    );
+    expect(attachments.records.get(theirFile.id)).toBeDefined();
+    expect(await store.findForOwner(stranger, theirs.id)).not.toBeNull();
+  });
+});

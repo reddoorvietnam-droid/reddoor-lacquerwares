@@ -48,6 +48,8 @@ export type ChatCompletionRequest = {
   tools?: ChatTool[];
   tool_choice?: "auto";
   reasoning_effort?: string;
+  stream?: true;
+  stream_options?: { include_usage: true };
 };
 
 export type ChatCompletionResponse = {
@@ -71,6 +73,7 @@ export function toChatCompletionRequest(input: {
   tools: readonly Anthropic.Tool[];
   maxTokens: number;
   reasoningEffort?: string | undefined;
+  stream?: boolean;
 }): ChatCompletionRequest {
   const request: ChatCompletionRequest = {
     model: input.model,
@@ -86,6 +89,12 @@ export function toChatCompletionRequest(input: {
     request.tool_choice = "auto";
   }
   if (input.reasoningEffort) request.reasoning_effort = input.reasoningEffort;
+  if (input.stream) {
+    request.stream = true;
+    // Without this the usage numbers never arrive on a streamed answer and
+    // the turn would be recorded as having cost nothing.
+    request.stream_options = { include_usage: true };
+  }
   return request;
 }
 
@@ -348,4 +357,129 @@ function parseArguments(raw: string | undefined): Record<string, unknown> {
   } catch {
     return {};
   }
+}
+
+/* ------------------------------------------------------------------ */
+/* Streaming                                                           */
+/* ------------------------------------------------------------------ */
+
+/**
+ * One `data:` payload of a streamed completion. The shape mirrors the
+ * non-streamed response except that everything arrives in fragments: text a
+ * few characters at a time, and a tool call spread over many chunks, keyed
+ * by `index` rather than by id — the id and the function name usually come
+ * in the first fragment for that index and the arguments accumulate after.
+ */
+export type ChatCompletionChunk = {
+  choices?: {
+    delta?: {
+      content?: string | null;
+      tool_calls?: {
+        index?: number;
+        id?: string;
+        function?: { name?: string; arguments?: string };
+      }[];
+    };
+    finish_reason?: string | null;
+  }[];
+  usage?: { prompt_tokens?: number; completion_tokens?: number };
+};
+
+/**
+ * Splits a growing buffer into complete SSE events. An event ends at a blank
+ * line, so whatever follows the last one is an unfinished event and is
+ * handed back to be prepended to the next network chunk — a boundary that
+ * falls inside a multi-byte character or inside a JSON payload is the whole
+ * reason this is a function and not a `split` at the call site.
+ */
+export function splitSseEvents(buffer: string): {
+  events: string[];
+  rest: string;
+} {
+  const normalized = buffer.replace(/\r\n/g, "\n");
+  const parts = normalized.split("\n\n");
+  const rest = parts.pop() ?? "";
+  return { events: parts.filter((part) => part.trim() !== ""), rest };
+}
+
+/** The `data:` payload of one event, or null for a comment or `[DONE]`. */
+export function sseData(event: string): string | null {
+  const lines = event
+    .split("\n")
+    .filter((line) => line.startsWith("data:"))
+    .map((line) => line.slice(5).trim());
+  if (lines.length === 0) return null;
+  const payload = lines.join("\n");
+  return payload === "[DONE]" ? null : payload;
+}
+
+/**
+ * Rebuilds a whole answer from its fragments. Text is forwarded as it
+ * arrives so the reader watches it being written; tool calls are held back
+ * until the end, because a half-received argument list is not valid JSON and
+ * a tool must never be called with one.
+ */
+export function createStreamAssembler(
+  onTextDelta?: ((delta: string) => void) | undefined,
+): {
+  push(chunk: ChatCompletionChunk): void;
+  result(): ProviderResult;
+} {
+  let text = "";
+  let finishReason: string | null | undefined;
+  const usage = { inputTokens: 0, outputTokens: 0 };
+  const calls = new Map<
+    number,
+    { id: string; name: string; arguments: string }
+  >();
+
+  return {
+    push(chunk) {
+      if (chunk.usage) {
+        usage.inputTokens = chunk.usage.prompt_tokens ?? usage.inputTokens;
+        usage.outputTokens =
+          chunk.usage.completion_tokens ?? usage.outputTokens;
+      }
+      const choice = chunk.choices?.[0];
+      if (!choice) return;
+      if (choice.finish_reason) finishReason = choice.finish_reason;
+      const delta = choice.delta;
+      if (!delta) return;
+      if (typeof delta.content === "string" && delta.content !== "") {
+        text += delta.content;
+        onTextDelta?.(delta.content);
+      }
+      for (const [position, fragment] of (delta.tool_calls ?? []).entries()) {
+        const index = fragment.index ?? position;
+        const held = calls.get(index) ?? { id: "", name: "", arguments: "" };
+        calls.set(index, {
+          id: fragment.id || held.id,
+          name: fragment.function?.name || held.name,
+          arguments: held.arguments + (fragment.function?.arguments ?? ""),
+        });
+      }
+    },
+    result() {
+      return fromChatCompletion({
+        choices: [
+          {
+            message: {
+              content: text,
+              tool_calls: [...calls.entries()]
+                .sort(([left], [right]) => left - right)
+                .map(([, call]) => ({
+                  id: call.id,
+                  function: { name: call.name, arguments: call.arguments },
+                })),
+            },
+            finish_reason: finishReason ?? null,
+          },
+        ],
+        usage: {
+          prompt_tokens: usage.inputTokens,
+          completion_tokens: usage.outputTokens,
+        },
+      });
+    },
+  };
 }

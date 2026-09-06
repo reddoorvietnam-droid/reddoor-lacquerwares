@@ -2,8 +2,11 @@ import type Anthropic from "@anthropic-ai/sdk";
 import { describe, expect, it } from "vitest";
 
 import {
+  createStreamAssembler,
   fromChatCompletion,
   sanitizeToolSchema,
+  splitSseEvents,
+  sseData,
   toChatCompletionRequest,
   toChatMessages,
 } from "@/domains/assistant/providers/openai-wire";
@@ -266,5 +269,143 @@ describe("openai wire: responses", () => {
       content: [],
       stopReason: "end_turn",
     });
+  });
+});
+
+/**
+ * The streamed answer. A chunk boundary can fall anywhere — inside a JSON
+ * payload, between the two newlines that end an event, or in the middle of
+ * a tool call's arguments — so these assert on the reassembly, not on a
+ * happy path where every chunk is a whole event.
+ */
+describe("openai wire: streaming", () => {
+  it("only yields events that are complete, and keeps the remainder", () => {
+    const first = splitSseEvents('data: {"a":1}\n\ndata: {"b":');
+    expect(first.events).toEqual(['data: {"a":1}']);
+    expect(first.rest).toBe('data: {"b":');
+
+    const second = splitSseEvents(`${first.rest}2}\n\n`);
+    expect(second.events).toEqual(['data: {"b":2}']);
+    expect(second.rest).toBe("");
+  });
+
+  it("reads the payload of an event and ignores comments and the end marker", () => {
+    expect(sseData('data: {"x":1}')).toBe('{"x":1}');
+    expect(sseData("data: [DONE]")).toBeNull();
+    expect(sseData(": keep-alive")).toBeNull();
+    // Some endpoints send CRLF; splitSseEvents normalises before this runs.
+    expect(sseData('event: message\ndata: {"y":2}')).toBe('{"y":2}');
+  });
+
+  it("hands text over as it arrives and rebuilds the same result as a plain answer", () => {
+    const seen: string[] = [];
+    const assembler = createStreamAssembler((delta) => seen.push(delta));
+    assembler.push({ choices: [{ delta: { content: "Đơn " } }] });
+    assembler.push({ choices: [{ delta: { content: "RD-1 " } }] });
+    assembler.push({ choices: [{ delta: { content: "đã đóng." } }] });
+    assembler.push({
+      choices: [{ delta: {}, finish_reason: "stop" }],
+      usage: { prompt_tokens: 30, completion_tokens: 9 },
+    });
+
+    expect(seen).toEqual(["Đơn ", "RD-1 ", "đã đóng."]);
+    expect(assembler.result()).toMatchObject({
+      content: [{ type: "text", text: "Đơn RD-1 đã đóng." }],
+      stopReason: "end_turn",
+      usage: { inputTokens: 30, outputTokens: 9 },
+    });
+  });
+
+  it("assembles a tool call whose arguments arrive in fragments, and streams none of it", () => {
+    const seen: string[] = [];
+    const assembler = createStreamAssembler((delta) => seen.push(delta));
+    assembler.push({
+      choices: [
+        {
+          delta: {
+            tool_calls: [
+              { index: 0, id: "call_1", function: { name: "get_order" } },
+            ],
+          },
+        },
+      ],
+    });
+    assembler.push({
+      choices: [
+        {
+          delta: {
+            tool_calls: [{ index: 0, function: { arguments: '{"or' } }],
+          },
+        },
+      ],
+    });
+    assembler.push({
+      choices: [
+        {
+          delta: {
+            tool_calls: [
+              { index: 0, function: { arguments: 'derCode":"RD-1"}' } },
+            ],
+          },
+          finish_reason: "tool_calls",
+        },
+      ],
+    });
+
+    // Arguments are held back: half a JSON object must never reach a tool.
+    expect(seen).toEqual([]);
+    expect(assembler.result()).toMatchObject({
+      stopReason: "tool_use",
+      content: [
+        {
+          type: "tool_use",
+          id: "call_1",
+          name: "get_order",
+          input: { orderCode: "RD-1" },
+        },
+      ],
+    });
+  });
+
+  it("keeps two concurrent tool calls apart by their index", () => {
+    const assembler = createStreamAssembler();
+    assembler.push({
+      choices: [
+        {
+          delta: {
+            tool_calls: [
+              {
+                index: 1,
+                id: "b",
+                function: { name: "list_orders", arguments: "{}" },
+              },
+              {
+                index: 0,
+                id: "a",
+                function: { name: "get_order", arguments: "{}" },
+              },
+            ],
+          },
+        },
+      ],
+    });
+    const result = assembler.result();
+    expect(
+      result.content.map((block) => ("name" in block ? block.name : "")),
+    ).toEqual(["get_order", "list_orders"]);
+  });
+
+  it("asks for usage numbers when it asks for a stream", () => {
+    const request = toChatCompletionRequest({
+      model: "m",
+      system: "s",
+      messages: [{ role: "user", content: "hi" }],
+      tools: [],
+      maxTokens: 10,
+      stream: true,
+    });
+    expect(request.stream).toBe(true);
+    // Without this a streamed turn would be recorded as having cost nothing.
+    expect(request.stream_options).toEqual({ include_usage: true });
   });
 });

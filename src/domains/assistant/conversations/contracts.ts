@@ -138,9 +138,18 @@ export class ConversationError extends Error {
 
 export const conversationIdSchema = z.string().regex(/^[a-f0-9]{24}$/);
 
+/** Only reached by a turn that carries neither a question nor a file name. */
+const UNTITLED_CONVERSATION = "Hội thoại";
+
 /** The title shown in the list: the opening question, trimmed to one line. */
 export function titleFrom(message: string, fallback: string): string {
-  const line = message.replace(/\s+/g, " ").trim();
-  if (!line) return fallback;
+  // The fallback is trimmed on the same terms as the message: it is a file
+  // name, and an over-long one would otherwise be rejected by the schema
+  // and take the whole first turn down with it. The result feeds a required
+  // field, so this never returns an empty string, whatever it is given.
+  const line =
+    message.replace(/\s+/g, " ").trim() ||
+    fallback.replace(/\s+/g, " ").trim() ||
+    UNTITLED_CONVERSATION;
   return line.length > 80 ? `${line.slice(0, 79)}…` : line;
 }

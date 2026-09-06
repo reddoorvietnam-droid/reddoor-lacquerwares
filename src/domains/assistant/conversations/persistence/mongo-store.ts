@@ -7,6 +7,7 @@ import type {
   AttachmentFormat,
   AttachmentKind,
 } from "@/domains/assistant/attachments/contracts";
+import { ConversationError } from "@/domains/assistant/conversations/contracts";
 import type {
   ConversationDto,
   ConversationListFilter,
@@ -22,6 +23,7 @@ import {
   getAssistantConversationMessageModel,
   getAssistantConversationModel,
 } from "@/domains/assistant/conversations/persistence/models";
+import { attachmentLimits } from "@/domains/assistant/attachments/limits";
 import { connectToDatabase } from "@/lib/db/mongoose";
 
 /**
@@ -77,8 +79,19 @@ type MessageDocument = {
   updatedAt: Date;
 };
 
-/** Used only when a caller asks for a page without saying how large. */
-const DEFAULT_LIST_LIMIT = 20;
+/**
+ * A page size the caller asked for, brought inside the declared bounds. It
+ * matters that zero does not survive: MongoDB reads `.limit(0)` as "no
+ * limit", so an unclamped zero would hand back the whole transcript.
+ */
+function clampPage(
+  requested: number | undefined,
+  fallback: number,
+  ceiling: number,
+): number {
+  if (requested === undefined || !Number.isFinite(requested)) return fallback;
+  return Math.min(ceiling, Math.max(1, Math.trunc(requested)));
+}
 
 function toObjectIds(ids: readonly string[]): Types.ObjectId[] {
   return ids.filter(Types.ObjectId.isValid).map((id) => new Types.ObjectId(id));
@@ -151,6 +164,11 @@ function messageToDto(document: MessageDocument): ConversationMessageDto {
 
 export class MongoConversationStore implements ConversationStore {
   async create(record: NewConversationRecord): Promise<ConversationDto> {
+    // Guarded like every read in this file: an unreadable id must surface as
+    // the domain's own error, not as a BSONError from the driver.
+    if (!Types.ObjectId.isValid(record.ownerUserId)) {
+      throw new ConversationError("INVALID_INPUT", "Unreadable owner id.");
+    }
     await connectToDatabase();
     const created = await getAssistantConversationModel().create({
       ownerUserId: new Types.ObjectId(record.ownerUserId),
@@ -192,8 +210,14 @@ export class MongoConversationStore implements ConversationStore {
     const documents = await getAssistantConversationModel()
       .find({ ownerUserId: new Types.ObjectId(ownerUserId) })
       .sort({ lastMessageAt: -1, _id: -1 })
-      .skip(filter.offset ?? 0)
-      .limit(filter.limit ?? DEFAULT_LIST_LIMIT)
+      .skip(Math.max(0, filter.offset ?? 0))
+      .limit(
+        clampPage(
+          filter.limit,
+          attachmentLimits.conversationPageSize,
+          attachmentLimits.maxConversationPageSize,
+        ),
+      )
       .lean<ConversationDocument[]>()
       .exec();
     return documents.map(toDto);
@@ -228,6 +252,21 @@ export class MongoConversationStore implements ConversationStore {
     records: readonly NewConversationMessageRecord[],
   ): Promise<ConversationMessageDto[]> {
     if (records.length === 0) return [];
+    for (const record of records) {
+      if (
+        !Types.ObjectId.isValid(record.conversationId) ||
+        !Types.ObjectId.isValid(record.ownerUserId) ||
+        !record.proposalIds.every(Types.ObjectId.isValid)
+      ) {
+        // A proposal id that would be silently dropped by `toObjectIds`
+        // matters on a write: the transcript would claim fewer proposals
+        // than the turn produced, with nothing to say so.
+        throw new ConversationError(
+          "INVALID_INPUT",
+          "Unreadable id in a transcript record.",
+        );
+      }
+    }
     await connectToDatabase();
     // The ids are minted here so the compensation below can delete exactly
     // what this call inserted; deleting by position would remove whatever
@@ -288,7 +327,13 @@ export class MongoConversationStore implements ConversationStore {
         ownerUserId: new Types.ObjectId(ownerUserId),
       })
       .sort({ index: -1 })
-      .limit(limit)
+      .limit(
+        clampPage(
+          limit,
+          attachmentLimits.messagePageSize,
+          attachmentLimits.maxMessagePageSize,
+        ),
+      )
       .lean<MessageDocument[]>()
       .exec();
     return documents.reverse().map(messageToDto);

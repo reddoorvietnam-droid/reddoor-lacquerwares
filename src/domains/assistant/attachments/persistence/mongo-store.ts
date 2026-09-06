@@ -162,6 +162,26 @@ export class MongoAttachmentStore implements AttachmentStore {
     return result.modifiedCount;
   }
 
+  async slideExpiry(
+    ownerUserId: string,
+    conversationId: string,
+    expiresAt: Date,
+  ): Promise<number> {
+    if (!Types.ObjectId.isValid(ownerUserId)) return 0;
+    if (!Types.ObjectId.isValid(conversationId)) return 0;
+    await connectToDatabase();
+    const result = await getAssistantAttachmentModel()
+      .updateMany(
+        {
+          ownerUserId: new Types.ObjectId(ownerUserId),
+          conversationId: new Types.ObjectId(conversationId),
+        },
+        { $set: { expiresAt } },
+      )
+      .exec();
+    return result.modifiedCount;
+  }
+
   async deleteForConversation(
     ownerUserId: string,
     conversationId: string,

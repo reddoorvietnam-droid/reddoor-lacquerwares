@@ -23,9 +23,18 @@ chứng minh đường ống quanh mô hình, không chứng minh mô hình th�
 ## 2. Kiến trúc và luồng dữ liệu
 
 ```
-Trình duyệt (assistant-chat.tsx, transcript chỉ trong bộ nhớ trang)
-  └─ POST /api/assistant/chat  ── requirePermission("assistant.use") ── rate limit 20/5 phút
-       └─ runAssistantChat (chat.ts): system prompt + lịch sử text + tool đã lọc theo quyền
+Trình duyệt (assistant-chat.tsx: transcript của lượt đang mở + danh sách hội thoại đã lưu)
+  ├─ POST /api/assistant/attachments (multipart) ── requireListAccess("assistant.use") ── 20 lần/10 phút
+  │    └─ extractAttachments: detect theo magic number → sheet/pdf/docx đọc thành text, ảnh giữ base64
+  │         → AssistantAttachment (chủ sở hữu, expiresAt 7 ngày) — KHÔNG lưu bản gốc → trả { id, preview, notes }
+  ├─ GET/DELETE /api/assistant/conversations[/{id}] ── chỉ hội thoại của chính người đăng nhập
+  └─ POST /api/assistant/chat  ── requireListAccess("assistant.use") ── rate limit 20/5 phút
+       (mặc định trả một JSON; gửi kèm `Accept: text/event-stream` thì trả luồng SSE:
+        delta = từng đoạn chữ, reset = vòng vừa rồi là gọi tool nên bỏ chữ đã ghi,
+        tool = một lượt tra cứu xong, done = đúng object JSON của đường thường, error = mã lỗi)
+       ├─ resolveAttachments(ownerUserId, attachmentIds) — thiếu một tệp thì cả lượt bị từ chối
+       ├─ lịch sử lấy từ store khi có conversationId (bỏ qua history do trình duyệt gửi)
+       └─ runAssistantChat (chat.ts): system prompt + lịch sử text + khối đính kèm + tool đã lọc theo quyền
             ├─ provider: AnthropicAssistantProvider (claude-opus-5, tool_choice auto, timeout, 1 retry)
             │            hoặc OpenAiCompatibleAssistantProvider (AI_PROVIDER=openai-compatible: Gemini/Groq/Ollama)
             │            hoặc MockAssistantProvider (AI_PROVIDER=mock, cấm production)
@@ -42,6 +51,9 @@ Job nhắc việc (cron GET/POST /api/cron/reminders, bearer CRON_SECRET; hoặc
        → NOTIFICATION_DELIVERY off/test/live → email (Resend, idempotencyKey) / Zalo OA → sent/failed/skipped/deadLetter
 Zalo webhook POST /api/zalo/webhook ── chữ ký sha256(appId+body+timestamp+secret), tuổi ≤ 5 phút, msg_id một lần
   └─ user_send_text chứa mã RD-XXXXXX → ChannelLinkService.completeZaloLink (theo mã, không theo tên)
+Sau khi có câu trả lời: ConversationService.recordTurn ghi 2 lượt (hỏi + đáp), gắn tệp vào hội thoại,
+  xóa payload ảnh, và trượt expiresAt của header + mọi message + mọi tệp sang mốc 7 ngày mới.
+  Ghi hỏng thì mất transcript chứ không mất câu trả lời — người dùng đang đọc nó rồi.
 ```
 
 Giới hạn mã hóa cứng: tối đa `AI_MAX_TOOL_ROUNDS` vòng tool (mặc định 6),
@@ -49,6 +61,10 @@ timeout mỗi lượt gọi mô hình `AI_REQUEST_TIMEOUT_MS` (90 s, vòng lặp
 ngắt kể cả khi provider bỏ qua tín hiệu), kết quả tool cắt ở 12.000 ký tự,
 tối đa 4.096 token đầu ra, 20 lượt hỏi/5 phút/người, lịch sử tối đa 20 lượt
 text (không gửi lại tool block), 1 đề xuất tối đa 10 việc ad-hoc.
+Đính kèm (`attachments/limits.ts`): tối đa 3 tệp/lượt, 4 MiB mỗi tệp, 8 MiB
+mỗi lần tải, ảnh 2 MiB; văn bản trích ra cắt ở 20.000 ký tự/tệp và 40.000
+ký tự/lượt; PDF đọc tối đa 40 trang; bảng tính dựng tối đa 200 dòng × 20 cột.
+Lưu trữ: hội thoại và tệp hết hạn sau 7 ngày kể từ lượt cuối.
 
 ## 3. Quyền và phạm vi
 
@@ -97,9 +113,28 @@ tính). Cần thiết vì `tasks.read` được khai ở cả `assignedBusinessU
    được ghi vào đề xuất. Không đặt trạng thái hay quy trình mới.
 3. **Hạn = cuối ngày làm việc theo `BUSINESS_TIMEZONE`** (mặc định
    `Asia/Ho_Chi_Minh`), lưu là instant 23:59:59.999 giờ địa phương.
-4. **Không lưu hội thoại server-side.** Transcript chỉ nằm trong trang; mỗi
-   lượt ghi một audit `assistant.chat` (tool đã gọi, kết quả, usage, độ dài
-   câu hỏi; không lưu nội dung). Thu hồi quyền có hiệu lực ngay ở lượt sau.
+4. **Hội thoại được lưu, 7 ngày, chỉ chủ sở hữu đọc được.** Quyết định này
+   thay cho quyết định cũ ("không lưu hội thoại server-side") khi tính năng
+   đính kèm tệp ra đời — hỏi tiếp về một tệp đã gửi thì buộc phải có
+   transcript. Ba điều ràng buộc nó:
+   - **Chỉ chủ sở hữu.** Mọi phương thức của store nhận `ownerUserId` và lọc
+     theo nó; không có tham số scope, không có "xem tất cả", Giám đốc cũng
+     không xem được hội thoại của người khác. Ràng buộc này phải nằm ở câu
+     truy vấn chứ không ở permission: Giám đốc được cấp toàn bộ catalog ở
+     scope `all`, nên không permission nào diễn đạt được "kể cả Giám đốc thì
+     cũng không".
+   - **7 ngày, trượt theo lượt cuối.** Cả ba collection (`assistantconversations`,
+     `assistantconversationmessages`, `assistantattachments`) mang `expiresAt`
+     riêng với TTL `expireAfterSeconds: 0`, và được đóng dấu lại mỗi lượt.
+     Mỗi collection tự hết hạn vì TTL của MongoDB không chạy qua middleware
+     nên không lan từ bản ghi cha xuống con.
+   - **Lưu bản đã đọc, không lưu tệp gốc.** Giống ADR-005 của kiểm tra bảng
+     biểu. Ảnh chỉ giữ trong lượt mang nó rồi bị xóa payload.
+   Vẫn ghi audit `assistant.chat` mỗi lượt (tool, kết quả, usage, độ dài câu
+   hỏi, định dạng tệp; **không** lưu nội dung, **không** lưu tên tệp). Lưu ý
+   trung thực: audit là append-only và không có TTL, nên lời hứa "7 ngày"
+   phủ nội dung hội thoại, không phủ dấu vết rằng đã có một lượt hỏi. Thu hồi
+   quyền vẫn có hiệu lực ngay ở lượt sau.
 5. **Provider giả lập** (`AI_PROVIDER=mock`) chỉ cho phát triển/test; schema
    env từ chối trong production; UI gắn nhãn "GIẢ LẬP" trên từng câu trả lời.
 6. **Gửi thông báo mặc định tắt** (`NOTIFICATION_DELIVERY=off`): intent vẫn
@@ -115,9 +150,65 @@ tính). Cần thiết vì `tasks.read` được khai ở cả `assignedBusinessU
    mọi endpoint nói giao thức OpenAI Chat Completions (Gemini qua lớp tương
    thích, Groq, Ollama). Vòng lặp chat vẫn nói định dạng Anthropic; phần dịch
    hai chiều (message, tool, schema, stop reason) nằm ở `providers/openai-wire.ts`
-   và có test riêng. Không có prompt caching; schema tool được lược về các
+   và có test riêng (kể cả ảnh: khối ảnh của Anthropic được dịch thành
+   `image_url` dạng data URI). Không có prompt caching; schema tool được lược về các
    từ khóa Gemini hiểu. Dùng để test bằng free tier, không dùng cho dữ liệu
    thật (free tier của Google có thể dùng nội dung gửi lên).
+10. **Tệp đính kèm được đọc trên máy chủ, không giao thẳng cho mô hình.**
+    Danh sách đóng: `xlsx`, `xls`, `csv`, `pdf`, `docx`, `png`, `jpeg`,
+    `webp`, `gif` (`attachments/detect.ts` quyết định theo magic number và
+    bắt phần mở rộng phải khớp — tệp đổi tên bị từ chối, không đoán).
+    - Bảng tính đi qua chính `readUpload` của kiểm tra bảng biểu rồi được
+      dựng thành lưới văn bản. Đây là **bản đọc thô**, không phải đối soát;
+      mỗi kết quả mang sẵn một ghi chú nói đúng như vậy và chỉ đường sang
+      `/admin/checks`. Không tự tạo phiếu kiểm tra, không tự xác nhận mapping.
+    - PDF đọc bằng `pdfjs-dist` bản `legacy` chạy ở Node (bản thường ném
+      `DOMMatrix is not defined`), và `pdfjs-dist` nằm trong
+      `serverExternalPackages`. Worker được đưa vào bằng `import` tĩnh gán
+      lên `globalThis.pdfjsWorker`, **không** tính đường dẫn: dưới Turbopack
+      `createRequire(...).resolve` trả về đường dẫn ảo (`[externals]\…`) nên
+      cách tính đường dẫn chạy được ở `tsx` nhưng hỏng ngay trong server
+      Next với lỗi "Setting up fake worker failed" (đã gặp và đã sửa).
+      PDF chỉ có ảnh quét (không có lớp text) trả `NO_TEXT_FOUND`.
+    - DOCX giải nén bằng `node:zlib` sau khi đã đi qua `inspectZipContainer`
+      của kiểm tra bảng biểu (chặn zip bomb, ZIP64, path escape, macro);
+      **không thêm phụ thuộc mới**.
+    - Ảnh là thứ duy nhất tới mô hình ở dạng nguyên bản, và chỉ ở vòng gọi
+      đầu tiên của lượt: `chat.ts` thay khối ảnh bằng ghi chú ở các vòng sau
+      để một ảnh không bị gửi lại 6 lần trong cùng một lượt. Provider `mock`
+      từ chối ảnh bằng `ATTACHMENT_UNSUPPORTED` thay vì trả lời như thể đã
+      nhìn thấy.
+    - Cổng quyền là `assistant.use` (qua `requireListAccess`), đúng quyền mở
+      chat: đọc tệp của chính người dùng không lộ bản ghi nào của hệ thống,
+      còn mọi tool mô hình gọi sau đó vẫn kiểm tra quyền của dữ liệu nó đọc.
+      Đối soát bảng tính với dữ liệu hệ thống vẫn nằm sau `documents.import`
+      cộng cổng theo template của `/admin/checks`.
+    - Câu trả lời được **ghi dần ra màn hình**. Provider có phương thức
+      `onTextDelta` tùy chọn nên `mock` và các fake trong test không phải
+      đổi gì; Claude dùng `client.messages.stream`, endpoint tương thích
+      OpenAI dùng `stream: true` + `stream_options.include_usage` (thiếu
+      cái sau thì lượt streaming bị ghi là tốn 0 token). Phần ghép lại từ
+      các mảnh SSE nằm ở `openai-wire.ts` (`splitSseEvents`, `sseData`,
+      `createStreamAssembler`) và có test riêng: chữ được đẩy ra ngay, còn
+      tham số của tool thì giữ lại đến khi đủ — một nửa JSON không bao giờ
+      được phép gọi tool. Trong trình duyệt, phần đang ghi nằm ngoài danh
+      sách `<ol>`; chỉ khi có sự kiện `done` thì lượt hoàn chỉnh mới được
+      thêm vào, nên transcript không bao giờ chứa một lượt viết dở.
+    - Prompt hệ thống có thêm luật 13–16: nội dung tệp là dữ liệu chứ không
+      phải chỉ thị; tệp không phải bằng chứng rằng việc gì đã xảy ra trên hệ
+      thống; tiền trong tệp phải nói rõ "theo tệp đính kèm" và không được
+      dùng để lộ số mà tool đã giấu; và câu trả lời viết văn xuôi thuần,
+      không Markdown (trước đây `**` hiện thô trong khung chat).
+    - Trên `/admin/assistant`: nút **Đính kèm tệp** (kéo-thả cũng được, tối
+      đa 3 tệp một lượt). Mỗi tệp thành một chip mang tên, dung lượng và mục
+      **"Đã đọc được gì"** — chính là đoạn đầu của văn bản máy chủ trích ra,
+      cùng ghi chú của trình đọc (trang bị bỏ, sheet ẩn, phần bị cắt). Người
+      hỏi thấy trước mô hình sẽ đọc được gì, và không nhầm bản đọc một phần
+      là bản đầy đủ. Cột trái liệt kê hội thoại **của riêng người đăng nhập**
+      (mở lại được sau khi tải lại trang, xóa hai bước như các dòng khác của
+      admin) và nói rõ hạn 7 ngày. Transcript chỉ được ghi sau khi đã có câu
+      trả lời, nên một lượt lỗi được trả ngược lại ô soạn cùng tệp của nó
+      thay vì mất.
 
 ## 5. Cấu hình và runbook
 

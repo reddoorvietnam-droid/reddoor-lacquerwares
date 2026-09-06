@@ -42,14 +42,15 @@ const NOT_A_RECONCILIATION =
 /**
  * Intake codes that have an exact counterpart keep it; everything else is a
  * failure to read the file, which is all the person can act on anyway.
- * `FILE_TOO_MANY_ROWS` becomes FILE_TOO_LARGE: to the uploader it is the
- * same answer — the file is bigger than this path accepts.
+ * `FILE_TOO_MANY_ROWS` keeps its own code rather than collapsing into
+ * FILE_TOO_LARGE: the file may be small, and the only thing that helps the
+ * person is being told to attach a narrower range of rows.
  */
 const translatedCodes: Partial<
   Record<SheetCheckErrorCode, AttachmentErrorCode>
 > = {
   FILE_TOO_LARGE: "FILE_TOO_LARGE",
-  FILE_TOO_MANY_ROWS: "FILE_TOO_LARGE",
+  FILE_TOO_MANY_ROWS: "FILE_TOO_MANY_ROWS",
   FILE_TYPE_REJECTED: "FILE_TYPE_REJECTED",
   FILE_MACRO_REJECTED: "FILE_MACRO_REJECTED",
   FILE_ZIP_SUSPICIOUS: "FILE_ZIP_SUSPICIOUS",

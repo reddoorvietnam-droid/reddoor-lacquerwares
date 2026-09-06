@@ -31,24 +31,29 @@ export class AnthropicAssistantProvider implements AssistantProvider {
   }
 
   async complete(request: ProviderRequest): Promise<ProviderResult> {
-    try {
-      const response = await this.client.messages.create(
+    const parameters = {
+      model: this.model,
+      max_tokens: request.maxTokens,
+      system: [
         {
-          model: this.model,
-          max_tokens: request.maxTokens,
-          system: [
-            {
-              type: "text",
-              text: request.system,
-              cache_control: { type: "ephemeral" },
-            },
-          ],
-          messages: [...request.messages],
-          tools: [...request.tools],
-          tool_choice: { type: "auto" },
+          type: "text" as const,
+          text: request.system,
+          cache_control: { type: "ephemeral" as const },
         },
-        { signal: request.signal },
-      );
+      ],
+      messages: [...request.messages],
+      tools: [...request.tools],
+      tool_choice: { type: "auto" as const },
+    };
+    try {
+      // The streamed and the plain call return the same message; the SDK's
+      // stream helper reassembles it, so the two paths differ only in
+      // whether the answer is also handed over as it is written.
+      const response = request.onTextDelta
+        ? await this.stream(parameters, request, request.onTextDelta)
+        : await this.client.messages.create(parameters, {
+            signal: request.signal,
+          });
       return {
         content: response.content,
         stopReason: response.stop_reason,
@@ -97,5 +102,17 @@ export class AnthropicAssistantProvider implements AssistantProvider {
       }
       throw error;
     }
+  }
+
+  private async stream(
+    parameters: Anthropic.MessageCreateParamsNonStreaming,
+    request: ProviderRequest,
+    onTextDelta: (delta: string) => void,
+  ): Promise<Anthropic.Message> {
+    const stream = this.client.messages.stream(parameters, {
+      signal: request.signal,
+    });
+    stream.on("text", onTextDelta);
+    return stream.finalMessage();
   }
 }

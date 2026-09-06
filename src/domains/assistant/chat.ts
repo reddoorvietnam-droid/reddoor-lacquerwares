@@ -45,6 +45,21 @@ export type ChatPrincipal = {
   roleKeys: readonly string[];
 };
 
+/**
+ * How a caller watches a turn being answered. `onText` arrives as the model
+ * writes; `onRoundReset` says that everything written so far belongs to a
+ * round that ended in a tool call rather than in the answer, so the reader
+ * must start again — a model often narrates ("Để tôi tra cứu…") before
+ * calling a tool, and that narration is not part of the reply that is
+ * finally recorded. `onTool` reports each lookup as it completes, which is
+ * the only progress there is to show while the model is reading data.
+ */
+export type ChatStreamListener = {
+  onText: (delta: string) => void;
+  onRoundReset: () => void;
+  onTool: (entry: ToolTraceEntry) => void;
+};
+
 const copy = {
   vi: {
     roundsExceeded:
@@ -224,6 +239,7 @@ export async function runAssistantChat(input: {
   /** Already read and already checked to belong to the person asking. */
   attachments?: readonly StoredAttachment[];
   conversationId?: string | null;
+  stream?: ChatStreamListener | undefined;
   limits?: Partial<ChatLimits>;
 }): Promise<ChatResponse> {
   const limits = { ...defaultChatLimits, ...input.limits };
@@ -287,6 +303,7 @@ export async function runAssistantChat(input: {
           tools: anthropicTools,
           maxTokens: limits.maxOutputTokens,
           signal: controller.signal,
+          onTextDelta: input.stream?.onText,
         }),
         timeout,
       ]);
@@ -313,6 +330,10 @@ export async function runAssistantChat(input: {
       if (result.stopReason === "max_tokens") truncated = true;
       break;
     }
+
+    // Whatever the model wrote this round preceded a tool call, so it is
+    // not the answer; the reader starts the bubble again from empty.
+    input.stream?.onRoundReset();
 
     const results: Anthropic.ToolResultBlockParam[] = [];
     for (const use of toolUses) {
@@ -359,12 +380,14 @@ export async function runAssistantChat(input: {
           }
         }
       }
-      trace.push({
+      const entry: ToolTraceEntry = {
         tool: use.name,
         ok: outcome.ok,
         code: outcome.ok ? null : outcome.code,
         sources: outcome.ok ? outcome.sources : [],
-      });
+      };
+      trace.push(entry);
+      input.stream?.onTool(entry);
       const serialized = serializeToolOutcome(
         use.name,
         outcome,

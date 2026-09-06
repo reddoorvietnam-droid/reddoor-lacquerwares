@@ -124,6 +124,21 @@ export class FakeAttachmentStore implements AttachmentStore {
     return modified;
   }
 
+  async slideExpiry(
+    ownerUserId: string,
+    conversationId: string,
+    expiresAt: Date,
+  ): Promise<number> {
+    let modified = 0;
+    for (const [id, found] of this.records) {
+      if (found.ownerUserId !== ownerUserId) continue;
+      if (found.conversationId !== conversationId) continue;
+      this.records.set(id, { ...found, expiresAt });
+      modified += 1;
+    }
+    return modified;
+  }
+
   async deleteForConversation(
     ownerUserId: string,
     conversationId: string,

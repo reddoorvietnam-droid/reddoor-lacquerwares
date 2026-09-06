@@ -1,9 +1,5 @@
 import "server-only";
 
-import { createRequire } from "node:module";
-import { dirname, join } from "node:path";
-import { pathToFileURL } from "node:url";
-
 import { AttachmentError } from "@/domains/assistant/attachments/contracts";
 import { attachmentLimits as limits } from "@/domains/assistant/attachments/limits";
 
@@ -20,18 +16,18 @@ import { attachmentLimits as limits } from "@/domains/assistant/attachments/limi
  *    spreadsheet should not pay to load a PDF engine.
  * 2. The worker specifier inside that build is annotated `webpackIgnore`,
  *    so under the bundler it would be resolved relative to the emitted
- *    chunk and not found. The package directory is therefore located
- *    through `createRequire` and the worker is pointed at by absolute file
- *    URL before any document is opened.
- * 3. Every decoder-asset URL must end in a slash or pdf.js refuses it with
- *    "Invalid factory url", and teardown lives on the loading task —
- *    `doc.destroy` does not exist.
+ *    chunk and never found. Deriving the package directory instead does
+ *    not work either: under Turbopack `createRequire(...).resolve` answers
+ *    with a virtual path ("[externals]\pdfjs-dist\package.json [external] …"),
+ *    and pdf.js then reports "Setting up fake worker failed". The fix is to
+ *    hand it the worker module itself — pdf.js looks for `globalThis.pdfjsWorker`
+ *    before it ever reads `workerSrc`, and a static import is something the
+ *    bundler can resolve. No file path is computed anywhere in this file.
+ * 3. Teardown lives on the loading task: `doc.destroy` does not exist.
  *
- * pdf.js logs a warning that it could not load the standard font data: it
- * fetches that URL, and Node's fetch does not serve `file:`. It is left as
- * it is on purpose. Font data is what draws glyphs; the text layer is read
- * from the page's own encoding and `toUnicode` map, so the extraction is
- * unaffected and there is nothing here worth a second copy of the fonts.
+ * No decoder-asset URLs are passed for the same reason. They are only
+ * needed to draw glyphs; the text layer is read from the page's own
+ * encoding and `toUnicode` map, so extraction is unaffected.
  *
  * A scanned PDF has no text layer at all. That is not a parse failure and
  * must not be reported as one: it is answered with NO_TEXT_FOUND so the
@@ -39,22 +35,14 @@ import { attachmentLimits as limits } from "@/domains/assistant/attachments/limi
  * which the model can actually read.
  */
 
-/** Resolved once: the on-disk root of the installed `pdfjs-dist`. */
-let packageDirectory: string | null = null;
+/** Set once per process, before the first document is opened. */
 let workerConfigured = false;
 
-function pdfjsDirectory(): string {
-  if (packageDirectory === null) {
-    const require = createRequire(import.meta.url);
-    packageDirectory = dirname(require.resolve("pdfjs-dist/package.json"));
-  }
-  return packageDirectory;
-}
-
-function assetUrl(folder: string): string {
-  // The trailing slash is not cosmetic: pdf.js joins the file name onto
-  // this string and rejects a url that does not end in one.
-  return `${pathToFileURL(join(pdfjsDirectory(), folder)).href}/`;
+async function configureWorker(): Promise<void> {
+  if (workerConfigured) return;
+  const worker = await import("pdfjs-dist/legacy/build/pdf.worker.mjs");
+  (globalThis as { pdfjsWorker?: unknown }).pdfjsWorker = worker;
+  workerConfigured = true;
 }
 
 function failed(error: unknown): AttachmentError {
@@ -65,6 +53,9 @@ function failed(error: unknown): AttachmentError {
       "The PDF is password-protected.",
     );
   }
+  // The reason stays in the server log: the uploader is told only the code,
+  // because a parser message can quote the file it failed on.
+  console.error("[assistant] pdf read failed", error);
   return new AttachmentError(
     "FILE_PARSE_FAILED",
     error instanceof Error ? error.message : "The PDF could not be read.",
@@ -103,13 +94,8 @@ export async function extractPdfText(bytes: Uint8Array): Promise<{
   notes: string[];
   truncated: boolean;
 }> {
+  await configureWorker();
   const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
-  if (!workerConfigured) {
-    pdfjs.GlobalWorkerOptions.workerSrc = pathToFileURL(
-      join(pdfjsDirectory(), "legacy/build/pdf.worker.mjs"),
-    ).href;
-    workerConfigured = true;
-  }
 
   const task = pdfjs.getDocument({
     // A copy: pdf.js takes ownership of the buffer it is handed, and the
@@ -121,7 +107,10 @@ export async function extractPdfText(bytes: Uint8Array): Promise<{
     // one it no longer declares would not typecheck.
     useSystemFonts: false,
     disableFontFace: true,
-    standardFontDataUrl: assetUrl("standard_fonts"),
+    // Errors only. Reading text needs no font programme, but pdf.js still
+    // announces every font it would have substituted, which would put a
+    // warning in the server log for every font of every uploaded file.
+    verbosity: 0,
   });
 
   try {

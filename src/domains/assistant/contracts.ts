@@ -116,6 +116,13 @@ export const assistantErrorCodes = [
   "INVALID_INPUT",
   /** The configured model cannot look at an image the person attached. */
   "ATTACHMENT_UNSUPPORTED",
+  /**
+   * The conversation the browser asked to continue is gone. Told apart from
+   * a missing attachment on purpose: the browser holds this id itself, so
+   * there is nothing to protect by being vague, and it needs to know to open
+   * a fresh conversation rather than retry into one the sweep removed.
+   */
+  "CONVERSATION_NOT_FOUND",
 ] as const;
 
 export type AssistantErrorCode = (typeof assistantErrorCodes)[number];

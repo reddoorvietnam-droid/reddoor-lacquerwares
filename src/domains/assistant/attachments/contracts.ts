@@ -77,6 +77,8 @@ export const imageMediaTypes: Readonly<Record<string, string>> = {
 export const attachmentErrorCodes = [
   "FILE_TYPE_REJECTED",
   "FILE_TOO_LARGE",
+  /** Distinct from size: a sheet whose row count is past what a read allows. */
+  "FILE_TOO_MANY_ROWS",
   "FILE_EMPTY",
   "TOO_MANY_FILES",
   "FILE_ENCRYPTED",
@@ -209,6 +211,17 @@ export interface AttachmentStore {
   ): Promise<number>;
   /** Clears the image payload once its turn has been answered. */
   dropImages(ownerUserId: string, ids: readonly string[]): Promise<number>;
+  /**
+   * Moves every attachment of a conversation to the transcript's new expiry.
+   * Without it a file attached on day 0 would be deleted on day 7 out from
+   * under a conversation whose own window kept sliding, leaving a chip in
+   * the transcript with nothing behind it.
+   */
+  slideExpiry(
+    ownerUserId: string,
+    conversationId: string,
+    expiresAt: Date,
+  ): Promise<number>;
   deleteForConversation(
     ownerUserId: string,
     conversationId: string,
