@@ -148,8 +148,23 @@ export const roleDefinitionSeeds = [
         "media.upload",
         "reports.submitDaily",
         "approvals.request",
+        // Work items and the assistant: the storekeeper tracks their own
+        // steps of an order and asks about orders inside their units.
+        "tasks.read",
+        "tasks.create",
+        "tasks.update",
+        "assistant.use",
       ],
-      own: ["media.updateOwnMetadata", "media.softDelete"],
+      own: [
+        "media.updateOwnMetadata",
+        "media.softDelete",
+        "notifications.manageOwnChannels",
+        // A personal to-do without an order has no business unit; `own`
+        // lets the holder create and keep those alongside the unit ones.
+        "tasks.read",
+        "tasks.create",
+        "tasks.update",
+      ],
     }),
   },
   {
@@ -171,9 +186,22 @@ export const roleDefinitionSeeds = [
         "expenses.submit",
         "media.updateOwnMetadata",
         "media.softDelete",
+        "notifications.manageOwnChannels",
+        "tasks.read",
+        "tasks.create",
+        "tasks.update",
       ],
       assignedBusinessUnits: [
         ...sharedOperationalReads,
+        // Production planning (step 4) is this position's stage, so the
+        // Factory Manager may approve an assistant-drafted plan for their
+        // units and assign the resulting work.
+        "tasks.read",
+        "tasks.create",
+        "tasks.update",
+        "tasks.assign",
+        "tasks.approvePlan",
+        "assistant.use",
         "products.readCost",
         "products.create",
         "products.update",
@@ -265,8 +293,18 @@ export const roleDefinitionSeeds = [
         "media.upload",
         "reports.submitDaily",
         "approvals.request",
+        "tasks.read",
+        "tasks.create",
+        "tasks.update",
+        "assistant.use",
       ],
-      own: ["media.updateOwnMetadata"],
+      own: [
+        "media.updateOwnMetadata",
+        "notifications.manageOwnChannels",
+        "tasks.read",
+        "tasks.create",
+        "tasks.update",
+      ],
     }),
   },
   {
@@ -372,8 +410,16 @@ export const roleDefinitionSeeds = [
         // confirms, completes, and cancels them alongside the Director.
         "shopOrders.read",
         "shopOrders.manage",
+        // Order coordination: the accountant opens the order file, so she
+        // may approve the assistant's plan for it and assign the steps.
+        "tasks.read",
+        "tasks.create",
+        "tasks.update",
+        "tasks.assign",
+        "tasks.approvePlan",
+        "assistant.use",
       ],
-      own: ["media.updateOwnMetadata"],
+      own: ["media.updateOwnMetadata", "notifications.manageOwnChannels"],
     }),
   },
   {
@@ -402,6 +448,11 @@ export const roleDefinitionSeeds = [
         "shop.read",
         "shop.manage",
         "shop.publish",
+        // The assistant answers about editorial work only: with no
+        // `orders.read`, `tasks.read`, or finance permission, none of the
+        // operational tools can run for this role.
+        "assistant.use",
+        "notifications.manageOwnChannels",
       ],
     }),
   },

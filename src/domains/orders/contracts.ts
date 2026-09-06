@@ -111,6 +111,8 @@ export type NewOrderPaymentDocument = Omit<OrderPaymentDocument, "id">;
 export interface OrderStore {
   insert(record: NewOrderRecord): Promise<OrderRecordDto>;
   findById(orderId: string): Promise<OrderRecordDto | null>;
+  /** Exact match on the unique, upper-cased order code. */
+  findByCode(orderCode: string): Promise<OrderRecordDto | null>;
   list(filter: OrderListFilter): Promise<OrderRecordDto[]>;
   listByCustomer(customerId: string): Promise<OrderRecordDto[]>;
   /** Conditional on the revision; null means the record moved on. */

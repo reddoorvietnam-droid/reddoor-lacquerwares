@@ -43,6 +43,7 @@ next-env.d.ts
 
 # playwright
 /playwright-report/
+/playwright-report-admin/
 /test-results/
 
 # local operational artifacts

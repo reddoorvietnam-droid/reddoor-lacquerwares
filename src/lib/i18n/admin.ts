@@ -10,6 +10,8 @@ type AdminCopy = {
   navigationLabel: string;
   navigation: {
     overview: string;
+    assistant: string;
+    tasks: string;
     orders: string;
     customers: string;
     suppliers: string;
@@ -217,6 +219,14 @@ type AdminCopy = {
     featureOpenAccess: string;
     featureCloudinary: string;
     featureEmail: string;
+    featureAi: string;
+    featureNotifications: string;
+    featureCron: string;
+    featureZalo: string;
+    noteAiMock: string;
+    noteNotificationsOff: string;
+    noteNotificationsTest: string;
+    noteCron: string;
     noteDevLogin: string;
     noteOpenAccess: string;
     noteGoogle: string;
@@ -233,6 +243,8 @@ const adminDictionaries = {
     navigationLabel: "Điều hướng quản trị",
     navigation: {
       overview: "Tổng quan",
+      assistant: "Trợ lý AI",
+      tasks: "Việc cần làm",
       orders: "Sổ đơn hàng",
       customers: "Khách hàng",
       suppliers: "Nhà cung cấp",
@@ -487,6 +499,18 @@ const adminDictionaries = {
       featureOpenAccess: "Mở toàn quyền khi phát triển",
       featureCloudinary: "Lưu trữ ảnh Cloudinary",
       featureEmail: "Email thông báo (Resend)",
+      featureAi: "Trợ lý AI (Anthropic)",
+      featureNotifications: "Nhắc việc qua email/Zalo",
+      featureCron: "Lịch chạy nhắc việc (CRON_SECRET)",
+      featureZalo: "Zalo Official Account",
+      noteAiMock:
+        "Đang dùng provider giả lập (AI_PROVIDER=mock) — chỉ để phát triển, không phải mô hình thật.",
+      noteNotificationsOff:
+        "NOTIFICATION_DELIVERY=off: hệ thống ghi nhận nhắc việc nhưng không gửi đi.",
+      noteNotificationsTest:
+        "NOTIFICATION_DELIVERY=test: mọi nhắc việc được chuyển tới địa chỉ thử nghiệm.",
+      noteCron:
+        "Chưa có CRON_SECRET: chỉ chạy nhắc việc bằng tay từ trang Việc cần làm.",
       noteDevLogin:
         "Chỉ dùng khi phát triển — xóa DEV_LOGIN_PASSWORD trước khi vận hành thật.",
       noteOpenAccess:
@@ -505,6 +529,8 @@ const adminDictionaries = {
     navigationLabel: "Administration navigation",
     navigation: {
       overview: "Overview",
+      assistant: "AI assistant",
+      tasks: "Tasks",
       orders: "Order book",
       customers: "Customers",
       suppliers: "Suppliers",
@@ -759,6 +785,18 @@ const adminDictionaries = {
       featureOpenAccess: "Development open access",
       featureCloudinary: "Cloudinary media storage",
       featureEmail: "Notification email (Resend)",
+      featureAi: "AI assistant (Anthropic)",
+      featureNotifications: "Reminders by email/Zalo",
+      featureCron: "Reminder schedule (CRON_SECRET)",
+      featureZalo: "Zalo Official Account",
+      noteAiMock:
+        "Using the scripted provider (AI_PROVIDER=mock) — development only, not a real model.",
+      noteNotificationsOff:
+        "NOTIFICATION_DELIVERY=off: reminders are recorded but nothing is sent.",
+      noteNotificationsTest:
+        "NOTIFICATION_DELIVERY=test: every reminder is redirected to the test recipient.",
+      noteCron:
+        "No CRON_SECRET: reminders only run manually from the Tasks page.",
       noteDevLogin:
         "Development only — remove DEV_LOGIN_PASSWORD before going live.",
       noteOpenAccess:

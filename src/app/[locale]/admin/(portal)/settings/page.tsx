@@ -2,10 +2,14 @@ import { notFound } from "next/navigation";
 
 import { ContentAccessDeniedError, requirePermission } from "@/lib/auth";
 import {
+  inspectAiEnv,
   inspectAuthEnv,
   inspectCloudinaryEnv,
+  inspectCronEnv,
   inspectEmailEnv,
   inspectMongoEnv,
+  inspectNotificationEnv,
+  inspectZaloEnv,
   isDevOpenAccessEnabled,
 } from "@/lib/env/server";
 import { isLocale } from "@/lib/i18n/config";
@@ -45,6 +49,10 @@ export default async function AdminSettingsPage({
   const auth = inspectAuthEnv();
   const cloudinary = inspectCloudinaryEnv();
   const email = inspectEmailEnv();
+  const ai = inspectAiEnv();
+  const notifications = inspectNotificationEnv();
+  const cron = inspectCronEnv();
+  const zalo = inspectZaloEnv();
   const googleConfigured =
     auth.configured && Boolean(auth.value.AUTH_GOOGLE_ID);
   const devLoginEnabled =
@@ -128,6 +136,59 @@ export default async function AdminSettingsPage({
         ? copy.statusConfigured
         : copy.statusMissing,
       detail: missingDetail(email),
+      note: null,
+      warn: false,
+    },
+    {
+      key: "ai",
+      label: copy.featureAi,
+      configured: ai.configured,
+      statusLabel: ai.configured
+        ? `${copy.statusConfigured} · ${ai.value.AI_PROVIDER === "mock" ? "mock" : ai.value.AI_MODEL}`
+        : copy.statusMissing,
+      detail: missingDetail(ai),
+      note:
+        ai.configured && ai.value.AI_PROVIDER === "mock"
+          ? copy.noteAiMock
+          : null,
+      warn: ai.configured && ai.value.AI_PROVIDER === "mock",
+    },
+    {
+      key: "notifications",
+      label: copy.featureNotifications,
+      configured:
+        notifications.configured &&
+        notifications.value.NOTIFICATION_DELIVERY === "live",
+      statusLabel: notifications.configured
+        ? `${notifications.value.NOTIFICATION_DELIVERY} · ${notifications.value.BUSINESS_TIMEZONE}`
+        : copy.statusMissing,
+      detail: missingDetail(notifications),
+      note: notifications.configured
+        ? notifications.value.NOTIFICATION_DELIVERY === "off"
+          ? copy.noteNotificationsOff
+          : notifications.value.NOTIFICATION_DELIVERY === "test"
+            ? copy.noteNotificationsTest
+            : null
+        : null,
+      warn:
+        notifications.configured &&
+        notifications.value.NOTIFICATION_DELIVERY === "test",
+    },
+    {
+      key: "cron",
+      label: copy.featureCron,
+      configured: cron.configured,
+      statusLabel: cron.configured ? copy.statusConfigured : copy.statusMissing,
+      detail: missingDetail(cron),
+      note: cron.configured ? null : copy.noteCron,
+      warn: false,
+    },
+    {
+      key: "zalo",
+      label: copy.featureZalo,
+      configured: zalo.configured,
+      statusLabel: zalo.configured ? copy.statusConfigured : copy.statusMissing,
+      detail: missingDetail(zalo),
       note: null,
       warn: false,
     },

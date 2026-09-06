@@ -249,6 +249,23 @@ export const permissionCatalog = [
   "shop.publish",
   "shopOrders.read",
   "shopOrders.manage",
+
+  // Work items ("việc cần làm"): the durable to-do list behind the AI
+  // assistant's plans and reminders. A task inherits the business units of
+  // the order it belongs to; `own` reaches tasks the actor created or is
+  // assigned to. `tasks.approvePlan` releases an assistant-proposed plan into
+  // real tasks — a draft never becomes work without a person approving it.
+  "tasks.read",
+  "tasks.create",
+  "tasks.update",
+  "tasks.assign",
+  "tasks.approvePlan",
+
+  // The in-portal AI assistant. Holding it opens the chat; every tool the
+  // assistant calls still re-checks the permission that governs the data.
+  "assistant.use",
+  // Linking one's own Zalo identity for reminders; never another user's.
+  "notifications.manageOwnChannels",
 ] as const;
 
 export type Permission = (typeof permissionCatalog)[number];

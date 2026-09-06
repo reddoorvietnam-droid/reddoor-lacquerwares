@@ -39,8 +39,18 @@ export function getOrderNotificationRecipients(): string[] {
   ];
 }
 
+export type EmailSendOptions = {
+  /**
+   * Forwarded to Resend as its idempotency key, so a retry after a client
+   * timeout cannot deliver the same reminder twice. Scope it to the
+   * business message (an outbox row), never to the attempt.
+   */
+  idempotencyKey?: string;
+};
+
 export async function sendEmail(
   message: EmailMessage,
+  options: EmailSendOptions = {},
 ): Promise<EmailSendResult> {
   const env = inspectEmailEnv();
   if (!env.configured) {
@@ -60,14 +70,19 @@ export async function sendEmail(
 
   try {
     const resend = new Resend(env.value.RESEND_API_KEY);
-    const response = await resend.emails.send({
-      from: env.value.EMAIL_FROM,
-      to: [...message.to],
-      subject: message.subject,
-      html: message.html,
-      text: message.text,
-      ...(message.replyTo ? { replyTo: message.replyTo } : {}),
-    });
+    const response = await resend.emails.send(
+      {
+        from: env.value.EMAIL_FROM,
+        to: [...message.to],
+        subject: message.subject,
+        html: message.html,
+        text: message.text,
+        ...(message.replyTo ? { replyTo: message.replyTo } : {}),
+      },
+      options.idempotencyKey
+        ? { idempotencyKey: options.idempotencyKey }
+        : undefined,
+    );
     if (response.error) {
       console.error("[email] send failed", response.error);
       return {

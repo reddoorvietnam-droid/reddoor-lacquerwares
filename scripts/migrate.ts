@@ -31,6 +31,13 @@ import {
 } from "@/domains/finance/persistence/models";
 import { getSalesOrderModel } from "@/domains/orders/persistence/models";
 import { getSupplierModel } from "@/domains/suppliers/persistence/models";
+import { getAssistantProposalModel } from "@/domains/assistant/persistence/models";
+import {
+  getChannelLinkModel,
+  getNotificationIntentModel,
+  getProcessedWebhookEventModel,
+} from "@/domains/notifications/persistence/models";
+import { getTaskModel } from "@/domains/tasks/persistence/models";
 import { connectToDatabase } from "@/lib/db/mongoose";
 
 function collectModels(): Model<unknown>[] {
@@ -49,6 +56,14 @@ function collectModels(): Model<unknown>[] {
     getSalesInvoiceModel(),
     getFinanceEntryModel(),
     getFxRateModel(),
+    // Work items, assistant proposals and the reminder outbox: the
+    // idempotency of plan application and reminder delivery rests on the
+    // unique indexes declared here.
+    getTaskModel(),
+    getAssistantProposalModel(),
+    getNotificationIntentModel(),
+    getChannelLinkModel(),
+    getProcessedWebhookEventModel(),
   ] as unknown as Model<unknown>[];
 }
 

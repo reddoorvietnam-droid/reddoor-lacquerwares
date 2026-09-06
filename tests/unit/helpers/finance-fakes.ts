@@ -377,6 +377,15 @@ export class FakeOrderStore implements OrderStore {
     return this.orders.get(orderId) ?? null;
   }
 
+  async findByCode(orderCode: string): Promise<OrderRecordDto | null> {
+    const normalized = orderCode.trim().toUpperCase();
+    return (
+      [...this.orders.values()].find(
+        (order) => order.orderCode === normalized,
+      ) ?? null
+    );
+  }
+
   async list(filter: OrderListFilter): Promise<OrderRecordDto[]> {
     const all = [...this.orders.values()];
     if (filter.kind === "all") return all;
@@ -427,7 +436,10 @@ export class FakeOrderStore implements OrderStore {
     updatedBy: string;
   }): Promise<OrderRecordDto | null> {
     const order = this.orders.get(input.orderId);
-    if (!order || (order.stage !== "received" && order.stage !== "fileOpened")) {
+    if (
+      !order ||
+      (order.stage !== "received" && order.stage !== "fileOpened")
+    ) {
       return null;
     }
     return this.bump(input.orderId, input.expectedRevision, {
@@ -757,7 +769,11 @@ export class FakeFinanceEntryStore implements FinanceEntryStore {
 export class FakeFxRateStore implements FxRateStore {
   rates: FxRateRecordDto[] = [];
 
-  seed(date: string, rate: string, source: string | null = null): FxRateRecordDto {
+  seed(
+    date: string,
+    rate: string,
+    source: string | null = null,
+  ): FxRateRecordDto {
     const record: FxRateRecordDto = {
       id: nextId("e"),
       date: new Date(`${date}T00:00:00.000Z`),
@@ -769,7 +785,9 @@ export class FakeFxRateStore implements FxRateStore {
       updatedAt: occurredAt,
     };
     this.rates = [
-      ...this.rates.filter((item) => item.date.getTime() !== record.date.getTime()),
+      ...this.rates.filter(
+        (item) => item.date.getTime() !== record.date.getTime(),
+      ),
       record,
     ];
     return record;

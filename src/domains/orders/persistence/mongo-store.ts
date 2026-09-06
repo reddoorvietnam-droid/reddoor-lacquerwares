@@ -165,6 +165,18 @@ export class MongoOrderStore implements OrderStore {
     return document ? toDto(document) : null;
   }
 
+  async findByCode(orderCode: string): Promise<OrderRecordDto | null> {
+    const normalized = orderCode.trim().toUpperCase();
+    if (!/^[A-Z0-9]+(?:-[A-Z0-9]+)*$/.test(normalized)) return null;
+    await connectToDatabase();
+
+    const document = await getSalesOrderModel()
+      .findOne({ orderCode: normalized })
+      .lean<SalesOrderDocument>()
+      .exec();
+    return document ? toDto(document) : null;
+  }
+
   async list(filter: OrderListFilter): Promise<OrderRecordDto[]> {
     await connectToDatabase();
 

@@ -45,6 +45,11 @@ import {
   stageDefinition,
   transitionNeedsReason,
 } from "@/domains/orders/workflow";
+import { setTaskStatusAction } from "@/app/[locale]/admin/(portal)/tasks/actions";
+import type { TaskRecordDto } from "@/domains/tasks/contracts";
+import { formatBusinessDay, isOverdue } from "@/domains/tasks/policy";
+import { taskCommandService } from "@/domains/tasks/runtime";
+import { getNotificationEnv } from "@/lib/env/server";
 import {
   ContentAccessDeniedError,
   coverageReaches,
@@ -131,6 +136,12 @@ const copy = {
     costsTitle: "Chi phí đã ghi",
     noCosts: "Chưa có phiếu chi nào.",
     viewCosts: "Ghi / xem phiếu chi →",
+    tasksTitle: "Việc liên quan",
+    noTasks: "Chưa có việc nào cho đơn này.",
+    taskDone: "Xong",
+    taskOverdue: "Quá hạn",
+    allTasks: "Tất cả việc của đơn →",
+    planWithAssistant: "Lập kế hoạch với trợ lý →",
     moveTitle: "Chuyển bước",
     moveHint:
       "Chỉ các bước quy trình cho phép mới hiện ở đây. Quyền của bạn được kiểm tra lại trên máy chủ khi bấm.",
@@ -205,7 +216,8 @@ const copy = {
     exportSave: "Save progress",
     notSet: "Not set",
     documentsTitle: "Payment documents",
-    documentsHint: "Remittance advice, credit note, L/C… uploaded and kept with the order.",
+    documentsHint:
+      "Remittance advice, credit note, L/C… uploaded and kept with the order.",
     noDocuments: "No documents yet.",
     removeDocument: "Remove",
     invoicesTitle: "Invoices (INV)",
@@ -235,6 +247,12 @@ const copy = {
     costsTitle: "Costs recorded",
     noCosts: "No cost entries yet.",
     viewCosts: "Record / view cost entries →",
+    tasksTitle: "Related tasks",
+    noTasks: "No task for this order yet.",
+    taskDone: "Done",
+    taskOverdue: "Overdue",
+    allTasks: "All tasks of this order →",
+    planWithAssistant: "Plan with the assistant →",
     moveTitle: "Advance the order",
     moveHint:
       "Only moves the process allows appear here. Your permission is re-checked on the server.",
@@ -323,6 +341,9 @@ export default async function AdminOrderDetailPage({
     "payments.reverse",
     "payments.refund",
     "expenses.read",
+    "tasks.read",
+    "tasks.create",
+    "assistant.use",
     definition.advancePermission,
   ] as const);
   const reaches = (permission: keyof typeof coverages) =>
@@ -404,6 +425,37 @@ export default async function AdminOrderDetailPage({
     );
     costTotals = totals.get(order.id) ?? [];
   }
+
+  // Work items on this order, narrowed like the task list.
+  let orderTasks: TaskRecordDto[] = [];
+  const canReadTasks = reaches("tasks.read");
+  const canPlan =
+    !terminal && reaches("assistant.use") && reaches("tasks.create");
+  const currentUserId = (
+    await requirePermission("orders.read", {
+      resourceId: raw.id,
+      businessUnitIds: raw.businessUnitIds,
+    })
+  ).userId;
+  if (canReadTasks) {
+    const { scope: taskScope } = await requireListAccess("tasks.read");
+    orderTasks = await taskCommandService.list({
+      scope:
+        taskScope.kind === "all"
+          ? { kind: "all" }
+          : taskScope.kind === "businessUnits"
+            ? {
+                kind: "businessUnits",
+                businessUnitIds: taskScope.businessUnitIds,
+                userId: currentUserId,
+              }
+            : { kind: "own", userId: currentUserId },
+      orderId: order.id,
+      limit: 50,
+    });
+  }
+  const timeZone = getNotificationEnv().BUSINESS_TIMEZONE;
+  const now = new Date();
 
   const refundCredits: Money[] =
     order.stage === "cancelled" &&
@@ -495,7 +547,11 @@ export default async function AdminOrderDetailPage({
         </p>
       ) : null}
       {financeNotice || financeError ? (
-        <FinanceBanner locale={locale} notice={financeNotice} error={financeError} />
+        <FinanceBanner
+          locale={locale}
+          notice={financeNotice}
+          error={financeError}
+        />
       ) : null}
 
       {/* Progress rail */}
@@ -544,7 +600,9 @@ export default async function AdminOrderDetailPage({
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
         {/* Selling price */}
         <section className={cardClass}>
-          <h2 className="text-burgundy font-serif text-2xl">{text.priceTitle}</h2>
+          <h2 className="text-burgundy font-serif text-2xl">
+            {text.priceTitle}
+          </h2>
           {order.sellingPriceVisible ? (
             <p className="text-charcoal/80 mt-3 font-mono text-xl">
               {order.sellingPrice
@@ -565,7 +623,11 @@ export default async function AdminOrderDetailPage({
               </p>
               <input type="hidden" name="locale" value={locale} />
               <input type="hidden" name="orderId" value={order.id} />
-              <input type="hidden" name="expectedRevision" value={order.revision} />
+              <input
+                type="hidden"
+                name="expectedRevision"
+                value={order.revision}
+              />
               <div className="grid grid-cols-[1fr_7rem_auto] items-end gap-3">
                 <div>
                   <label htmlFor="price-amount" className={labelClass}>
@@ -606,14 +668,26 @@ export default async function AdminOrderDetailPage({
         </section>
 
         {/* Export progress */}
-        {canEditExport || order.expectedReadyAt || order.bookingNumber || order.bookingDate ? (
+        {canEditExport ||
+        order.expectedReadyAt ||
+        order.bookingNumber ||
+        order.bookingDate ? (
           <section className={cardClass}>
-            <h2 className="text-burgundy font-serif text-2xl">{text.exportTitle}</h2>
+            <h2 className="text-burgundy font-serif text-2xl">
+              {text.exportTitle}
+            </h2>
             {canEditExport ? (
-              <form action={setExportProgressAction} className="mt-4 grid gap-3">
+              <form
+                action={setExportProgressAction}
+                className="mt-4 grid gap-3"
+              >
                 <input type="hidden" name="locale" value={locale} />
                 <input type="hidden" name="orderId" value={order.id} />
-                <input type="hidden" name="expectedRevision" value={order.revision} />
+                <input
+                  type="hidden"
+                  name="expectedRevision"
+                  value={order.revision}
+                />
                 <div className="grid gap-3 sm:grid-cols-2">
                   <div>
                     <label htmlFor="export-ready" className={labelClass}>
@@ -663,13 +737,19 @@ export default async function AdminOrderDetailPage({
               <dl className="mt-4 grid gap-x-6 gap-y-2 text-sm sm:grid-cols-3">
                 <dt className="text-charcoal/50">{text.expectedReadyAt}</dt>
                 <dd className="sm:col-span-2">
-                  {order.expectedReadyAt ? formatDate(order.expectedReadyAt, locale) : text.notSet}
+                  {order.expectedReadyAt
+                    ? formatDate(order.expectedReadyAt, locale)
+                    : text.notSet}
                 </dd>
                 <dt className="text-charcoal/50">{text.bookingNumber}</dt>
-                <dd className="font-mono sm:col-span-2">{order.bookingNumber ?? text.notSet}</dd>
+                <dd className="font-mono sm:col-span-2">
+                  {order.bookingNumber ?? text.notSet}
+                </dd>
                 <dt className="text-charcoal/50">{text.bookingDate}</dt>
                 <dd className="sm:col-span-2">
-                  {order.bookingDate ? formatDate(order.bookingDate, locale) : text.notSet}
+                  {order.bookingDate
+                    ? formatDate(order.bookingDate, locale)
+                    : text.notSet}
                 </dd>
               </dl>
             )}
@@ -679,8 +759,12 @@ export default async function AdminOrderDetailPage({
         {/* Director approval gate */}
         {definition.approvalSubject ? (
           <section className={cardClass}>
-            <h2 className="text-burgundy font-serif text-2xl">{text.approvalTitle}</h2>
-            <p className="text-charcoal/60 mt-2 text-sm">{text.approvalNeeded}</p>
+            <h2 className="text-burgundy font-serif text-2xl">
+              {text.approvalTitle}
+            </h2>
+            <p className="text-charcoal/60 mt-2 text-sm">
+              {text.approvalNeeded}
+            </p>
             <p
               className={`mt-4 rounded-xl px-4 py-3 text-sm font-semibold ${
                 approvalValid
@@ -723,10 +807,14 @@ export default async function AdminOrderDetailPage({
         {/* Quality control */}
         {order.stage === "qualityControl" ? (
           <section className={cardClass}>
-            <h2 className="text-burgundy font-serif text-2xl">{text.qcTitle}</h2>
+            <h2 className="text-burgundy font-serif text-2xl">
+              {text.qcTitle}
+            </h2>
             <p
               className={`mt-4 rounded-xl px-4 py-3 text-sm font-semibold ${
-                order.qcPassed ? "bg-gold/15 text-gold-ink" : "bg-lacquer/5 text-lacquer"
+                order.qcPassed
+                  ? "bg-gold/15 text-gold-ink"
+                  : "bg-lacquer/5 text-lacquer"
               }`}
             >
               {order.qcPassed ? text.qcPassed : text.qcNotPassed}
@@ -735,7 +823,11 @@ export default async function AdminOrderDetailPage({
               <form action={recordQcPassAction} className="mt-5">
                 <input type="hidden" name="locale" value={locale} />
                 <input type="hidden" name="orderId" value={order.id} />
-                <input type="hidden" name="expectedRevision" value={order.revision} />
+                <input
+                  type="hidden"
+                  name="expectedRevision"
+                  value={order.revision}
+                />
                 <button type="submit" className={buttonClass}>
                   {text.qcPassButton}
                 </button>
@@ -748,17 +840,27 @@ export default async function AdminOrderDetailPage({
       {/* Invoices */}
       {canReadInvoices ? (
         <section className={`${cardClass} mt-6`}>
-          <h2 className="text-burgundy font-serif text-2xl">{text.invoicesTitle}</h2>
+          <h2 className="text-burgundy font-serif text-2xl">
+            {text.invoicesTitle}
+          </h2>
           {invoices.length === 0 ? (
             <p className="text-charcoal/55 mt-3 text-sm">{text.noInvoices}</p>
           ) : (
             <table className="mt-4 w-full border-collapse text-left text-sm">
               <thead>
                 <tr className="border-burgundy/12 text-charcoal/60 border-b text-xs tracking-[0.12em] uppercase">
-                  <th scope="col" className="px-3 py-2 font-semibold">{text.invoiceNumber}</th>
-                  <th scope="col" className="px-3 py-2 font-semibold">{text.invoiceDue}</th>
-                  <th scope="col" className="px-3 py-2 font-semibold">{text.invoiceAmount}</th>
-                  <th scope="col" className="px-3 py-2 font-semibold">{text.invoiceRemaining}</th>
+                  <th scope="col" className="px-3 py-2 font-semibold">
+                    {text.invoiceNumber}
+                  </th>
+                  <th scope="col" className="px-3 py-2 font-semibold">
+                    {text.invoiceDue}
+                  </th>
+                  <th scope="col" className="px-3 py-2 font-semibold">
+                    {text.invoiceAmount}
+                  </th>
+                  <th scope="col" className="px-3 py-2 font-semibold">
+                    {text.invoiceRemaining}
+                  </th>
                   <th scope="col" className="px-3 py-2 font-semibold"></th>
                 </tr>
               </thead>
@@ -776,35 +878,58 @@ export default async function AdminOrderDetailPage({
                     >
                       <td className="px-3 py-2">
                         <Link
-                          href={`/${locale}/admin/finance/invoices/${invoice.id}` as Route}
+                          href={
+                            `/${locale}/admin/finance/invoices/${invoice.id}` as Route
+                          }
                           className="text-burgundy font-mono text-xs font-semibold hover:underline"
                         >
                           {invoice.invoiceNumber}
                         </Link>
                       </td>
-                      <td className="px-3 py-2 text-xs">{formatDate(invoice.dueAt, locale)}</td>
+                      <td className="px-3 py-2 text-xs">
+                        {formatDate(invoice.dueAt, locale)}
+                      </td>
                       <td className="px-3 py-2 font-mono text-xs">
                         {formatMoney(invoice.amount, locale)}
                       </td>
                       <td className="px-3 py-2 font-mono text-xs font-semibold">
                         {invoice.status === "voided" ? (
-                          <span className="text-charcoal/50">{text.invoiceVoided}</span>
+                          <span className="text-charcoal/50">
+                            {text.invoiceVoided}
+                          </span>
                         ) : row && isPositive(row.remaining) ? (
                           <span className="text-lacquer">
                             {formatMoney(row.remaining, locale)}
                             {row.overdue ? ` · ${text.invoiceOverdue}` : ""}
                           </span>
                         ) : (
-                          <span className="text-emerald-700">{text.invoiceSettled}</span>
+                          <span className="text-emerald-700">
+                            {text.invoiceSettled}
+                          </span>
                         )}
                       </td>
                       <td className="px-3 py-2">
                         {invoice.status === "active" && canManageInvoices ? (
-                          <form action={voidInvoiceAction} className="flex items-center gap-2">
+                          <form
+                            action={voidInvoiceAction}
+                            className="flex items-center gap-2"
+                          >
                             <input type="hidden" name="locale" value={locale} />
-                            <input type="hidden" name="returnTo" value={`order:${order.id}`} />
-                            <input type="hidden" name="invoiceId" value={invoice.id} />
-                            <input type="hidden" name="expectedRevision" value={invoice.revision} />
+                            <input
+                              type="hidden"
+                              name="returnTo"
+                              value={`order:${order.id}`}
+                            />
+                            <input
+                              type="hidden"
+                              name="invoiceId"
+                              value={invoice.id}
+                            />
+                            <input
+                              type="hidden"
+                              name="expectedRevision"
+                              value={invoice.revision}
+                            />
                             <input
                               type="text"
                               name="reason"
@@ -845,7 +970,9 @@ export default async function AdminOrderDetailPage({
       {/* Money */}
       {canReadPayments ? (
         <section className={`${cardClass} mt-6`}>
-          <h2 className="text-burgundy font-serif text-2xl">{text.moneyTitle}</h2>
+          <h2 className="text-burgundy font-serif text-2xl">
+            {text.moneyTitle}
+          </h2>
           {orderRows.length > 0 ? (
             <div className="mt-4 grid gap-4 md:grid-cols-2">
               {orderRows.map((row) => (
@@ -857,17 +984,27 @@ export default async function AdminOrderDetailPage({
                     {row.currency}
                   </dt>
                   <dt className="text-charcoal/60">{text.invoiced}</dt>
-                  <dd className="text-right font-mono">{formatMoney(row.invoiced, locale)}</dd>
+                  <dd className="text-right font-mono">
+                    {formatMoney(row.invoiced, locale)}
+                  </dd>
                   <dt className="text-charcoal/60">{text.paid}</dt>
-                  <dd className="text-right font-mono text-emerald-700">{formatMoney(row.paid, locale)}</dd>
+                  <dd className="text-right font-mono text-emerald-700">
+                    {formatMoney(row.paid, locale)}
+                  </dd>
                   <dt className="text-charcoal/60">{text.deposits}</dt>
-                  <dd className="text-right font-mono text-emerald-700">{formatMoney(row.deposits, locale)}</dd>
+                  <dd className="text-right font-mono text-emerald-700">
+                    {formatMoney(row.deposits, locale)}
+                  </dd>
                   <dt className="text-charcoal/80 font-semibold">
-                    {isPositive(row.remaining) ? text.remaining : text.inAdvance}
+                    {isPositive(row.remaining)
+                      ? text.remaining
+                      : text.inAdvance}
                   </dt>
                   <dd
                     className={`text-right font-mono font-semibold ${
-                      isPositive(row.remaining) ? "text-lacquer" : "text-emerald-700"
+                      isPositive(row.remaining)
+                        ? "text-lacquer"
+                        : "text-emerald-700"
                     }`}
                   >
                     {formatMoney(row.remaining, locale)}
@@ -929,7 +1066,9 @@ export default async function AdminOrderDetailPage({
       {/* Costs */}
       {canReadCosts ? (
         <section className={`${cardClass} mt-6`}>
-          <h2 className="text-burgundy font-serif text-2xl">{text.costsTitle}</h2>
+          <h2 className="text-burgundy font-serif text-2xl">
+            {text.costsTitle}
+          </h2>
           <p className="mt-3 text-sm">
             {costTotals.length > 0 ? (
               <span className="text-lacquer font-mono font-semibold">
@@ -948,17 +1087,111 @@ export default async function AdminOrderDetailPage({
         </section>
       ) : null}
 
+      {/* Tasks */}
+      {canReadTasks || canPlan ? (
+        <section className={`${cardClass} mt-6`}>
+          <h2 className="text-burgundy font-serif text-2xl">
+            {text.tasksTitle}
+          </h2>
+          {orderTasks.length === 0 ? (
+            <p className="text-charcoal/55 mt-3 text-sm">{text.noTasks}</p>
+          ) : (
+            <ul className="mt-4 grid gap-2">
+              {orderTasks.map((task) => {
+                const overdue = isOverdue(task, now);
+                return (
+                  <li
+                    key={task.id}
+                    className="flex flex-wrap items-center justify-between gap-3 text-sm"
+                  >
+                    <span
+                      className={
+                        task.status !== "open"
+                          ? "text-charcoal/45 line-through"
+                          : "text-charcoal/85"
+                      }
+                    >
+                      {task.title}
+                      {task.dueAt ? (
+                        <span
+                          className={`ml-2 font-mono text-xs ${overdue ? "text-lacquer font-semibold" : "text-charcoal/50"}`}
+                        >
+                          {overdue ? `${text.taskOverdue} · ` : ""}
+                          {formatBusinessDay(task.dueAt, timeZone)}
+                        </span>
+                      ) : null}
+                    </span>
+                    {task.status === "open" &&
+                    (task.assigneeUserId === currentUserId ||
+                      task.createdBy === currentUserId) ? (
+                      <form action={setTaskStatusAction}>
+                        <input type="hidden" name="locale" value={locale} />
+                        <input type="hidden" name="taskId" value={task.id} />
+                        <input
+                          type="hidden"
+                          name="expectedRevision"
+                          value={task.revision}
+                        />
+                        <input type="hidden" name="status" value="done" />
+                        <input
+                          type="hidden"
+                          name="returnTo"
+                          value={`order:${order.id}`}
+                        />
+                        <button
+                          type="submit"
+                          className="text-burgundy border-burgundy/30 hover:bg-ivory/70 rounded-full border px-3 py-1 text-xs font-semibold"
+                        >
+                          {text.taskDone}
+                        </button>
+                      </form>
+                    ) : null}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+          <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm">
+            {canReadTasks ? (
+              <Link
+                href={
+                  `/${locale}/admin/tasks?status=all&order=${encodeURIComponent(order.orderCode)}` as Route
+                }
+                className="text-burgundy font-semibold hover:underline"
+              >
+                {text.allTasks}
+              </Link>
+            ) : null}
+            {canPlan ? (
+              <Link
+                href={
+                  `/${locale}/admin/assistant?q=${encodeURIComponent(locale === "vi" ? `Lập kế hoạch cho đơn ${order.orderCode}` : `Plan order ${order.orderCode}`)}` as Route
+                }
+                className="text-burgundy font-semibold hover:underline"
+              >
+                {text.planWithAssistant}
+              </Link>
+            ) : null}
+          </div>
+        </section>
+      ) : null}
+
       {/* Payment documents */}
       {canReadPayments ? (
         <section className={`${cardClass} mt-6`}>
-          <h2 className="text-burgundy font-serif text-2xl">{text.documentsTitle}</h2>
+          <h2 className="text-burgundy font-serif text-2xl">
+            {text.documentsTitle}
+          </h2>
           <p className="text-charcoal/55 mt-2 text-sm">{text.documentsHint}</p>
           {order.paymentDocuments.length === 0 ? (
             <p className="text-charcoal/55 mt-4 text-sm">{text.noDocuments}</p>
           ) : (
             <ul className="mt-4 space-y-2 text-sm">
               {order.paymentDocuments.map((document) => (
-                <li key={document.id} className="flex flex-wrap items-center gap-3">
+                <li
+                  key={document.id}
+                  className="flex flex-wrap items-center gap-3"
+                >
                   <a
                     href={storedDocumentUrl(document)}
                     target="_blank"
@@ -968,15 +1201,24 @@ export default async function AdminOrderDetailPage({
                     {document.label}
                   </a>
                   <span className="text-charcoal/45 text-xs">
-                    {document.format.toUpperCase()} · {formatBytes(document.bytes)} ·{" "}
+                    {document.format.toUpperCase()} ·{" "}
+                    {formatBytes(document.bytes)} ·{" "}
                     {formatDate(document.uploadedAt, locale)}
                   </span>
                   {canRecordPayment ? (
                     <form action={removePaymentDocumentAction}>
                       <input type="hidden" name="locale" value={locale} />
                       <input type="hidden" name="orderId" value={order.id} />
-                      <input type="hidden" name="expectedRevision" value={order.revision} />
-                      <input type="hidden" name="documentId" value={document.id} />
+                      <input
+                        type="hidden"
+                        name="expectedRevision"
+                        value={order.revision}
+                      />
+                      <input
+                        type="hidden"
+                        name="documentId"
+                        value={document.id}
+                      />
                       <button
                         type="submit"
                         className="text-lacquer border-lacquer/30 hover:bg-lacquer/5 rounded-full border px-3 py-1 text-xs font-semibold"
@@ -1027,7 +1269,11 @@ export default async function AdminOrderDetailPage({
                   <input type="hidden" name="locale" value={locale} />
                   <input type="hidden" name="orderId" value={order.id} />
                   <input type="hidden" name="to" value={target} />
-                  <input type="hidden" name="expectedRevision" value={order.revision} />
+                  <input
+                    type="hidden"
+                    name="expectedRevision"
+                    value={order.revision}
+                  />
                   <p className="text-charcoal/80 text-sm font-semibold">
                     {text.moveTo}:{" "}
                     {targetDef.step !== null ? `${targetDef.step} · ` : ""}
@@ -1035,7 +1281,10 @@ export default async function AdminOrderDetailPage({
                   </p>
                   {needsReason ? (
                     <div className="mt-3">
-                      <label htmlFor={`reason-${target}`} className={labelClass}>
+                      <label
+                        htmlFor={`reason-${target}`}
+                        className={labelClass}
+                      >
                         {text.reasonLabel}
                       </label>
                       <textarea
@@ -1067,7 +1316,9 @@ export default async function AdminOrderDetailPage({
 
       {/* History */}
       <section className={`${cardClass} mt-6`}>
-        <h2 className="text-burgundy font-serif text-2xl">{text.historyTitle}</h2>
+        <h2 className="text-burgundy font-serif text-2xl">
+          {text.historyTitle}
+        </h2>
         {order.stageHistory.length === 0 ? (
           <p className="text-charcoal/55 mt-4 text-sm">{text.historyEmpty}</p>
         ) : (

@@ -14,6 +14,10 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Generated pdf.js decoder assets.
     "public/pdfjs/**",
+    // Playwright output (HTML reports bundle minified scripts).
+    "playwright-report/**",
+    "playwright-report-admin/**",
+    "test-results/**",
   ]),
 ]);
 

@@ -183,6 +183,13 @@ export class OrderCommandService {
     return this.dependencies.store.findById(orderId);
   }
 
+  /** The raw record by its code, for guard targeting; never returned to a renderer. */
+  async findByCodeForAuthorization(
+    orderCode: string,
+  ): Promise<OrderRecordDto | null> {
+    return this.dependencies.store.findByCode(orderCode);
+  }
+
   async transition(
     context: AccessContext,
     rawInput: unknown,

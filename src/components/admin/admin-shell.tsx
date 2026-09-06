@@ -46,6 +46,18 @@ export async function AdminShell({
       items: [
         { href: basePath, label: copy.navigation.overview, anyOf: null },
         {
+          // The assistant answers only from tools the reader's grants allow;
+          // the entry itself follows `assistant.use`.
+          href: `${basePath}/assistant` as Route,
+          label: copy.navigation.assistant,
+          anyOf: ["assistant.use"],
+        },
+        {
+          href: `${basePath}/tasks` as Route,
+          label: copy.navigation.tasks,
+          anyOf: ["tasks.read"],
+        },
+        {
           href: `${basePath}/orders` as Route,
           label: copy.navigation.orders,
           anyOf: ["orders.read"],

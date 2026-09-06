@@ -17,7 +17,7 @@ The portal lives under a path today but is not coupled to one, so it can move to
 
 - Node.js 20.19 or newer (see `.nvmrc`)
 - npm (the lockfile is committed; use `npm ci`)
-- Optional for full functionality: MongoDB Atlas, Google OAuth, Cloudinary, Resend
+- Optional for full functionality: MongoDB Atlas, Google OAuth, Cloudinary, Resend, Anthropic API key (AI assistant), Zalo Official Account (reminders)
 
 ## Getting started
 
@@ -41,16 +41,18 @@ settings for deployments.
 
 ## Commands
 
-| Command                           | Purpose                                           |
-| --------------------------------- | ------------------------------------------------- |
-| `npm run dev`                     | Development server                                |
-| `npm run build` / `start`         | Production build and server                       |
-| `npm run lint`                    | ESLint, zero warnings tolerated                   |
-| `npm run typecheck`               | TypeScript in strict mode                         |
-| `npm run test` / `test:run`       | Vitest unit and component tests                   |
-| `npm run test:e2e`                | Playwright end-to-end tests                       |
-| `npm run format` / `format:check` | Prettier                                          |
-| `npm run ci`                      | Everything CI runs: lint, typecheck, tests, build |
+| Command                           | Purpose                                                                         |
+| --------------------------------- | ------------------------------------------------------------------------------- |
+| `npm run dev`                     | Development server                                                              |
+| `npm run build` / `start`         | Production build and server                                                     |
+| `npm run lint`                    | ESLint, zero warnings tolerated                                                 |
+| `npm run typecheck`               | TypeScript in strict mode                                                       |
+| `npm run test` / `test:run`       | Vitest unit and component tests                                                 |
+| `npm run test:e2e`                | Playwright end-to-end tests                                                     |
+| `npm run format` / `format:check` | Prettier                                                                        |
+| `npm run ci`                      | Everything CI runs: lint, typecheck, tests, build                               |
+| `npm run eval:assistant`          | Assistant eval cases (mocked; `ASSISTANT_EVAL_LIVE=1` + key for the live model) |
+| `npm run test:e2e:admin`          | Admin portal E2E against a running dev server (`E2E_ADMIN_BASE_URL`)            |
 
 ### Operational scripts
 
@@ -115,6 +117,14 @@ Three rules confirmed with the company shape the defaults:
 
 See `docs/RBAC.md` for the permission matrix and `docs/ORGANIZATION.md` for how
 positions map to roles.
+
+## AI assistant, tasks and reminders
+
+The portal has an in-house assistant (`/admin/assistant`) that answers only
+from tools guarded by the same permissions as the screens, drafts order plans
+and to-dos as proposals a person approves, and a work-item list (`/admin/tasks`)
+with email/Zalo reminders driven by an idempotent job. See
+`docs/AI_ASSISTANT.md` for the design, permission matrix, runbook and evidence.
 
 ## Order process
 

@@ -84,11 +84,15 @@ function candidatesForPermission(
     }
 
     const role = rolesByKey.get(grant.roleKey);
-    const rolePermission = role?.permissions.find(
-      (entry) => entry.permission === permission,
-    );
+    // A role may name the same permission at two scopes — for example
+    // `tasks.read` at `assignedBusinessUnits` for the unit's work and at
+    // `own` for personal to-dos without a unit. Every entry yields a
+    // candidate, so neither reach is lost to the order the seed lists them.
+    const rolePermissions =
+      role?.permissions.filter((entry) => entry.permission === permission) ??
+      [];
 
-    if (!role || !rolePermission) {
+    if (!role || rolePermissions.length === 0) {
       return [];
     }
 
@@ -99,21 +103,17 @@ function candidatesForPermission(
     // the capability, the grant names its reach. Globally scoped permissions
     // (`requiresGlobalGrant`) are unaffected: they are never seeded below
     // `all`, and `scopeCoversTarget` still demands the explicit global grant.
-    const scope =
-      grant.businessUnitId && rolePermission.scope === "all"
-        ? "assignedBusinessUnits"
-        : !grant.businessUnitId &&
-            rolePermission.scope === "assignedBusinessUnits"
-          ? "all"
-          : rolePermission.scope;
-
-    return [
-      {
-        scope,
-        businessUnitId: grant.businessUnitId,
-        roleKey: role.key,
-      },
-    ];
+    return rolePermissions.map((rolePermission) => ({
+      scope:
+        grant.businessUnitId && rolePermission.scope === "all"
+          ? "assignedBusinessUnits"
+          : !grant.businessUnitId &&
+              rolePermission.scope === "assignedBusinessUnits"
+            ? "all"
+            : rolePermission.scope,
+      businessUnitId: grant.businessUnitId,
+      roleKey: role.key,
+    }));
   });
 }
 

@@ -85,11 +85,108 @@ const emailSchema = baseSchema.extend({
   ORDER_NOTIFICATION_EMAILS: z.string().trim().min(1),
 });
 
+/**
+ * The AI assistant provider. `anthropic` is the real integration and needs a
+ * key; `mock` is a deterministic scripted provider for development and tests
+ * that never calls a model — it is refused outright in production so a demo
+ * can never masquerade as the live integration.
+ */
+const aiSchema = baseSchema
+  .extend({
+    AI_PROVIDER: z.enum(["anthropic", "mock"]).default("anthropic"),
+    ANTHROPIC_API_KEY: optionalText,
+    AI_MODEL: z.string().trim().min(1).default("claude-opus-5"),
+    AI_MAX_TOOL_ROUNDS: z.coerce.number().int().min(1).max(12).default(6),
+    AI_REQUEST_TIMEOUT_MS: z.coerce
+      .number()
+      .int()
+      .min(5_000)
+      .max(300_000)
+      .default(90_000),
+  })
+  .check((ctx) => {
+    const { AI_PROVIDER, ANTHROPIC_API_KEY, NODE_ENV } = ctx.value;
+    if (AI_PROVIDER === "anthropic" && !ANTHROPIC_API_KEY) {
+      ctx.issues.push({
+        code: "custom",
+        message: "ANTHROPIC_API_KEY is required when AI_PROVIDER=anthropic",
+        path: ["ANTHROPIC_API_KEY"],
+        input: ctx.value,
+      });
+    }
+    if (AI_PROVIDER === "mock" && NODE_ENV === "production") {
+      ctx.issues.push({
+        code: "custom",
+        message: "AI_PROVIDER=mock is not allowed in production",
+        path: ["AI_PROVIDER"],
+        input: ctx.value,
+      });
+    }
+  });
+
+/** Bearer secret for the scheduled reminder route; never reuse AUTH_SECRET. */
+const cronSchema = baseSchema.extend({
+  CRON_SECRET: z
+    .string()
+    .min(32, "CRON_SECRET must contain at least 32 characters"),
+});
+
+/** Zalo Official Account credentials, all three needed for the channel. */
+const zaloSchema = baseSchema.extend({
+  ZALO_APP_ID: z.string().trim().min(1),
+  ZALO_OA_ACCESS_TOKEN: z.string().trim().min(1),
+  ZALO_OA_SECRET_KEY: z.string().trim().min(1),
+});
+
+/**
+ * Reminder delivery policy. `off` (the default) records every notification
+ * intent but sends nothing; `test` redirects every message to
+ * `NOTIFICATION_TEST_RECIPIENT`; `live` sends to the real recipients. The
+ * default is deliberately silent so a freshly deployed job can never message
+ * staff before the company has opted in.
+ */
+const notificationSchema = baseSchema
+  .extend({
+    BUSINESS_TIMEZONE: z.string().trim().min(1).default("Asia/Ho_Chi_Minh"),
+    NOTIFICATION_DELIVERY: z.enum(["off", "test", "live"]).default("off"),
+    NOTIFICATION_TEST_RECIPIENT: z.preprocess(
+      (value) =>
+        typeof value === "string" && value.trim() === "" ? undefined : value,
+      z.email().optional(),
+    ),
+    /** Days before the due date the first reminder goes out. */
+    REMINDER_LEAD_DAYS: z.coerce.number().int().min(0).max(14).default(1),
+    /** Local hours (start-end, 24h) during which nothing is sent. */
+    REMINDER_QUIET_HOURS: z
+      .string()
+      .trim()
+      .regex(/^\d{1,2}-\d{1,2}$/)
+      .default("21-7"),
+  })
+  .check((ctx) => {
+    if (
+      ctx.value.NOTIFICATION_DELIVERY === "test" &&
+      !ctx.value.NOTIFICATION_TEST_RECIPIENT
+    ) {
+      ctx.issues.push({
+        code: "custom",
+        message:
+          "NOTIFICATION_TEST_RECIPIENT is required when NOTIFICATION_DELIVERY=test",
+        path: ["NOTIFICATION_TEST_RECIPIENT"],
+        input: ctx.value,
+      });
+    }
+  });
+
 export type BaseEnv = z.infer<typeof baseSchema>;
 export type MongoEnv = z.infer<typeof mongoSchema>;
 export type AuthEnv = z.infer<typeof authSchema>;
 export type CloudinaryEnv = z.infer<typeof cloudinarySchema>;
 export type EmailEnv = z.infer<typeof emailSchema>;
+export type AiEnv = z.infer<typeof aiSchema>;
+export type CronEnv = z.infer<typeof cronSchema>;
+export type ZaloEnv = z.infer<typeof zaloSchema>;
+export type NotificationEnv = z.infer<typeof notificationSchema>;
 
 export type OptionalFeatureEnv<T> =
   | { configured: true; value: T }
@@ -217,4 +314,42 @@ export function inspectEmailEnv(): OptionalFeatureEnv<EmailEnv> {
       ),
     ],
   };
+}
+
+function inspect<T>(schema: z.ZodType<T>): OptionalFeatureEnv<T> {
+  const result = schema.safeParse(process.env);
+  if (result.success) {
+    return { configured: true, value: result.data };
+  }
+  return {
+    configured: false,
+    invalidKeys: [
+      ...new Set(
+        result.error.issues.map(
+          (issue) => issue.path.join(".") || "environment",
+        ),
+      ),
+    ],
+  };
+}
+
+export function inspectAiEnv(): OptionalFeatureEnv<AiEnv> {
+  return inspect(aiSchema);
+}
+
+export function inspectCronEnv(): OptionalFeatureEnv<CronEnv> {
+  return inspect(cronSchema);
+}
+
+export function inspectZaloEnv(): OptionalFeatureEnv<ZaloEnv> {
+  return inspect(zaloSchema);
+}
+
+/** Always resolves: every field has a default and only `test` mode can fail. */
+export function inspectNotificationEnv(): OptionalFeatureEnv<NotificationEnv> {
+  return inspect(notificationSchema);
+}
+
+export function getNotificationEnv(): NotificationEnv {
+  return parseFeatureEnv(notificationSchema, "Notifications");
 }

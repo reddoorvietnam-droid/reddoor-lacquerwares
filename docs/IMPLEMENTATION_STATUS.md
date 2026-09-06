@@ -1,6 +1,6 @@
 # Implementation Status
 
-Last updated: 2026-08-27
+Last updated: 2026-09-06
 
 This document is the source of truth for implementation progress against the Red Door / Lacquerwares master prompt. A dependency being installed, a route being scaffolded, or a UI being rendered with placeholder data does **not** mean the related business capability is implemented.
 
@@ -77,6 +77,16 @@ The newsroom and product managers are live at `/admin/news` and `/admin/products
 ### Real editorial copy (replaced DEMO text, 2026-08-27)
 
 All public-facing copy is now real, sourced from the company's previous site (lacquerwares.vn) and written in a consistent premium voice across all six locale dictionaries: metadata, home, page intros, About highlights (craft village Ha Thai / SGS-EU testing / USA-Europe markets) and value pillars, product/collection empty states, contact form helper texts, footer, and full privacy/terms/accessibility documents (`dictionary.legal`, rendered by `getLegalDocumentPageData` per document kind; the legal routes are now indexable). The published site settings carry the real contact facts (sales@reddoor.vn, +84 903 498 889, the Ha Thai craft-village industrial-cluster address in Hong Van, Hanoi) in six translations; the contact-page map links are derived from the published address. Ten real content entries (5 process stages, 5 history milestones without invented years, vi+en) replaced the two dev fixtures; leftover E2E test records were deleted. Dictionary keys were renamed to match (`common.updatingLabel`/`updatingNotice`, `about.highlight*`/`pillar*`, `contact.formNotice*`). No user-visible DEMO wording remains; the DEMO repositories still exist but serve only machines without MongoDB configured.
+
+### AI assistant, work items and reminders (added 2026-09-06)
+
+Three new domains ride on the existing guard, services and audit trail; nothing in the order, finance or content flows was rewritten. Details, permission matrix, runbook and evidence: `docs/AI_ASSISTANT.md`; the pre-design survey: `docs/AI_ASSISTANT_SURVEY.md`.
+
+- `src/domains/tasks` — work items with business-day deadlines (`BUSINESS_TIMEZONE`), revision-conditional status changes, unique slot per plan item. Screen `/admin/tasks`; "Việc liên quan" on the order detail page. **Implemented**, E2E-verified with the six dev-preview roles.
+- `src/domains/assistant` — permission-filtered tool registry (10 tools, every read through the existing services with the same redaction as the pages), Claude adapter (`@anthropic-ai/sdk`), scripted mock provider for development, bounded chat loop, proposals that become tasks only on approval. Screen `/admin/assistant`, route `POST /api/assistant/chat`. **Implemented**; live model eval **Blocked: manual setup** (no `ANTHROPIC_API_KEY`), mocked eval and E2E pass.
+- `src/domains/notifications` — reminder outbox with dedupe key, atomic claim, bounded retry, delivery policy `off|test|live`, Zalo identity links, webhook replay protection. Route `GET|POST /api/cron/reminders` (bearer `CRON_SECRET`), manual run on `/admin/tasks`. **Implemented**; live email/Zalo delivery **Not run** (delivery off, no designated test recipient, no Zalo credentials; Zalo endpoint/signature unverified against the client-rendered official docs).
+- New permissions `tasks.*`, `assistant.use`, `notifications.manageOwnChannels`; evaluator now honours a permission listed at two scopes in one role. `npm run seed` and `npm run migrate` applied to the development database on 2026-09-06.
+- Not built, deliberately: spreadsheet/PDF/OCR import (no existing form or parser to reuse), Zalo group messaging (no verifiable official endpoint), server-side chat history (by design).
 
 ### Demo or placeholder only
 
