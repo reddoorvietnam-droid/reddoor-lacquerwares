@@ -235,9 +235,25 @@ Vận hành:
   `notificationintents`, `channellinks`, `processedwebhookevents`). Đã chạy
   trên DB dev ngày 2026-09-06.
 - Lịch nhắc việc: cấu hình scheduler gọi `GET /api/cron/reminders` với header
-  `Authorization: Bearer <CRON_SECRET>` mỗi 30–60 phút (Vercel Cron tự gửi
-  header này khi có biến `CRON_SECRET`). Job idempotent; chạy chồng an toàn.
+  `Authorization: Bearer <CRON_SECRET>` (Vercel Cron tự gửi header này khi có
+  biến `CRON_SECRET`). Job idempotent; chạy chồng an toàn.
   Không có lịch → Giám đốc/Kế toán công ty bấm "Chạy nhắc việc ngay".
+- **Giới hạn của Vercel** (kiểm tra tại `vercel.com/docs/functions/limitations`,
+  bản 2026-08-24):
+  - **Cron**: gói Hobby chỉ cho **một lần mỗi ngày** — deploy báo lỗi thẳng
+    với `*/30 * * * *`. `vercel.json` để `0 1 * * *`: 01:00 UTC, tức 08:00
+    giờ Việt Nam, ngay sau khung giờ yên lặng `21-7`. Nhắc việc vốn chỉ gửi
+    một lần/ngày cho mỗi việc nên nhịp này khớp; cần gấp thì bấm "Chạy nhắc
+    việc ngay". Lên Pro thì đổi lại `*/30 * * * *`.
+  - **Thân yêu cầu tối đa 4,5 MB** cho mọi function, chặn trước khi code
+    chạy (`FUNCTION_PAYLOAD_TOO_LARGE`). Vì vậy `attachmentLimits.maxTotalBytes`
+    là 4 MiB chứ không phải 8 MiB — vẫn cho 3 tệp, nhưng cả ba phải vừa
+    trong một yêu cầu.
+  - **Thời lượng hàm**: với fluid compute (mặc định cho project mới) Hobby
+    cho tới **300 giây**, nên `maxDuration` 120 của route chat và 300 của
+    route cron đều hợp lệ. Nếu deploy vẫn báo quá giới hạn thì project chưa
+    bật fluid compute: bật trong Project Settings, hoặc hạ hai số đó xuống 60
+    và đặt `AI_REQUEST_TIMEOUT_MS` dưới 60000.
 - Trang `/admin/settings` hiển thị trạng thái AI, chế độ gửi, cron, Zalo.
 - Rollback/tắt: bỏ `ANTHROPIC_API_KEY` (hoặc `AI_PROVIDER`) → trợ lý báo chưa
   cấu hình, trang việc và mọi màn hình khác không đổi; `NOTIFICATION_DELIVERY=off`

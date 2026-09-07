@@ -13,6 +13,12 @@ import { inspectCronEnv } from "@/lib/env/server";
  */
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+/**
+ * Five minutes, the ceiling a Vercel Hobby project allows with fluid
+ * compute. Being cut off is safe anyway: every intent is claimed atomically
+ * and keyed by `dedupeKey`, so whatever a run does not reach is picked up
+ * by the next one and nothing is ever sent twice.
+ */
 export const maxDuration = 300;
 
 function authorized(request: Request): boolean | "unconfigured" {

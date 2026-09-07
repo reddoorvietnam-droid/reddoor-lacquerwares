@@ -15,8 +15,17 @@ export const attachmentLimits = {
   maxFileBytes: 4 * 1024 * 1024,
   /** Files accepted in one upload request and carried by one chat turn. */
   maxFilesPerTurn: 3,
-  /** Total bytes of one upload request, across its files. */
-  maxTotalBytes: 8 * 1024 * 1024,
+  /**
+   * Total bytes of one upload request, across its files.
+   *
+   * It matches `maxFileBytes` rather than being a multiple of it because the
+   * platform decides this one: Vercel rejects any function request body over
+   * 4.5 MB with `FUNCTION_PAYLOAD_TOO_LARGE` before a line of this code runs,
+   * so a larger ceiling here would only produce a failure nobody can explain.
+   * Three files are still allowed — they just have to fit in one request
+   * together, and the browser is told so before it uploads anything.
+   */
+  maxTotalBytes: 4 * 1024 * 1024,
   /** Characters of extracted text kept per attachment; the rest is cut. */
   maxTextChars: 20_000,
   /** Characters of extracted text kept across one turn's attachments. */
