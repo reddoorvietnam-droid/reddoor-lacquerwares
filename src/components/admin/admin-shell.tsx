@@ -6,6 +6,7 @@ import { AdminNav, type AdminNavGroup } from "@/components/admin/admin-nav";
 import { BrandPlaque } from "@/components/public/logo";
 import type { Permission } from "@/domains/identity/permissions";
 import { resolvePermissionCoverages } from "@/lib/auth";
+import { canSeeSampleProgress } from "@/domains/sample-progress/access";
 import type { AdminLocale } from "@/lib/i18n/admin";
 import { getAdminDictionary } from "@/lib/i18n/admin";
 
@@ -98,6 +99,11 @@ export async function AdminShell({
         {
           href: `${basePath}/content` as Route,
           label: copy.navigation.content,
+          anyOf: ["content.read"],
+        },
+        {
+          href: `${basePath}/sample-progress` as Route,
+          label: locale === "vi" ? "Theo dõi tiến độ mẫu" : "Sample progress",
           anyOf: ["content.read"],
         },
         {
@@ -199,6 +205,7 @@ export async function AdminShell({
       ),
     ] as Permission[];
     const coverages = await resolvePermissionCoverages(requested);
+    const sampleProgressVisible = await canSeeSampleProgress();
 
     const covered = (permission: Permission): boolean => {
       const coverage = coverages[permission as keyof typeof coverages];
@@ -213,6 +220,10 @@ export async function AdminShell({
           .map(({ label, items }) => ({
             label,
             items: items
+              .filter(
+                ({ href }) =>
+                  !href.endsWith("/sample-progress") || sampleProgressVisible,
+              )
               .filter(({ anyOf }) => anyOf === null || anyOf.some(covered))
               .map(({ href, label: itemLabel }) => ({
                 href,
@@ -263,7 +274,7 @@ export async function AdminShell({
         </div>
       </header>
       {withNav ? (
-        <div className="mx-auto grid max-w-[100rem] lg:grid-cols-[15rem_minmax(0,1fr)]">
+        <div className="admin-portal-grid mx-auto grid max-w-[100rem] grid-cols-1 lg:grid-cols-[15rem_minmax(0,1fr)]">
           <AdminNav
             navigationLabel={copy.navigationLabel}
             basePath={basePath}

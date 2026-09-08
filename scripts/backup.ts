@@ -29,6 +29,7 @@ const exportedCollections = [
   "auditevents",
   "contententries",
   "sitesettings",
+  "sampleprogressreports",
 ] as const;
 
 /** Identity fields that must not leave the database in a plain export. */

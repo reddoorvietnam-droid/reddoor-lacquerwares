@@ -426,8 +426,8 @@ export const roleDefinitionSeeds = [
     key: "CONTENT_CREATOR",
     labels: { vi: "Biên tập nội dung", en: "Content Creator" },
     summary: {
-      vi: "Viết và xuất bản tin tức, sản phẩm, bộ sưu tập và mặt hàng cửa hàng trên website. Không xem đơn hàng hay tài chính.",
-      en: "Writes and publishes news, products, collections, and shop items on the website. No access to orders or finance.",
+      vi: "Viết và xuất bản tin tức, sản phẩm, bộ sưu tập và mặt hàng cửa hàng trên website; cập nhật báo cáo tiến độ mẫu hằng tuần. Không xem đơn hàng hay tài chính.",
+      en: "Writes and publishes news, products, collections, and shop items; maintains weekly sample progress reports. No access to orders or finance.",
     },
     // Confirmed rule: the Director and the Content Creator are the only two
     // people who publish, and each may edit the other's work — so every

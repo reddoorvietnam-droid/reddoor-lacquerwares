@@ -23,7 +23,8 @@
     "ci": "npm run lint && npm run typecheck && npm run test:run && npm run build",
     "import:partners": "tsx --env-file-if-exists=.env --conditions=react-server scripts/import-customers.ts",
     "eval:assistant": "vitest run tests/unit/assistant-eval.test.ts",
-    "test:e2e:admin": "playwright test -c playwright.admin.config.ts"
+    "test:e2e:admin": "playwright test -c playwright.admin.config.ts",
+    "test:e2e:admin:cleanup": "tsx --env-file-if-exists=.env --conditions=react-server tests/e2e-admin/sample-progress-cleanup.ts"
   },
   "engines": {
     "node": ">=20.19.0"

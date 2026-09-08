@@ -206,3 +206,63 @@ html[data-door-intro="pending"] #door-intro-static {
     visibility: hidden;
   }
 }
+
+@media print {
+  @page sample-progress {
+    size: A4 landscape;
+    margin: 10mm;
+  }
+  .sample-progress {
+    page: sample-progress;
+  }
+  body:has(.sample-progress) {
+    background: white;
+  }
+  /* Everything the reader cannot act on when holding a sheet of paper. */
+  body:has(.sample-progress) header,
+  body:has(.sample-progress) nav,
+  body:has(.sample-progress) .sample-no-print,
+  body:has(.sample-progress) .sample-progress > [role],
+  body:has(.sample-progress) [data-assistant-widget] {
+    display: none !important;
+  }
+  body:has(.sample-progress) main {
+    padding: 0 !important;
+  }
+  /* The report's own header carries the week, revision and saved time. */
+  body:has(.sample-progress) .sample-progress > header {
+    display: block !important;
+  }
+  body:has(.sample-progress) .admin-portal-grid {
+    display: block !important;
+  }
+  .sample-report {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  /* The table scrolls on screen; on paper it must lay out in full. */
+  .sample-table-wrap {
+    overflow: visible !important;
+    border: 0 !important;
+    box-shadow: none !important;
+  }
+  .sample-report table {
+    min-width: 0 !important;
+    font-size: 8pt;
+    table-layout: fixed;
+    width: 100%;
+  }
+  .sample-report td,
+  .sample-report th {
+    min-width: 0 !important;
+    padding: 4px;
+    overflow-wrap: anywhere;
+  }
+  .sample-report tr {
+    break-inside: avoid;
+  }
+  /* Repeat the column headings on every printed page. */
+  .sample-report thead {
+    display: table-header-group;
+  }
+}
