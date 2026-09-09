@@ -54,7 +54,12 @@ export function SampleProgressTable({
               Cập nhật lúc
             </th>
             {editable && (
-              <th scope="col" className={`${thClass} sample-no-print`}>
+              // Pinned: the table is wider than any screen, and the row actions
+              // are useless if they sit off the right edge.
+              <th
+                scope="col"
+                className={`${thClass} sample-no-print border-burgundy/12 bg-ivory sticky right-0 border-l`}
+              >
                 Thao tác
               </th>
             )}
@@ -104,7 +109,9 @@ export function SampleProgressTable({
                 {row.updatedAt ? formatDateTime(row.updatedAt) : "Chưa lưu"}
               </td>
               {editable && (
-                <td className={`${tdClass} sample-no-print space-y-2`}>
+                <td
+                  className={`${tdClass} sample-no-print border-burgundy/12 sticky right-0 space-y-2 border-l bg-white`}
+                >
                   <button
                     type="button"
                     className={ghostButtonClass}

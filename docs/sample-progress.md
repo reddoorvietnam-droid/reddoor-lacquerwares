@@ -11,7 +11,7 @@ Mở `/vi/admin/sample-progress` từ mục **Theo dõi tiến độ mẫu** tro
 
 | Vai trò | Quyền |
 | --- | --- |
-| `CONTENT_CREATOR` (biên tập nội dung) | Xem, tạo tuần mới, kế thừa tuần trước, nhập Excel, thêm/sửa/bỏ mẫu, lưu phiên bản, xem lịch sử, xuất Excel, in |
+| `CONTENT_CREATOR` (biên tập nội dung) | Xem, tạo tuần mới, kế thừa tuần trước, nhập Excel, thêm/sửa/bỏ mẫu, lưu phiên bản, xóa cả báo cáo tuần, xem lịch sử, xuất Excel, in |
 | `DIRECTOR` (giám đốc) | Xem mọi báo cáo đã lưu, chọn tuần và phiên bản, xem lịch sử, tìm kiếm và lọc, xuất Excel, in |
 | Vai trò khác | Không thấy menu, vào thẳng URL nhận 404, mọi API trả 403 |
 
@@ -32,7 +32,10 @@ gắn `roleKeys: ["DEV_OPEN_ACCESS"]`, không khớp danh sách cho phép.
 
 1. **Lần đầu / chuyển dữ liệu cũ:** chọn **Nhập Excel**, chọn file `.xlsx` hoặc
    `.xlsm`. Hệ thống hiện bảng xem trước kèm số dòng, số lỗi và số cảnh báo.
-   Không có gì được lưu cho tới khi bấm **Lưu báo cáo**.
+   Dữ liệu trong file **thay cho toàn bộ bảng đang soạn** (không trộn vào bảng
+   cũ), và không có gì được lưu cho tới khi bấm **Lưu báo cáo**. Chọn nhầm file
+   thì bấm **Hủy nhập file** ở khung vàng: bảng quay lại đúng như trước khi
+   nhập.
 2. **Hằng tuần:** mở báo cáo tuần trước rồi bấm **Kế thừa sang tuần mới**. Hộp
    xác nhận nêu rõ tuần nguồn và tuần đích; sau khi xác nhận, toàn bộ mẫu được
    sao chép sang tuần kế tiếp ở phiên bản 1.
@@ -43,9 +46,38 @@ gắn `roleKeys: ["DEV_OPEN_ACCESS"]`, không khớp danh sách cho phép.
 5. **Xem lại:** chọn tuần trong **Báo cáo đã lưu**, hoặc **Lịch sử chỉnh sửa** để
    mở một phiên bản cũ. Phiên bản cũ chỉ đọc; dùng **Mở phiên bản mới nhất** để
    quay lại bản đang dùng.
-6. **Xuất và in:** **Xuất Excel** tải file `.xlsx` của đúng phiên bản đang xem.
+6. **Xóa cả báo cáo tuần:** khi đã lỡ lưu nhầm file, bấm **Xóa báo cáo tuần
+   này**, ghi lý do (bắt buộc), rồi xác nhận. Toàn bộ tuần đó biến mất — mọi mẫu
+   và mọi phiên bản — và tuần được giải phóng để nhập lại file khác. Không xóa
+   được lẻ từng phiên bản: lịch sử của một tuần đang dùng không thể bị tỉa dần.
+7. **Xuất và in:** **Xuất Excel** tải file `.xlsx` của đúng phiên bản đang xem.
    **In báo cáo** dùng hộp thoại in của trình duyệt (A4 ngang, ẩn menu và nút
    thao tác, lặp lại tiêu đề bảng); có thể chọn "Save as PDF" ở đó.
+
+## File tải lên
+
+File Excel chị chọn ở **Nhập Excel** không được lưu ở đâu cả: route đọc bytes vào
+bộ nhớ, bóc ra dữ liệu, trả về bảng xem trước rồi bỏ. Không ghi đĩa, không đẩy
+lên Cloudinary, không có collection đính kèm — file tiến độ mẫu mang tên khách
+hàng nên không để lại trên máy chủ. Thứ duy nhất được lưu là dữ liệu 9 cột, và
+chỉ khi người dùng bấm **Lưu báo cáo**.
+
+## Xóa một tuần
+
+`DELETE /api/sample-progress` (biên tập nội dung, cùng origin) xóa mọi phiên bản
+của một tuần. Trước khi xóa, toàn bộ snapshot được chép sang collection
+`sampleprogressreportarchives` kèm `deletedAt` / `deletedBy` / `deleteReason`;
+nếu bản chép thất bại thì không xóa gì cả. Một sự kiện
+`sampleProgress.report.deleted` cũng được ghi vào `auditevents`.
+
+Bản lưu trữ — chứ không phải audit log — mới là thứ khôi phục được: giá trị
+trong audit đi qua `redactAuditValue`, hàm này **cắt mảng còn 50 phần tử**, nên
+một báo cáo trên 50 mẫu sẽ mất dòng nếu chỉ dựa vào đó.
+
+Xóa hẳn khỏi collection chính (thay vì đánh dấu ẩn) là có chủ ý: khóa
+`tuần:phiên-bản` được giải phóng, nên tuần đó nhập lại được từ phiên bản 1 mà
+không đụng khóa cũ. Không giao diện nào đọc collection lưu trữ; khôi phục là
+việc phải làm thủ công, có cân nhắc.
 
 ## Mô hình dữ liệu
 
@@ -124,7 +156,7 @@ Ba lỗi của file gốc được sửa có chủ ý:
 ```bash
 npm run migrate            # tạo/đồng bộ index, an toàn khi chạy lại
 npm run migrate -- --dry-run
-npm run backup             # đã gồm collection sampleprogressreports
+npm run backup             # gồm sampleprogressreports + sampleprogressreportarchives
 ```
 
 `migrate` chỉ đồng bộ index (`syncIndexes`), không đụng dữ liệu và chạy lại được

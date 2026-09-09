@@ -191,6 +191,7 @@ test("director reads and exports but cannot change the report", async ({
     "Kế thừa sang tuần mới",
     "Sửa mẫu 1",
     "Bỏ mẫu 1",
+    "Xóa báo cáo tuần này",
   ])
     await expect(page.getByRole("button", { name })).toHaveCount(0);
   await expect(page.getByLabel("Nội dung cập nhật lần này")).toHaveCount(0);
@@ -211,6 +212,11 @@ test("director reads and exports but cannot change the report", async ({
     );
     expect(response.status()).toBe(403);
   }
+  const deletion = await page.request.delete("/api/sample-progress", {
+    headers: { origin },
+    data: { week: reportWeek, reason: "Giám đốc không được xóa" },
+  });
+  expect(deletion.status()).toBe(403);
 });
 
 for (const role of [
@@ -294,6 +300,48 @@ function fixtureWorkbook(source: string): string {
   return target;
 }
 
+test("cancels a wrongly imported file without saving anything", async ({
+  page,
+}) => {
+  test.skip(!workbook, "Set SAMPLE_PROGRESS_WORKBOOK to the Red Door file.");
+  test.skip(!workbook || !existsSync(workbook), "Workbook file not found.");
+  test.slow();
+  const file = fixtureWorkbook(workbook!);
+
+  await signInAs(page, "CONTENT_CREATOR");
+  await openManager(page);
+  await page.getByLabel("File tiến độ mẫu").setInputFiles(file);
+  await expect(page.getByRole("status")).toContainText("Đã đọc 24 mẫu");
+
+  const banner = page.locator(
+    'section[aria-label="Dữ liệu đọc từ file Excel"]',
+  );
+  await expect(banner).toContainText("chưa lưu vào hệ thống");
+  await expect(banner).toContainText(path.basename(file));
+  await expect(
+    page.getByRole("cell", { name: "Chờ gửi", exact: true }),
+  ).toBeVisible();
+
+  await banner.getByRole("button", { name: "Hủy nhập file" }).click();
+  await page
+    .locator('section[aria-label="Xác nhận hủy nhập file"]')
+    .getByRole("button", { name: "Hủy nhập file" })
+    .click();
+
+  await expect(page.getByRole("status")).toContainText("Đã hủy nhập file");
+  await expect(banner).toHaveCount(0);
+  // The rows the file brought in are gone from the screen...
+  await expect(
+    page.getByRole("cell", { name: "Chờ gửi", exact: true }),
+  ).toHaveCount(0);
+  // ...and nothing ever reached the database.
+  const stored = await page.request.get(
+    `/api/sample-progress?week=${importWeek}`,
+  );
+  expect(stored.status()).toBe(404);
+  rmSync(file, { force: true });
+});
+
 test("imports the supplied workbook as a preview before saving", async ({
   page,
 }) => {
@@ -308,7 +356,9 @@ test("imports the supplied workbook as a preview before saving", async ({
 
   // The file is only a preview until the editor confirms it.
   await expect(page.getByRole("status")).toContainText("Đã đọc 24 mẫu");
-  await expect(page.getByText(/Kết quả đọc file Excel: 24 dòng, 0 lỗi/)).toBeVisible();
+  await expect(
+    page.locator('section[aria-label="Dữ liệu đọc từ file Excel"]'),
+  ).toContainText("Đã đọc 24 mẫu · 0 lỗi");
   await expect(page.getByText("Tổng số mẫu").first()).toBeVisible();
   // The workbook keeps this wording in a date column rather than a date.
   await expect(
@@ -335,4 +385,46 @@ test("imports the supplied workbook as a preview before saving", async ({
   await page.getByRole("button", { name: "Xuất Excel" }).click();
   expect((await download).suggestedFilename()).toContain("2098-W04-v1.xlsx");
   rmSync(file, { force: true });
+});
+
+test("deletes a whole week saved from the wrong file", async ({ page }) => {
+  test.skip(!workbook, "Runs on the week the import test saved.");
+  test.slow();
+  await signInAs(page, "CONTENT_CREATOR");
+  await openManager(page);
+  await page.getByLabel("Báo cáo đã lưu").selectOption(importWeek);
+  await expect(
+    page.getByRole("cell", { name: "Chờ gửi", exact: true }),
+  ).toBeVisible();
+
+  await page.getByRole("button", { name: "Xóa báo cáo tuần này" }).click();
+  const panel = page.locator(
+    'section[aria-label="Xác nhận xóa báo cáo tuần"]',
+  );
+  await expect(panel).toContainText("20/01/2098");
+  await expect(panel).toContainText("24 mẫu");
+
+  // A reason is required, not just a second click.
+  const confirmButton = panel.getByRole("button", {
+    name: "Xóa báo cáo tuần này",
+  });
+  await expect(confirmButton).toBeDisabled();
+  await page.getByLabel("Lý do xóa báo cáo").fill("Nhập nhầm file tuần khác");
+  await expect(confirmButton).toBeEnabled();
+  await confirmButton.click();
+
+  await expect(page.getByRole("status")).toContainText("Đã xóa báo cáo tuần");
+  await expect(page.getByRole("status")).toContainText("24 mẫu");
+
+  // The whole week is gone: not one row, every revision of it.
+  const stored = await page.request.get(
+    `/api/sample-progress?week=${importWeek}`,
+  );
+  expect(stored.status()).toBe(404);
+  await expect(
+    page.getByRole("cell", { name: "Chờ gửi", exact: true }),
+  ).toHaveCount(0);
+  await expect(page.getByLabel("Báo cáo đã lưu")).not.toContainText(
+    "20/01/2098",
+  );
 });

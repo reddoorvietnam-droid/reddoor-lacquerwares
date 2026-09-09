@@ -20,7 +20,7 @@ import {
 import type { ImportIssue } from "@/domains/sample-progress/import-workbook";
 import {
   SampleProgressConfirm,
-  SampleProgressIssues,
+  SampleProgressImportPreview,
   type SampleProgressConfirmation,
 } from "./sample-progress-confirm";
 import { SampleProgressEditor } from "./sample-progress-editor";
@@ -34,6 +34,7 @@ import {
 import {
   buttonClass,
   cardClass,
+  dangerButtonClass,
   fieldClass,
   ghostButtonClass,
   labelClass,
@@ -43,6 +44,23 @@ import {
 } from "./sample-progress-shared";
 
 type Role = "editor" | "viewer";
+
+/**
+ * An imported file only ever produces a preview, so the state it replaced is
+ * kept alongside it. Picking the wrong file is a one-click mistake and must be
+ * a one-click undo, not a page reload.
+ */
+type ImportSession = {
+  fileName: string;
+  restore: {
+    current: SampleReport | null;
+    week: string;
+    reportDate: string;
+    rows: SampleRow[];
+    changeNote: string;
+    dirty: boolean;
+  };
+};
 
 const unsaved = "Chưa lưu";
 
@@ -88,6 +106,7 @@ export function SampleProgressManager() {
   const [error, setError] = useState("");
   const [conflict, setConflict] = useState(false);
   const [issues, setIssues] = useState<ImportIssue[]>([]);
+  const [importSession, setImportSession] = useState<ImportSession | null>(null);
   const [history, setHistory] = useState<ReportSummary[] | null>(null);
   const [draft, setDraft] = useState<SampleRowInput | null>(null);
   const [confirmation, setConfirmation] = useState<SampleProgressConfirmation | null>(null);
@@ -160,6 +179,7 @@ export function SampleProgressManager() {
     setDirty(false);
     setDraft(null);
     setIssues([]);
+    setImportSession(null);
     setHistory(null);
     setConflict(false);
     setConfirmation(null);
@@ -282,7 +302,10 @@ export function SampleProgressManager() {
 
   function importFile(file?: File) {
     if (!file) return;
-    guard(() =>
+    guard(() => {
+      // Snapshot the screen before the file replaces it, so "Hủy nhập file"
+      // can put back exactly what was there.
+      const restore = { current, week, reportDate, rows, changeNote, dirty };
       void perform(async () => {
         if (!/\.(xlsx|xlsm)$/i.test(file.name) || file.size > 2_000_000)
           throw new Error("Chọn file .xlsx hoặc .xlsm, dung lượng tối đa 2 MB.");
@@ -311,6 +334,7 @@ export function SampleProgressManager() {
         setDraft(null);
         setChangeNote("");
         setDirty(true);
+        setImportSession({ fileName: file.name, restore });
         const errors = preview.issues.filter(
           (issue) => issue.severity === "error",
         ).length;
@@ -319,7 +343,66 @@ export function SampleProgressManager() {
             base ? ` (sẽ lưu thành phiên bản ${base.revision + 1})` : ""
           }. ${errors ? `Có ${errors} dòng cần sửa trước khi lưu.` : "Kiểm tra bảng rồi bấm “Lưu báo cáo”."}`,
         );
-      }),
+      });
+    });
+  }
+
+  /** Removes a whole week: every sample and every revision it ever had. */
+  function deleteWeek(reason: string) {
+    const target = current?.week;
+    if (!target) return;
+    void perform(async () => {
+      const result = await api<{
+        removed: { revisions: number; rows: number };
+      }>("", {
+        method: "DELETE",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ week: target, reason }),
+      });
+      const listing = await api<{ role: Role; reports: ReportSummary[] }>();
+      setRole(listing.role);
+      setReports(listing.reports);
+      setConfirmation(null);
+      const next = listing.reports[0];
+      if (next) {
+        const opened = await api<{ report: SampleReport }>(
+          `?week=${next.week}`,
+        );
+        applyReport(opened.report);
+      } else {
+        setCurrent(null);
+        setRows([]);
+        setWeek(weekStart(todayInBusinessTimezone()));
+        setReportDate(todayInBusinessTimezone());
+        setChangeNote("");
+        setDirty(false);
+        setIssues([]);
+        setImportSession(null);
+        setHistory(null);
+      }
+      setMessage(
+        `Đã xóa báo cáo tuần ${formatWeekRange(target)}: ${result.removed.rows} mẫu, ${result.removed.revisions} phiên bản. Có thể nhập lại file khác cho tuần này.`,
+      );
+    });
+  }
+
+  /** Puts the screen back exactly as it was before the file was read. */
+  function cancelImport() {
+    if (!importSession) return;
+    const { fileName, restore } = importSession;
+    setCurrent(restore.current);
+    setWeek(restore.week);
+    setReportDate(restore.reportDate);
+    setRows(restore.rows);
+    setChangeNote(restore.changeNote);
+    setDirty(restore.dirty);
+    setIssues([]);
+    setImportSession(null);
+    setDraft(null);
+    setConfirmation(null);
+    setError("");
+    setMessage(
+      `Đã hủy nhập file “${fileName}”. Bảng quay lại như trước khi nhập; không có gì được ghi vào hệ thống.`,
     );
   }
 
@@ -479,6 +562,8 @@ export function SampleProgressManager() {
             inherit(source);
           }}
           onRemove={removeRow}
+          onDiscardImport={cancelImport}
+          onDeleteWeek={deleteWeek}
           onDiscard={(run) => {
             setDirty(false);
             setDraft(null);
@@ -488,8 +573,19 @@ export function SampleProgressManager() {
         />
       )}
 
-      {issues.length > 0 && (
-        <SampleProgressIssues issues={issues} rowCount={rows.length} />
+      {importSession && (
+        <SampleProgressImportPreview
+          fileName={importSession.fileName}
+          issues={issues}
+          rowCount={rows.length}
+          busy={busy}
+          onCancel={() =>
+            setConfirmation({
+              kind: "discard-import",
+              fileName: importSession.fileName,
+            })
+          }
+        />
       )}
 
 
@@ -638,6 +734,23 @@ export function SampleProgressManager() {
           >
             In báo cáo
           </button>
+          {editable && current && (
+            <button
+              type="button"
+              className={dangerButtonClass}
+              disabled={busy || dirty || !!draft}
+              onClick={() =>
+                setConfirmation({
+                  kind: "delete-week",
+                  week: current.week,
+                  revisions: latestRevision,
+                  rows: rows.length,
+                })
+              }
+            >
+              Xóa báo cáo tuần này
+            </button>
+          )}
           <button
             type="button"
             className={ghostButtonClass}

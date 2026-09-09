@@ -83,16 +83,44 @@ export function buildReport(overrides: Partial<SampleReport> = {}): SampleReport
   };
 }
 
+export type ArchivedWeek = {
+  reports: readonly SampleReport[];
+  reason: string;
+  actor: { userId: string; name: string };
+  at: string;
+};
+
 export type FakeStore = SampleProgressStore & {
   records: Map<string, SampleReport>;
+  archived: ArchivedWeek[];
 };
 
 export function createFakeStore(seed: SampleReport[] = []): FakeStore {
   const records = new Map<string, SampleReport>(
     seed.map((report) => [`${report.week}:${report.revision}`, report]),
   );
+  const archived: ArchivedWeek[] = [];
   return {
     records,
+    archived,
+    async listRevisions(week) {
+      return [...records.values()]
+        .filter((report) => report.week === week)
+        .sort((a, b) => a.revision - b.revision)
+        .map((report) => structuredClone(report));
+    },
+    async archiveWeek(input) {
+      archived.push({
+        ...input,
+        reports: input.reports.map((report) => structuredClone(report)),
+      });
+    },
+    async removeWeek(week) {
+      let removed = 0;
+      for (const [key, report] of [...records.entries()])
+        if (report.week === week && records.delete(key)) removed += 1;
+      return removed;
+    },
     async latest(week, revision) {
       const matches = [...records.values()]
         .filter(

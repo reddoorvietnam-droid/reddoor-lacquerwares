@@ -148,6 +148,33 @@ export async function POST(request: Request) {
 }
 
 /**
+ * Removes a whole week, every revision of it. Kept separate from POST so a
+ * delete can never be reached by a form post or a stray retry of a save.
+ */
+export async function DELETE(request: Request) {
+  try {
+    const access = await requireSampleProgressEditor();
+    assertSameOrigin(request);
+    const bytes = await readLimitedBody(request, maxJsonBytes);
+    let input: unknown;
+    try {
+      input = JSON.parse(new TextDecoder().decode(bytes));
+    } catch {
+      throw new SampleProgressError("Nội dung yêu cầu không hợp lệ.");
+    }
+    const body = (input ?? {}) as { week?: unknown; reason?: unknown };
+    const removed = await sampleProgressService.remove(
+      isoDateSchema.parse(typeof body.week === "string" ? body.week : ""),
+      typeof body.reason === "string" ? body.reason : "",
+      { userId: access.userId, name: await displayName(access.userId) },
+    );
+    return json({ role: access.role, removed });
+  } catch (error) {
+    return failure(error);
+  }
+}
+
+/**
  * Session cookies ride along on a cross-site form post, so a same-origin check
  * is what stops another site from saving a report as the signed-in editor.
  */

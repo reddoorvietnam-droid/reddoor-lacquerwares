@@ -49,12 +49,16 @@ import {
 } from "@/domains/notifications/persistence/models";
 import { getTaskModel } from "@/domains/tasks/persistence/models";
 import { connectToDatabase } from "@/lib/db/mongoose";
-import { getSampleProgressModel } from "@/domains/sample-progress/models";
+import {
+  getSampleProgressArchiveModel,
+  getSampleProgressModel,
+} from "@/domains/sample-progress/models";
 
 function collectModels(): Model<unknown>[] {
   return [
     getUserModel(),
     getSampleProgressModel(),
+    getSampleProgressArchiveModel(),
     getRoleDefinitionModel(),
     getAccessGrantModel(),
     getBusinessUnitModel(),

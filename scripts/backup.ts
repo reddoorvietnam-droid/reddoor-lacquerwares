@@ -30,6 +30,7 @@ const exportedCollections = [
   "contententries",
   "sitesettings",
   "sampleprogressreports",
+  "sampleprogressreportarchives",
 ] as const;
 
 /** Identity fields that must not leave the database in a plain export. */

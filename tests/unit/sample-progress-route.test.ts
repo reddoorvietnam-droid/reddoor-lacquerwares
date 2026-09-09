@@ -10,6 +10,7 @@ const mocks = vi.hoisted(() => ({
   read: vi.fn(),
   save: vi.fn(),
   inherit: vi.fn(),
+  remove: vi.fn(),
   parse: vi.fn(),
   export: vi.fn(),
   fileName: vi.fn(),
@@ -25,6 +26,7 @@ vi.mock("@/domains/sample-progress/runtime", () => ({
     read: mocks.read,
     save: mocks.save,
     inherit: mocks.inherit,
+    remove: mocks.remove,
   },
 }));
 vi.mock("@/domains/sample-progress/import-workbook", () => ({
@@ -36,7 +38,7 @@ vi.mock("@/domains/sample-progress/export-workbook", () => ({
   buildReportFileName: mocks.fileName,
 }));
 vi.mock("@/domains/identity/models", () => ({ getUserModel: mocks.user }));
-import { GET, POST } from "@/app/api/sample-progress/route";
+import { DELETE, GET, POST } from "@/app/api/sample-progress/route";
 
 const editorAccess = { userId: "editor-1", role: "editor", context: {} };
 const viewerAccess = { userId: "director-1", role: "viewer", context: {} };
@@ -348,6 +350,78 @@ describe("inheriting and importing", () => {
     });
     const response = await post("?action=import", { body: "nope" });
     expect(response.status).toBe(400);
+  });
+});
+
+describe("deleting a week", () => {
+  const del = (body: unknown, headers: Record<string, string> = sameOrigin) =>
+    DELETE(
+      new Request("http://localhost/api/sample-progress", {
+        method: "DELETE",
+        headers,
+        body: JSON.stringify(body),
+      }),
+    );
+
+  it("denies a reader before touching data", async () => {
+    mocks.editor.mockRejectedValue(
+      new ContentAccessDeniedError("PERMISSION_DENIED"),
+    );
+    const response = await del({ week: "2026-08-24", reason: "Nhập nhầm" });
+    expect(response.status).toBe(403);
+    expect(mocks.remove).not.toHaveBeenCalled();
+  });
+
+  it("rejects a cross-origin delete", async () => {
+    mocks.editor.mockResolvedValue(editorAccess);
+    const response = await del(
+      { week: "2026-08-24", reason: "Nhập nhầm file" },
+      { origin: "https://evil.example", host: "localhost" },
+    );
+    expect(response.status).toBe(403);
+    expect(mocks.remove).not.toHaveBeenCalled();
+  });
+
+  it("rejects a malformed week without reaching the service", async () => {
+    mocks.editor.mockResolvedValue(editorAccess);
+    namedUser("Chị Nương");
+    const response = await del({ week: "tuần rồi", reason: "Nhập nhầm file" });
+    expect(response.status).toBe(400);
+    expect(mocks.remove).not.toHaveBeenCalled();
+  });
+
+  it("removes the week with the server-resolved actor", async () => {
+    mocks.editor.mockResolvedValue(editorAccess);
+    namedUser("Chị Nương");
+    mocks.remove.mockResolvedValue({
+      week: "2026-08-24",
+      revisions: 2,
+      rows: 24,
+    });
+    const response = await del({
+      week: "2026-08-24",
+      reason: "Nhập nhầm file tuần khác",
+    });
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      role: "editor",
+      removed: { week: "2026-08-24", revisions: 2, rows: 24 },
+    });
+    expect(mocks.remove).toHaveBeenCalledWith(
+      "2026-08-24",
+      "Nhập nhầm file tuần khác",
+      { userId: "editor-1", name: "Chị Nương" },
+    );
+  });
+
+  it("passes a missing week through as 404", async () => {
+    mocks.editor.mockResolvedValue(editorAccess);
+    namedUser("Chị Nương");
+    mocks.remove.mockRejectedValue(
+      new SampleProgressError("Không tìm thấy báo cáo.", 404),
+    );
+    const response = await del({ week: "2026-08-24", reason: "Nhập nhầm file" });
+    expect(response.status).toBe(404);
   });
 });
 

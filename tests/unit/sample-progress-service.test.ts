@@ -267,6 +267,86 @@ describe("inheriting into the following week", () => {
   });
 });
 
+describe("deleting a whole week", () => {
+  it("archives every revision before removing any of them", async () => {
+    const { service, store } = createService([], "2026-09-08T04:00:00.000Z");
+    await service.save(input(), editor);
+    await service.save(input(undefined, { expectedRevision: 1 }), editor);
+
+    const removed = await service.remove(week, "Nhập nhầm file tuần khác", editor);
+
+    expect(removed).toEqual({ week, revisions: 2, rows: 1 });
+    expect(store.records.size).toBe(0);
+    expect(store.archived).toHaveLength(1);
+    const archived = store.archived[0]!;
+    expect(archived.reports.map((report) => report.revision)).toEqual([1, 2]);
+    expect(archived.reason).toBe("Nhập nhầm file tuần khác");
+    expect(archived.actor).toEqual(editor);
+    expect(archived.at).toBe("2026-09-08T04:00:00.000Z");
+    // The archived copy is complete, not a summary.
+    expect(archived.reports[0]!.rows[0]!.orderName).toBe("Sofitel");
+  });
+
+  it("leaves other weeks untouched", async () => {
+    const { service, store } = createService();
+    await service.save(input(), editor);
+    await service.save(
+      input(undefined, { week: "2026-08-31", reportDate: "2026-08-31" }),
+      editor,
+    );
+    await service.remove(week, "Xóa tuần nhập sai", editor);
+    expect([...store.records.keys()]).toEqual(["2026-08-31:1"]);
+  });
+
+  it("frees the week so the same one can be imported again", async () => {
+    const { service } = createService();
+    await service.save(input(), editor);
+    await service.remove(week, "Nhập nhầm file", editor);
+    // Revision numbering restarts; the old _id is no longer taken.
+    const fresh = await service.save(input(), editor);
+    expect(fresh.revision).toBe(1);
+  });
+
+  it("does not delete when the archive copy fails", async () => {
+    const { service, store } = createService();
+    await service.save(input(), editor);
+    store.archiveWeek = async () => {
+      throw new Error("archive unavailable");
+    };
+    await expect(
+      service.remove(week, "Nhập nhầm file", editor),
+    ).rejects.toThrow("archive unavailable");
+    expect(store.records.size).toBe(1);
+  });
+
+  it.each(["", "  ", "sai", "x".repeat(501)])(
+    "refuses the reason %s",
+    async (reason) => {
+      const { service, store } = createService();
+      await service.save(input(), editor);
+      await expect(service.remove(week, reason, editor)).rejects.toMatchObject({
+        status: 400,
+      });
+      expect(store.records.size).toBe(1);
+      expect(store.archived).toHaveLength(0);
+    },
+  );
+
+  it("reports a missing week as not found", async () => {
+    const { service } = createService();
+    await expect(
+      service.remove(week, "Nhập nhầm file", editor),
+    ).rejects.toMatchObject({ status: 404 });
+  });
+
+  it("rejects a week that is not a Monday", async () => {
+    const { service } = createService();
+    await expect(
+      service.remove("2026-08-25", "Nhập nhầm file", editor),
+    ).rejects.toThrow("thứ Hai");
+  });
+});
+
 describe("reading", () => {
   it("reports a missing week as not found, not as a server error", async () => {
     const { service } = createService();

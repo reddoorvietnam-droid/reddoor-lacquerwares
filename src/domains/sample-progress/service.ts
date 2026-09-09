@@ -36,6 +36,16 @@ export interface SampleProgressStore {
   latest(week: string, revision?: number): Promise<SampleReport | null>;
   list(week?: string): Promise<ReportSummary[]>;
   insert(report: SampleReport): Promise<void>;
+  /** Every revision of a week, oldest first. */
+  listRevisions(week: string): Promise<SampleReport[]>;
+  /** Copies the week out of the way so a delete can be undone. */
+  archiveWeek(input: {
+    reports: readonly SampleReport[];
+    reason: string;
+    actor: Actor;
+    at: string;
+  }): Promise<void>;
+  removeWeek(week: string): Promise<number>;
 }
 
 /**
@@ -175,6 +185,47 @@ export class SampleProgressService {
     });
     await this.store.insert(report);
     return report;
+  }
+
+  /**
+   * Deletes a whole week — every revision of it. Used when a week was created
+   * by mistake, typically the wrong file imported and saved.
+   *
+   * The week is archived first: if that copy cannot be written, nothing is
+   * deleted. Individual revisions stay un-deletable, so the history of a week
+   * that is genuinely in use can never be thinned out one entry at a time.
+   */
+  async remove(
+    week: string,
+    reason: string,
+    actor: Actor,
+  ): Promise<{ week: string; revisions: number; rows: number }> {
+    this.assertWeek(week);
+    const trimmed = reason.trim();
+    if (trimmed.length < 5 || trimmed.length > 500)
+      throw new SampleProgressError(
+        "Hãy ghi lý do xóa báo cáo, ít nhất 5 ký tự.",
+      );
+    const stored = await this.store.listRevisions(week);
+    if (!stored.length)
+      throw new SampleProgressError(
+        "Không tìm thấy báo cáo của tuần này để xóa.",
+        404,
+        "SAMPLE_PROGRESS_NOT_FOUND",
+      );
+    const reports = stored.map(normalizeStoredReport);
+    await this.store.archiveWeek({
+      reports,
+      reason: trimmed,
+      actor,
+      at: this.now().toISOString(),
+    });
+    const revisions = await this.store.removeWeek(week);
+    return {
+      week,
+      revisions,
+      rows: reports[reports.length - 1]?.rows.length ?? 0,
+    };
   }
 
   private assertWeek(week: string): void {

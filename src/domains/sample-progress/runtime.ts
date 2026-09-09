@@ -1,6 +1,11 @@
 import "server-only";
+import { randomUUID } from "node:crypto";
 import { connectToDatabase } from "@/lib/db/mongoose";
-import { getSampleProgressModel } from "./models";
+import { mongoAuditRepository } from "@/domains/audit/mongo-repository";
+import {
+  getSampleProgressArchiveModel,
+  getSampleProgressModel,
+} from "./models";
 import {
   SampleProgressService,
   SampleProgressError,
@@ -53,6 +58,48 @@ const store: SampleProgressStore = {
         { $project: summaryProjection },
       ])
       .exec();
+  },
+  async listRevisions(week) {
+    await connectToDatabase();
+    return getSampleProgressModel()
+      .find({ week })
+      .sort({ revision: 1 })
+      .select("-_id")
+      .lean<SampleReport[]>()
+      .exec();
+  },
+  async archiveWeek({ reports, reason, actor, at }) {
+    await connectToDatabase();
+    await getSampleProgressArchiveModel().insertMany(
+      reports.map((report) => ({
+        ...report,
+        deletedAt: at,
+        deletedBy: actor.userId,
+        deletedByName: actor.name,
+        deleteReason: reason,
+      })),
+    );
+    // The audit event records that it happened and why; the archive holds the
+    // content, because audit values are capped at fifty array entries.
+    await mongoAuditRepository.append({
+      actor: { type: "user", userId: actor.userId },
+      action: "sampleProgress.report.deleted",
+      resourceType: "sampleProgressReport",
+      resourceId: reports[0]?.week ?? null,
+      requestId: randomUUID(),
+      reason,
+      metadata: {
+        revisions: reports.map((report) => report.revision),
+        rows: reports[reports.length - 1]?.rows.length ?? 0,
+        deletedByName: actor.name,
+      },
+      occurredAt: new Date(at),
+    });
+  },
+  async removeWeek(week) {
+    await connectToDatabase();
+    const result = await getSampleProgressModel().deleteMany({ week });
+    return result.deletedCount ?? 0;
   },
   async insert(report) {
     await connectToDatabase();
