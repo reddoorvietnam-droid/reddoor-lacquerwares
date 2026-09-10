@@ -7,6 +7,7 @@ import { BrandPlaque } from "@/components/public/logo";
 import type { Permission } from "@/domains/identity/permissions";
 import { resolvePermissionCoverages } from "@/lib/auth";
 import { canSeeSampleProgress } from "@/domains/sample-progress/access";
+import { canSeeMaterials } from "@/domains/materials/access";
 import type { AdminLocale } from "@/lib/i18n/admin";
 import { getAdminDictionary } from "@/lib/i18n/admin";
 
@@ -46,6 +47,22 @@ export async function AdminShell({
       label: null,
       items: [
         { href: basePath, label: copy.navigation.overview, anyOf: null },
+        {
+          href: `${basePath}/paint-warehouse` as Route,
+          label:
+            locale === "vi" ? "Bảng xuất kho sơn" : "Paint warehouse exports",
+          anyOf: ["paintWarehouse.read"],
+        },
+        {
+          href: `${basePath}/materials` as Route,
+          label: locale === "vi" ? "Nguyên vật liệu" : "Raw materials",
+          anyOf: ["materials.read"],
+        },
+        {
+          href: `${basePath}/sales-slips` as Route,
+          label: locale === "vi" ? "Hóa đơn bán hàng" : "Sales slips",
+          anyOf: ["salesSlips.read"],
+        },
         {
           // The assistant answers only from tools the reader's grants allow;
           // the entry itself follows `assistant.use`.
@@ -206,6 +223,7 @@ export async function AdminShell({
     ] as Permission[];
     const coverages = await resolvePermissionCoverages(requested);
     const sampleProgressVisible = await canSeeSampleProgress();
+    const materialsVisible = await canSeeMaterials();
 
     const covered = (permission: Permission): boolean => {
       const coverage = coverages[permission as keyof typeof coverages];
@@ -223,6 +241,9 @@ export async function AdminShell({
               .filter(
                 ({ href }) =>
                   !href.endsWith("/sample-progress") || sampleProgressVisible,
+              )
+              .filter(
+                ({ href }) => !href.endsWith("/materials") || materialsVisible,
               )
               .filter(({ anyOf }) => anyOf === null || anyOf.some(covered))
               .map(({ href, label: itemLabel }) => ({

@@ -1,0 +1,510 @@
+{
+  "source": "08092026.xlsx",
+  "sourceSha256": "7055ee58cc99076cf734f65891d935cdb2716928732cb786c67099509c349edb",
+  "sheetCount": 21,
+  "sheets": [
+    {
+      "name": "HOADONMAU (2)",
+      "state": "hidden",
+      "dimension": "A1:V41",
+      "printArea": "'HOADONMAU (2)'!$A$1:$G$24",
+      "kind": "invoice",
+      "dateText": "Ngày   08   Tháng   11    năm 2025",
+      "recipient": "NGUYỄN THỊ VÂN",
+      "lines": [
+        {
+          "row": 11,
+          "code": "FYL32A-20",
+          "name": null,
+          "unit": null,
+          "quantity": 40,
+          "price": null,
+          "priceIsFormula": true,
+          "amount": "#VALUE!"
+        },
+        {
+          "row": 12,
+          "code": "FYL32A5-20",
+          "name": null,
+          "unit": null,
+          "quantity": 5,
+          "price": null,
+          "priceIsFormula": true,
+          "amount": "#VALUE!"
+        },
+        {
+          "row": 13,
+          "code": "FYG32A5-20",
+          "name": null,
+          "unit": null,
+          "quantity": 2,
+          "price": null,
+          "priceIsFormula": true,
+          "amount": "#VALUE!"
+        },
+        {
+          "row": 14,
+          "code": "952a1",
+          "name": null,
+          "unit": null,
+          "quantity": 5,
+          "price": null,
+          "priceIsFormula": true,
+          "amount": "#VALUE!"
+        },
+        {
+          "row": 15,
+          "code": "952B1",
+          "name": null,
+          "unit": null,
+          "quantity": 4,
+          "price": null,
+          "priceIsFormula": true,
+          "amount": "#VALUE!"
+        },
+        {
+          "row": 16,
+          "code": "XANG2",
+          "name": "Xang2",
+          "unit": "Kg",
+          "quantity": 20,
+          "price": 55000,
+          "priceIsFormula": true,
+          "amount": 1100000
+        },
+        {
+          "row": 17,
+          "code": "Hopnhuato",
+          "name": "Hộp nhựa to",
+          "unit": "Hộp",
+          "quantity": 3,
+          "price": 15000,
+          "priceIsFormula": true,
+          "amount": 45000
+        },
+        {
+          "row": 18,
+          "code": "Hopnhuanho",
+          "name": "Hộp nhựa nhỏ",
+          "unit": "Hộp",
+          "quantity": 1,
+          "price": 10000,
+          "priceIsFormula": true,
+          "amount": 10000
+        }
+      ],
+      "totalCell": "G19",
+      "excelTotal": "#VALUE!",
+      "totalFormula": "=SUM(G11:G18)"
+    },
+    {
+      "name": "HOADONMAU",
+      "state": "visible",
+      "dimension": "A1:V36",
+      "printArea": "'HOADONMAU'!$A$1:$G$19",
+      "kind": "template",
+      "dateText": "Ngày   14   Tháng   04    năm 2026",
+      "recipient": null,
+      "lines": [
+        {
+          "row": 11,
+          "code": "831a3",
+          "name": "Pu trong",
+          "unit": "Kg",
+          "quantity": 60,
+          "price": 120000,
+          "priceIsFormula": true,
+          "amount": 7200000
+        },
+        {
+          "row": 12,
+          "code": "800d",
+          "name": "Cứng pu",
+          "unit": "Kg",
+          "quantity": 20,
+          "price": 120000,
+          "priceIsFormula": true,
+          "amount": 2400000
+        },
+        {
+          "row": 13,
+          "code": "XANG2",
+          "name": "Xang2",
+          "unit": "Kg",
+          "quantity": 20,
+          "price": 55000,
+          "priceIsFormula": true,
+          "amount": 1100000
+        }
+      ],
+      "totalCell": "G14",
+      "excelTotal": 10700000,
+      "totalFormula": "=SUM(G11:G13)"
+    },
+    {
+      "name": "C.vank3",
+      "state": "hidden",
+      "dimension": "A1:V38",
+      "printArea": "'C.vank3'!$A$1:$G$21",
+      "kind": "invoice",
+      "dateText": "Ngày   21   Tháng   07    năm 2026",
+      "recipient": "NGUYỄN THỊ VÂN",
+      "lines": [
+        {
+          "row": 11,
+          "code": "FYL32A-20-01",
+          "name": "PU vàng cam",
+          "unit": "Kg",
+          "quantity": 5,
+          "price": 160000,
+          "priceIsFormula": true,
+          "amount": 800000
+        },
+        {
+          "row": 12,
+          "code": "FYG32A5-20-01",
+          "name": "PU xanh lá cây",
+          "unit": "Kg",
+          "quantity": 5,
+          "price": 160000,
+          "priceIsFormula": true,
+          "amount": 800000
+        },
+        {
+          "row": 13,
+          "code": "FYL32A5-20-01",
+          "name": "PU xanh blue T",
+          "unit": "Kg",
+          "quantity": 5,
+          "price": 160000,
+          "priceIsFormula": true,
+          "amount": 800000
+        },
+        {
+          "row": 14,
+          "code": "952a1-01",
+          "name": "Bóng trắng CNM",
+          "unit": "Kg",
+          "quantity": 5,
+          "price": 220000,
+          "priceIsFormula": true,
+          "amount": 1100000
+        },
+        {
+          "row": 15,
+          "code": "Hopnhuato",
+          "name": "Hộp nhựa to",
+          "unit": "Hộp",
+          "quantity": 4,
+          "price": 15000,
+          "priceIsFormula": true,
+          "amount": 60000
+        }
+      ],
+      "totalCell": "G16",
+      "excelTotal": 3560000,
+      "totalFormula": "=SUM(G11:G15)"
+    },
+    {
+      "name": "C.Thanh (2)",
+      "state": "visible",
+      "dimension": "A1:V35",
+      "printArea": "'C.Thanh (2)'!$A$1:$G$18",
+      "kind": "invoice",
+      "dateText": "Ngày   08   Tháng   09    năm 2026",
+      "recipient": "ĐỖ THỊ THANH",
+      "lines": [
+        {
+          "row": 11,
+          "code": "sonpha7505C-pt",
+          "name": "Sơn pha 7505c-pt",
+          "unit": "Kg",
+          "quantity": 5,
+          "price": 170000,
+          "priceIsFormula": false,
+          "amount": 850000
+        },
+        {
+          "row": 12,
+          "code": "Hopnhuato",
+          "name": "Hộp nhựa to",
+          "unit": "Hộp",
+          "quantity": 1,
+          "price": 15000,
+          "priceIsFormula": false,
+          "amount": 15000
+        }
+      ],
+      "totalCell": "G13",
+      "excelTotal": 865000,
+      "totalFormula": "=SUM(G11:G12)"
+    },
+    {
+      "name": "C.Quag",
+      "state": "visible",
+      "dimension": "A1:V34",
+      "printArea": "'C.Quag'!$A$1:$G$17",
+      "kind": "invoice",
+      "dateText": "Ngày   07   Tháng   09    năm 2026",
+      "recipient": "ĐỖ VĂN QUẢNG",
+      "lines": [
+        {
+          "row": 11,
+          "code": "Tm.vangnguyenla",
+          "name": "Tinh màu vàng nguyên lá",
+          "unit": "Kg",
+          "quantity": 0.05,
+          "price": 800000,
+          "priceIsFormula": false,
+          "amount": 40000
+        }
+      ],
+      "totalCell": "G12",
+      "excelTotal": 40000,
+      "totalFormula": "=SUM(G11:G11)"
+    },
+    {
+      "name": "C.Quag (2)",
+      "state": "visible",
+      "dimension": "A1:V34",
+      "printArea": "'C.Quag (2)'!$A$1:$G$17",
+      "kind": "invoice",
+      "dateText": "Ngày   08   Tháng   09    năm 2026",
+      "recipient": "ĐỖ VĂN QUẢNG",
+      "lines": [
+        {
+          "row": 11,
+          "code": "sonpha7505C-pt",
+          "name": "Sơn pha 7505c-pt",
+          "unit": "Kg",
+          "quantity": 2.5,
+          "price": 170000,
+          "priceIsFormula": false,
+          "amount": 425000
+        }
+      ],
+      "totalCell": "G12",
+      "excelTotal": 425000,
+      "totalFormula": "=SUM(G11:G11)"
+    },
+    {
+      "name": "A.Tuấn1",
+      "state": "visible",
+      "dimension": "A1:V34",
+      "printArea": "'A.Tuấn1'!$A$1:$G$17",
+      "kind": "invoice",
+      "dateText": "Ngày   08   Tháng   09    năm 2026",
+      "recipient": "ĐỖ MẠNH TUẤN",
+      "lines": [
+        {
+          "row": 11,
+          "code": "sonpha7505C-pt",
+          "name": "Sơn pha 7505c-pt",
+          "unit": "Kg",
+          "quantity": 0.5,
+          "price": 170000,
+          "priceIsFormula": false,
+          "amount": 85000
+        }
+      ],
+      "totalCell": "G12",
+      "excelTotal": 85000,
+      "totalFormula": "=SUM(G11:G11)"
+    },
+    {
+      "name": "A.Tuấn1 (2)",
+      "state": "visible",
+      "dimension": "A1:V34",
+      "printArea": "'A.Tuấn1 (2)'!$A$1:$G$17",
+      "kind": "invoice",
+      "dateText": "Ngày   08   Tháng   09    năm 2026",
+      "recipient": "NGÔ HUY SÁNG",
+      "lines": [
+        {
+          "row": 11,
+          "code": "SONPHA275c",
+          "name": "Sơn pha 275C",
+          "unit": "Kg",
+          "quantity": 0.5,
+          "price": 170000,
+          "priceIsFormula": false,
+          "amount": 85000
+        }
+      ],
+      "totalCell": "G12",
+      "excelTotal": 85000,
+      "totalFormula": "=SUM(G11:G11)"
+    },
+    {
+      "name": "A.Mạnh",
+      "state": "visible",
+      "dimension": "A1:V34",
+      "printArea": "'A.Mạnh'!$A$1:$G$17",
+      "kind": "invoice",
+      "dateText": "Ngày   08   Tháng   09    năm 2026",
+      "recipient": "NGUYỄN VĂN MẠNH",
+      "lines": [
+        {
+          "row": 11,
+          "code": "FYN32A19-20-01",
+          "name": "PU vàng chanh",
+          "unit": "Kg",
+          "quantity": 5,
+          "price": 160000,
+          "priceIsFormula": false,
+          "amount": 800000
+        }
+      ],
+      "totalCell": "G12",
+      "excelTotal": 800000,
+      "totalFormula": "=SUM(G11:G11)"
+    },
+    {
+      "name": "MaNhaCungCap",
+      "state": "visible",
+      "dimension": "A1:J71",
+      "printArea": "",
+      "kind": "master"
+    },
+    {
+      "name": "KhoSon",
+      "state": "visible",
+      "dimension": "A1:L516",
+      "printArea": "",
+      "kind": "master"
+    },
+    {
+      "name": "mm",
+      "state": "hidden",
+      "dimension": "A1:G10",
+      "printArea": "",
+      "kind": "helper"
+    },
+    {
+      "name": "Sheet5",
+      "state": "hidden",
+      "dimension": "A1:P11",
+      "printArea": "",
+      "kind": "shippingLabel"
+    },
+    {
+      "name": "Aerobic",
+      "state": "hidden",
+      "dimension": "A1:G10",
+      "printArea": "",
+      "kind": "helper"
+    },
+    {
+      "name": "Xuyen0303",
+      "state": "hidden",
+      "dimension": "A1:J12",
+      "printArea": "",
+      "kind": "legacyLedger"
+    },
+    {
+      "name": "Xuyen1905",
+      "state": "hidden",
+      "dimension": "A1:J26",
+      "printArea": "",
+      "kind": "legacyLedger"
+    },
+    {
+      "name": "Sheet5 (2)",
+      "state": "hidden",
+      "dimension": "A1:P11",
+      "printArea": "",
+      "kind": "shippingLabel"
+    },
+    {
+      "name": "Home",
+      "state": "visible",
+      "dimension": "A1:P11",
+      "printArea": "'Home'!$A$1:$J$11",
+      "kind": "shippingLabel"
+    },
+    {
+      "name": "Sheet5 (8)",
+      "state": "visible",
+      "dimension": "A1:P11",
+      "printArea": "'Sheet5 (8)'!$A$1:$I$11",
+      "kind": "shippingLabel"
+    },
+    {
+      "name": "Sheet5 (7)",
+      "state": "visible",
+      "dimension": "A1:P11",
+      "printArea": "",
+      "kind": "shippingLabel"
+    },
+    {
+      "name": "Sheet1",
+      "state": "visible",
+      "dimension": "A1:G10",
+      "printArea": "",
+      "kind": "helper"
+    }
+  ],
+  "namedRanges": {
+    "chitietbanhang": "#REF!",
+    "khoson": "KhoSon!$B$2:$E$516",
+    "makhachhang": "#REF!",
+    "makhachthanhtoan": "#REF!",
+    "MaNhaCungCap": "MaNhaCungCap!$C$5:$E$68",
+    "sotienthanhtoan": "#REF!",
+    "thanhtien": "#REF!"
+  },
+  "sheetNamedRanges": {
+    "HOADONMAU (2)": {
+      "makhachhang": "#REF!"
+    },
+    "HOADONMAU": {
+      "makhachhang": "#REF!"
+    },
+    "C.vank3": {
+      "makhachhang": "#REF!"
+    },
+    "C.Thanh (2)": {
+      "makhachhang": "#REF!"
+    },
+    "C.Quag": {
+      "makhachhang": "#REF!"
+    },
+    "C.Quag (2)": {
+      "makhachhang": "#REF!"
+    },
+    "A.Tuấn1": {
+      "makhachhang": "#REF!"
+    },
+    "A.Tuấn1 (2)": {
+      "makhachhang": "#REF!"
+    },
+    "A.Mạnh": {
+      "makhachhang": "#REF!"
+    }
+  },
+  "formulas": {
+    "A3": "=NOW()",
+    "C11": "=IFERROR(VLOOKUP(B11,khoson,2,0),\"\")",
+    "D11": "=IFERROR(VLOOKUP(B11,khoson,3,0),\"\")",
+    "F11": "=IFERROR(VLOOKUP(B11,khoson,4,0),\"\")",
+    "G11": "=F11*E11",
+    "C12": "=IFERROR(VLOOKUP(B12,khoson,2,0),\"\")",
+    "D12": "=IFERROR(VLOOKUP(B12,khoson,3,0),\"\")",
+    "F12": "=IFERROR(VLOOKUP(B12,khoson,4,0),\"\")",
+    "G12": "=F12*E12",
+    "C13": "=IFERROR(VLOOKUP(B13,khoson,2,0),\"\")",
+    "D13": "=IFERROR(VLOOKUP(B13,khoson,3,0),\"\")",
+    "F13": "=IFERROR(VLOOKUP(B13,khoson,4,0),\"\")",
+    "G13": "=F13*E13",
+    "G14": "=SUM(G11:G13)",
+    "G15": "=G14"
+  },
+  "khoson": {
+    "range": "KhoSon!$B$2:$E$516",
+    "rows": 502
+  },
+  "maNhaCungCap": {
+    "range": "MaNhaCungCap!$C$5:$E$68",
+    "rows": 65
+  }
+}

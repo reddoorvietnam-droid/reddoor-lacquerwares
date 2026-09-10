@@ -8,12 +8,20 @@ const nextConfig: NextConfig = {
   allowedDevOrigins: ["*.trycloudflare.com", "*.ngrok-free.app", "*.ngrok.io"],
   reactStrictMode: true,
   typedRoutes: true,
+  outputFileTracingIncludes: {
+    "/api/paint-warehouse": ["./assets/paint-warehouse-template.xlsx"],
+    "/api/materials/export": ["./assets/materials-template.xlsx"],
+    "/api/sales-slips/[slipId]/export": [
+      "./assets/sales-slip-template.xlsx",
+      "./assets/fonts/*.ttf",
+    ],
+  },
   // The assistant reads an attached PDF with pdfjs-dist's legacy build on
   // the server. That build loads its worker through a specifier marked
   // `webpackIgnore`, which a bundled copy would resolve relative to the
   // emitted chunk instead of node_modules — working in dev and failing in
   // production. Keeping the package external makes it a plain Node require.
-  serverExternalPackages: ["pdfjs-dist"],
+  serverExternalPackages: ["pdfjs-dist", "@react-pdf/renderer"],
   turbopack: {
     root: process.cwd(),
   },

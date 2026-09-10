@@ -152,6 +152,22 @@ export const permissionCatalog = [
   "procurement.approveAdvance",
 
   // Inventory.
+  "paintWarehouse.read",
+  "paintWarehouse.create",
+  "paintWarehouse.update",
+  "paintWarehouse.delete",
+  "paintWarehouse.export",
+  "paintWarehouse.import",
+  // Raw-material ledger ("Nguyên vật liệu"): a company-wide stock book kept
+  // by the storekeeper. Reading covers every tab; writes are split by the
+  // step they change so a future role can receive without issuing.
+  "materials.read",
+  "materials.manageCatalog",
+  "materials.receive",
+  "materials.issue",
+  "materials.cancel",
+  "materials.export",
+  "materials.import",
   "inventory.read",
   "inventory.readValue",
   "inventory.receive",
@@ -210,6 +226,20 @@ export const permissionCatalog = [
   // and the Company Accountant.
   "invoices.read",
   "invoices.manage",
+  // Phiếu bán hàng ("Hóa đơn bán hàng"): the internal sales slip that replaces
+  // `08092026.xlsx`. It carries a selling price, so reading money on it is a
+  // separate permission (rule 1) that only the Director and the Company
+  // Accountant hold by default; editing a price is separate again.
+  "salesSlips.read",
+  "salesSlips.create",
+  "salesSlips.update",
+  "salesSlips.confirm",
+  "salesSlips.cancel",
+  "salesSlips.readPrice",
+  "salesSlips.editPrice",
+  "salesSlips.print",
+  "salesSlips.export",
+  "salesSlips.import",
 
   // Packing, shipping, trade documents.
   "packing.read",
@@ -294,6 +324,7 @@ export const sensitiveFieldPermissions = [
   "labor.readSalary",
   "documents.readSensitive",
   "audit.export",
+  "salesSlips.readPrice",
 ] as const satisfies readonly Permission[];
 
 export type SensitiveFieldPermission =

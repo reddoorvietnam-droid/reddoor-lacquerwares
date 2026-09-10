@@ -266,3 +266,63 @@ html[data-door-intro="pending"] #door-intro-static {
     display: table-header-group;
   }
 }
+
+@media print {
+  @page materials {
+    size: A4 landscape;
+    margin: 10mm;
+  }
+  .materials-page {
+    page: materials;
+  }
+  body:has(.materials-page) {
+    background: white;
+  }
+  /* Everything the reader cannot act on when holding a sheet of paper. */
+  body:has(.materials-page) header,
+  body:has(.materials-page) nav,
+  body:has(.materials-page) .materials-no-print,
+  body:has(.materials-page) .materials-page > [role],
+  body:has(.materials-page) [data-assistant-widget] {
+    display: none !important;
+  }
+  body:has(.materials-page) main {
+    padding: 0 !important;
+  }
+  /* The page's own header carries the counts and the last update. */
+  body:has(.materials-page) .materials-page > header {
+    display: block !important;
+  }
+  body:has(.materials-page) .admin-portal-grid {
+    display: block !important;
+  }
+  .materials-report {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  /* The tables scroll on screen; on paper they must lay out in full. */
+  .materials-table-wrap {
+    overflow: visible !important;
+    border: 0 !important;
+    box-shadow: none !important;
+  }
+  .materials-report table {
+    min-width: 0 !important;
+    font-size: 8pt;
+    table-layout: fixed;
+    width: 100%;
+  }
+  .materials-report td,
+  .materials-report th {
+    min-width: 0 !important;
+    padding: 4px;
+    overflow-wrap: anywhere;
+  }
+  .materials-report tr {
+    break-inside: avoid;
+  }
+  /* Repeat the column headings on every printed page. */
+  .materials-report thead {
+    display: table-header-group;
+  }
+}

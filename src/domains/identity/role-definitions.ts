@@ -116,6 +116,37 @@ export const roleDefinitionSeeds = [
     },
     // Quantity access never implies inventory valuation, selling price, or profit.
     permissions: grants({
+      all: [
+        "paintWarehouse.read",
+        "paintWarehouse.create",
+        "paintWarehouse.update",
+        "paintWarehouse.delete",
+        "paintWarehouse.export",
+        "paintWarehouse.import",
+        // The raw-material ledger replaces `RedDoor - NVL - 2026.xlsx`; the
+        // storekeeper owns every step of it, the Director reads and overrides.
+        "materials.read",
+        "materials.manageCatalog",
+        "materials.receive",
+        "materials.issue",
+        "materials.cancel",
+        "materials.export",
+        "materials.import",
+        // Phiếu bán hàng belongs to the storekeeper ("mục Hóa đơn bán hàng
+        // là của role kho", confirmed 2026-09-09): they sell paint-shop
+        // items over the counter, write the slip with its prices and hand
+        // out the print. Only the workbook import stays with the Director
+        // and the Company Accountant.
+        "salesSlips.read",
+        "salesSlips.create",
+        "salesSlips.update",
+        "salesSlips.confirm",
+        "salesSlips.cancel",
+        "salesSlips.readPrice",
+        "salesSlips.editPrice",
+        "salesSlips.print",
+        "salesSlips.export",
+      ],
       assignedBusinessUnits: [
         ...sharedOperationalReads,
         "inventory.receive",
@@ -392,6 +423,19 @@ export const roleDefinitionSeeds = [
         // Sales invoices: revenue is recognised per INV.
         "invoices.read",
         "invoices.manage",
+        // Phiếu bán hàng: the paint-shop sales slip carries a selling price,
+        // so the whole flow (write, confirm, cancel, price, print, export,
+        // import) sits with the accountant and the Director.
+        "salesSlips.read",
+        "salesSlips.create",
+        "salesSlips.update",
+        "salesSlips.confirm",
+        "salesSlips.cancel",
+        "salesSlips.readPrice",
+        "salesSlips.editPrice",
+        "salesSlips.print",
+        "salesSlips.export",
+        "salesSlips.import",
         "labor.readSalary",
         "labor.confirmPayroll",
         "production.readLaborQuantity",

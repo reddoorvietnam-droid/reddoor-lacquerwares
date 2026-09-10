@@ -1,0 +1,132 @@
+{
+  "sheets": [
+    {
+      "name": "ChiTietxuatkho",
+      "state": "visible",
+      "dimension": "A1:T3733"
+    },
+    {
+      "name": "ChiTietNhapson",
+      "state": "visible",
+      "dimension": "A1:M8335"
+    },
+    {
+      "name": "kho son pha",
+      "state": "visible",
+      "dimension": "A1:U574"
+    },
+    {
+      "name": "Tong kho son",
+      "state": "visible",
+      "dimension": "A1:ET61"
+    },
+    {
+      "name": "Kho son",
+      "state": "visible",
+      "dimension": "A2:L1007"
+    },
+    {
+      "name": "Cososx",
+      "state": "visible",
+      "dimension": "A1:F94"
+    },
+    {
+      "name": "Sheet7",
+      "state": "hidden",
+      "dimension": "A1:J24"
+    },
+    {
+      "name": "Sheet4",
+      "state": "hidden",
+      "dimension": "A1:A1"
+    },
+    {
+      "name": "Sheet6",
+      "state": "hidden",
+      "dimension": "A1:A1"
+    },
+    {
+      "name": "Sheet3",
+      "state": "hidden",
+      "dimension": "A1:J18"
+    },
+    {
+      "name": "Sheet1",
+      "state": "hidden",
+      "dimension": "A1:G22"
+    },
+    {
+      "name": "Soxuatvattu",
+      "state": "hidden",
+      "dimension": "A1:I26"
+    },
+    {
+      "name": "Sheet2",
+      "state": "hidden",
+      "dimension": "A1:E14"
+    },
+    {
+      "name": "Mason",
+      "state": "hidden",
+      "dimension": "A1:E29"
+    },
+    {
+      "name": "Sheet8",
+      "state": "visible",
+      "dimension": "A1:A1"
+    }
+  ],
+  "namedRanges": {
+    "BR_MVT": "ChiTietxuatkho!$D$4:$D$6161",
+    "BR_SL": "ChiTietxuatkho!$H$4:$H$1048576",
+    "chitietbanhang": "ChiTietxuatkho!$C$4:$H$1048576",
+    "dmvattu": "'Kho son'!$B$3:$E$1048576",
+    "kho": "ChiTietxuatkho!#REF!",
+    "khoson": "'Kho son'!$B$2:$E$1007",
+    "makhachhang": "ChiTietxuatkho!$B$4:$B$1048576",
+    "MaNhaCungCap": "Cososx!$C$5:$E$91",
+    "MV_MVT": "ChiTietNhapson!$B$4:$B$8063",
+    "MV_SL": "ChiTietNhapson!$F$4:$F$1048576"
+  },
+  "freeze": "A2059",
+  "merged": "A1:N1",
+  "widths": [
+    15.0,
+    24.44140625,
+    25.6640625,
+    25.6640625,
+    30.5546875,
+    11.0,
+    8.0,
+    7.44140625,
+    16.0,
+    14.44140625,
+    10.33203125,
+    14.44140625,
+    14.44140625,
+    14.33203125
+  ],
+  "printArea": "'ChiTietxuatkho'!$A$1:$H$1172",
+  "pageSetup": "<openpyxl.worksheet.page.PrintPageSetup object>\nParameters:\norientation='landscape', paperSize=9, scale=65, fitToHeight=None, fitToWidth=None, firstPageNumber=None, useFirstPageNumber=None, paperHeight=None, paperWidth=None, pageOrder=None, usePrinterDefaults=None, blackAndWhite=None, draft=None, cellComments=None, errors=None, horizontalDpi=None, verticalDpi=None, copies=None, id=None",
+  "rowHeights": {
+    "69.0": 1,
+    "24.0": 3730,
+    "98.0": 1,
+    "28.0": 1
+  },
+  "formulaCounts": {
+    "C": 2066,
+    "E": 2065,
+    "G": 2066,
+    "I": 2055,
+    "J": 2065,
+    "K": 2064,
+    "L": 1591,
+    "M": 2065,
+    "P": 3,
+    "H": 5,
+    "Q": 1,
+    "S": 1,
+    "T": 1
+  }
+}

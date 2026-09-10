@@ -1,0 +1,981 @@
+{
+  "sourceSha256": "beaa05cd45abc443f6590252a513028c4c0aaf890985f4beab7c86d222e9f097",
+  "styles": {
+    "184": {
+      "css": {
+        "fontFamily": "Times New Roman",
+        "fontSize": 18.67,
+        "fontWeight": 700,
+        "fontStyle": "normal",
+        "color": "#000000",
+        "backgroundColor": "#ffffff",
+        "textAlign": "center",
+        "verticalAlign": "middle",
+        "whiteSpace": "pre-wrap",
+        "borderLeft": "1px solid #e2e2e2",
+        "borderRight": "1px solid #e2e2e2",
+        "borderTop": "1px solid #e2e2e2",
+        "borderBottom": "1px solid #000000"
+      },
+      "format": "General"
+    },
+    "30": {
+      "css": {
+        "fontFamily": "Times New Roman",
+        "fontSize": 14.67,
+        "fontWeight": 700,
+        "fontStyle": "normal",
+        "color": "#000000",
+        "backgroundColor": "#8eb4e3",
+        "textAlign": "left",
+        "verticalAlign": "middle",
+        "whiteSpace": "pre-wrap",
+        "borderLeft": "1px solid #000000",
+        "borderRight": "1px solid #000000",
+        "borderTop": "1px solid #000000",
+        "borderBottom": "1px solid #000000"
+      },
+      "format": "mm-dd-yy"
+    },
+    "12": {
+      "css": {
+        "fontFamily": "Times New Roman",
+        "fontSize": 14.67,
+        "fontWeight": 700,
+        "fontStyle": "normal",
+        "color": "#000000",
+        "backgroundColor": "#8eb4e3",
+        "textAlign": "center",
+        "verticalAlign": "middle",
+        "whiteSpace": "pre-wrap",
+        "borderLeft": "1px solid #000000",
+        "borderRight": "1px solid #000000",
+        "borderTop": "1px solid #000000",
+        "borderBottom": "1px solid #000000"
+      },
+      "format": "General"
+    },
+    "115": {
+      "css": {
+        "fontFamily": "Times New Roman",
+        "fontSize": 14.67,
+        "fontWeight": 700,
+        "fontStyle": "normal",
+        "color": "#000000",
+        "backgroundColor": "#8eb4e3",
+        "textAlign": "center",
+        "verticalAlign": "middle",
+        "whiteSpace": "pre-wrap",
+        "borderLeft": "1px solid #000000",
+        "borderRight": "1px solid #000000",
+        "borderTop": "1px solid #000000",
+        "borderBottom": "1px solid #000000"
+      },
+      "format": "#,##0"
+    },
+    "31": {
+      "css": {
+        "fontFamily": "Times New Roman",
+        "fontSize": 14.67,
+        "fontWeight": 400,
+        "fontStyle": "normal",
+        "color": "#000000",
+        "backgroundColor": "#ffffff",
+        "textAlign": "left",
+        "verticalAlign": "bottom",
+        "whiteSpace": "nowrap",
+        "borderLeft": "1px solid #000000",
+        "borderRight": "1px solid #000000",
+        "borderTop": "1px solid #000000",
+        "borderBottom": "1px solid #000000"
+      },
+      "format": "mm-dd-yy"
+    },
+    "18": {
+      "css": {
+        "fontFamily": "Times New Roman",
+        "fontSize": 14.67,
+        "fontWeight": 400,
+        "fontStyle": "normal",
+        "color": "#000000",
+        "backgroundColor": "#ffffff",
+        "textAlign": "left",
+        "verticalAlign": "middle",
+        "whiteSpace": "nowrap",
+        "borderLeft": "1px solid #000000",
+        "borderRight": "1px solid #000000",
+        "borderTop": "1px solid #000000",
+        "borderBottom": "1px solid #000000"
+      },
+      "format": "General"
+    },
+    "7": {
+      "css": {
+        "fontFamily": "Times New Roman",
+        "fontSize": 14.67,
+        "fontWeight": 400,
+        "fontStyle": "normal",
+        "color": "#000000",
+        "backgroundColor": "#ffffff",
+        "textAlign": "left",
+        "verticalAlign": "bottom",
+        "whiteSpace": "nowrap",
+        "borderLeft": "1px solid #000000",
+        "borderRight": "1px solid #000000",
+        "borderTop": "1px solid #000000",
+        "borderBottom": "1px solid #000000"
+      },
+      "format": "General"
+    },
+    "37": {
+      "css": {
+        "fontFamily": "Times New Roman",
+        "fontSize": 14.67,
+        "fontWeight": 400,
+        "fontStyle": "normal",
+        "color": "#000000",
+        "backgroundColor": "#ffffff",
+        "textAlign": "left",
+        "verticalAlign": "bottom",
+        "whiteSpace": "nowrap",
+        "borderLeft": "1px solid #000000",
+        "borderRight": "1px solid #000000",
+        "borderTop": "1px solid #000000",
+        "borderBottom": "1px solid #000000"
+      },
+      "format": "General"
+    },
+    "110": {
+      "css": {
+        "fontFamily": "Times New Roman",
+        "fontSize": 14.67,
+        "fontWeight": 400,
+        "fontStyle": "normal",
+        "color": "#000000",
+        "backgroundColor": "#ffffff",
+        "textAlign": "left",
+        "verticalAlign": "bottom",
+        "whiteSpace": "nowrap",
+        "borderLeft": "1px solid #000000",
+        "borderRight": "1px solid #000000",
+        "borderTop": "1px solid #000000",
+        "borderBottom": "1px solid #000000"
+      },
+      "format": "#,##0"
+    },
+    "182": {
+      "css": {
+        "fontFamily": "Times New Roman",
+        "fontSize": 21.33,
+        "fontWeight": 700,
+        "fontStyle": "normal",
+        "color": "#000000",
+        "backgroundColor": "#ffffff",
+        "textAlign": "center",
+        "verticalAlign": "middle",
+        "whiteSpace": "pre-wrap",
+        "borderLeft": "1px solid #e2e2e2",
+        "borderRight": "1px solid #e2e2e2",
+        "borderTop": "1px solid #e2e2e2",
+        "borderBottom": "1px solid #000000"
+      },
+      "format": "General"
+    },
+    "171": {
+      "css": {
+        "fontFamily": "Times New Roman",
+        "fontSize": 14.67,
+        "fontWeight": 700,
+        "fontStyle": "normal",
+        "color": "#000000",
+        "backgroundColor": "#8eb4e3",
+        "textAlign": "left",
+        "verticalAlign": "middle",
+        "whiteSpace": "pre-wrap",
+        "borderLeft": "1px solid #000000",
+        "borderRight": "1px solid #000000",
+        "borderTop": "1px solid #000000",
+        "borderBottom": "1px solid #000000"
+      },
+      "format": "General"
+    },
+    "172": {
+      "css": {
+        "fontFamily": "Times New Roman",
+        "fontSize": 14.67,
+        "fontWeight": 700,
+        "fontStyle": "normal",
+        "color": "#000000",
+        "backgroundColor": "#8eb4e3",
+        "textAlign": "left",
+        "verticalAlign": "middle",
+        "whiteSpace": "pre-wrap",
+        "borderLeft": "1px solid #000000",
+        "borderRight": "1px solid #000000",
+        "borderTop": "1px solid #000000",
+        "borderBottom": "1px solid #000000"
+      },
+      "format": "#,##0"
+    },
+    "168": {
+      "css": {
+        "fontFamily": "Times New Roman",
+        "fontSize": 14.67,
+        "fontWeight": 400,
+        "fontStyle": "normal",
+        "color": "#000000",
+        "backgroundColor": "#ffffff",
+        "textAlign": "left",
+        "verticalAlign": "middle",
+        "whiteSpace": "nowrap",
+        "borderLeft": "1px solid #000000",
+        "borderRight": "1px solid #000000",
+        "borderTop": "1px solid #000000",
+        "borderBottom": "1px solid #000000"
+      },
+      "format": "mm-dd-yy"
+    },
+    "169": {
+      "css": {
+        "fontFamily": "Times New Roman",
+        "fontSize": 14.67,
+        "fontWeight": 700,
+        "fontStyle": "normal",
+        "color": "#000000",
+        "backgroundColor": "#ffffff",
+        "textAlign": "left",
+        "verticalAlign": "middle",
+        "whiteSpace": "pre-wrap",
+        "borderLeft": "1px solid #000000",
+        "borderRight": "1px solid #000000",
+        "borderTop": "1px solid #000000",
+        "borderBottom": "1px solid #000000"
+      },
+      "format": "General"
+    },
+    "170": {
+      "css": {
+        "fontFamily": "Times New Roman",
+        "fontSize": 14.67,
+        "fontWeight": 400,
+        "fontStyle": "normal",
+        "color": "#000000",
+        "backgroundColor": "#ffffff",
+        "textAlign": "left",
+        "verticalAlign": "middle",
+        "whiteSpace": "nowrap",
+        "borderLeft": "1px solid #000000",
+        "borderRight": "1px solid #000000",
+        "borderTop": "1px solid #000000",
+        "borderBottom": "1px solid #000000"
+      },
+      "format": "#,##0"
+    },
+    "16": {
+      "css": {
+        "fontFamily": "Times New Roman",
+        "fontSize": 14.67,
+        "fontWeight": 700,
+        "fontStyle": "normal",
+        "color": "#000000",
+        "backgroundColor": "#ffffff",
+        "textAlign": "center",
+        "verticalAlign": "middle",
+        "whiteSpace": "nowrap",
+        "borderLeft": "1px solid #000000",
+        "borderRight": "1px solid #000000",
+        "borderTop": "1px solid #000000",
+        "borderBottom": "1px solid #000000"
+      },
+      "format": "General"
+    },
+    "20": {
+      "css": {
+        "fontFamily": "Times New Roman",
+        "fontSize": 14.67,
+        "fontWeight": 700,
+        "fontStyle": "normal",
+        "color": "#000000",
+        "backgroundColor": "#ffffff",
+        "textAlign": "left",
+        "verticalAlign": "middle",
+        "whiteSpace": "nowrap",
+        "borderLeft": "1px solid #000000",
+        "borderRight": "1px solid #000000",
+        "borderTop": "1px solid #000000",
+        "borderBottom": "1px solid #000000"
+      },
+      "format": "General"
+    },
+    "0": {
+      "css": {
+        "fontFamily": "Calibri",
+        "fontSize": 14.67,
+        "fontWeight": 400,
+        "fontStyle": "normal",
+        "color": "#000000",
+        "backgroundColor": "#ffffff",
+        "textAlign": "left",
+        "verticalAlign": "bottom",
+        "whiteSpace": "nowrap",
+        "borderLeft": "1px solid #e2e2e2",
+        "borderRight": "1px solid #e2e2e2",
+        "borderTop": "1px solid #e2e2e2",
+        "borderBottom": "1px solid #e2e2e2"
+      },
+      "format": "General"
+    },
+    "14": {
+      "css": {
+        "fontFamily": "Times New Roman",
+        "fontSize": 14.67,
+        "fontWeight": 400,
+        "fontStyle": "normal",
+        "color": "#000000",
+        "backgroundColor": "#ffffff",
+        "textAlign": "center",
+        "verticalAlign": "middle",
+        "whiteSpace": "nowrap",
+        "borderLeft": "1px solid #000000",
+        "borderRight": "1px solid #000000",
+        "borderTop": "1px solid #000000",
+        "borderBottom": "1px solid #000000"
+      },
+      "format": "General"
+    },
+    "15": {
+      "css": {
+        "fontFamily": "Times New Roman",
+        "fontSize": 14.67,
+        "fontWeight": 400,
+        "fontStyle": "normal",
+        "color": "#000000",
+        "backgroundColor": "#ffffff",
+        "textAlign": "left",
+        "verticalAlign": "middle",
+        "whiteSpace": "nowrap",
+        "borderLeft": "1px solid #000000",
+        "borderRight": "1px solid #000000",
+        "borderTop": "1px solid #000000",
+        "borderBottom": "1px solid #000000"
+      },
+      "format": "#,##0"
+    },
+    "1": {
+      "css": {
+        "fontFamily": "Times New Roman",
+        "fontSize": 14.67,
+        "fontWeight": 400,
+        "fontStyle": "normal",
+        "color": "#000000",
+        "backgroundColor": "#ffffff",
+        "textAlign": "left",
+        "verticalAlign": "bottom",
+        "whiteSpace": "nowrap",
+        "borderLeft": "1px solid #e2e2e2",
+        "borderRight": "1px solid #e2e2e2",
+        "borderTop": "1px solid #e2e2e2",
+        "borderBottom": "1px solid #e2e2e2"
+      },
+      "format": "General"
+    },
+    "9": {
+      "css": {
+        "fontFamily": "Times New Roman",
+        "fontSize": 14.67,
+        "fontWeight": 700,
+        "fontStyle": "normal",
+        "color": "#000000",
+        "backgroundColor": "#ffffff",
+        "textAlign": "center",
+        "verticalAlign": "middle",
+        "whiteSpace": "pre-wrap",
+        "borderLeft": "1px solid #000000",
+        "borderRight": "1px solid #000000",
+        "borderTop": "1px solid #000000",
+        "borderBottom": "1px solid #000000"
+      },
+      "format": "General"
+    },
+    "6": {
+      "css": {
+        "fontFamily": "Times New Roman",
+        "fontSize": 14.67,
+        "fontWeight": 400,
+        "fontStyle": "normal",
+        "color": "#000000",
+        "backgroundColor": "#ffffff",
+        "textAlign": "left",
+        "verticalAlign": "bottom",
+        "whiteSpace": "nowrap",
+        "borderLeft": "1px solid #000000",
+        "borderRight": "1px solid #000000",
+        "borderTop": "1px solid #000000",
+        "borderBottom": "1px solid #000000"
+      },
+      "format": "@"
+    },
+    "125": {
+      "css": {
+        "fontFamily": "Times New Roman",
+        "fontSize": 18.67,
+        "fontWeight": 700,
+        "fontStyle": "normal",
+        "color": "#000000",
+        "backgroundColor": "#ffffff",
+        "textAlign": "center",
+        "verticalAlign": "bottom",
+        "whiteSpace": "nowrap",
+        "borderLeft": "1px solid #000000",
+        "borderRight": "1px solid #000000",
+        "borderTop": "1px solid #000000",
+        "borderBottom": "1px solid #000000"
+      },
+      "format": "General"
+    },
+    "220": {
+      "css": {
+        "fontFamily": "Calibri",
+        "fontSize": 14.67,
+        "fontWeight": 400,
+        "fontStyle": "normal",
+        "color": "#000000",
+        "backgroundColor": "#ffffff",
+        "textAlign": "left",
+        "verticalAlign": "bottom",
+        "whiteSpace": "nowrap",
+        "borderLeft": "1px solid #e2e2e2",
+        "borderRight": "1px solid #000000",
+        "borderTop": "1px solid #000000",
+        "borderBottom": "1px solid #000000"
+      },
+      "format": "General"
+    },
+    "42": {
+      "css": {
+        "fontFamily": "Times New Roman",
+        "fontSize": 16.0,
+        "fontWeight": 400,
+        "fontStyle": "normal",
+        "color": "#000000",
+        "backgroundColor": "#ffffff",
+        "textAlign": "left",
+        "verticalAlign": "bottom",
+        "whiteSpace": "nowrap",
+        "borderLeft": "1px solid #000000",
+        "borderRight": "1px solid #000000",
+        "borderTop": "1px solid #000000",
+        "borderBottom": "1px solid #000000"
+      },
+      "format": "General"
+    },
+    "99": {
+      "css": {
+        "fontFamily": "Times New Roman",
+        "fontSize": 17.33,
+        "fontWeight": 400,
+        "fontStyle": "normal",
+        "color": "#000000",
+        "backgroundColor": "#ffffff",
+        "textAlign": "left",
+        "verticalAlign": "bottom",
+        "whiteSpace": "nowrap",
+        "borderLeft": "1px solid #000000",
+        "borderRight": "1px solid #000000",
+        "borderTop": "1px solid #000000",
+        "borderBottom": "1px solid #000000"
+      },
+      "format": "#,##0"
+    },
+    "105": {
+      "css": {
+        "fontFamily": "Times New Roman",
+        "fontSize": 17.33,
+        "fontWeight": 400,
+        "fontStyle": "normal",
+        "color": "#000000",
+        "backgroundColor": "#ffffff",
+        "textAlign": "left",
+        "verticalAlign": "bottom",
+        "whiteSpace": "nowrap",
+        "borderLeft": "1px solid #000000",
+        "borderRight": "1px solid #000000",
+        "borderTop": "1px solid #000000",
+        "borderBottom": "1px solid #000000"
+      },
+      "format": "#,##0"
+    },
+    "221": {
+      "css": {
+        "fontFamily": "Times New Roman",
+        "fontSize": 17.33,
+        "fontWeight": 700,
+        "fontStyle": "normal",
+        "color": "#000000",
+        "backgroundColor": "#ffffff",
+        "textAlign": "left",
+        "verticalAlign": "bottom",
+        "whiteSpace": "nowrap",
+        "borderLeft": "1px solid #000000",
+        "borderRight": "1px solid #000000",
+        "borderTop": "1px solid #000000",
+        "borderBottom": "1px solid #000000"
+      },
+      "format": "_(* #,##0_);_(* \\(#,##0\\);_(* \"-\"??_);_(@_)"
+    },
+    "17": {
+      "css": {
+        "fontFamily": "Times New Roman",
+        "fontSize": 14.67,
+        "fontWeight": 700,
+        "fontStyle": "normal",
+        "color": "#000000",
+        "backgroundColor": "#ffffff",
+        "textAlign": "center",
+        "verticalAlign": "middle",
+        "whiteSpace": "nowrap",
+        "borderLeft": "1px solid #e2e2e2",
+        "borderRight": "1px solid #e2e2e2",
+        "borderTop": "1px solid #e2e2e2",
+        "borderBottom": "1px solid #e2e2e2"
+      },
+      "format": "General"
+    },
+    "120": {
+      "css": {
+        "fontFamily": "Times New Roman",
+        "fontSize": 16.0,
+        "fontWeight": 700,
+        "fontStyle": "normal",
+        "color": "#000000",
+        "backgroundColor": "#ffffff",
+        "textAlign": "center",
+        "verticalAlign": "middle",
+        "whiteSpace": "nowrap",
+        "borderLeft": "1px solid #e2e2e2",
+        "borderRight": "1px solid #e2e2e2",
+        "borderTop": "1px solid #e2e2e2",
+        "borderBottom": "1px solid #e2e2e2"
+      },
+      "format": "General"
+    },
+    "26": {
+      "css": {
+        "fontFamily": "Times New Roman",
+        "fontSize": 16.0,
+        "fontWeight": 400,
+        "fontStyle": "normal",
+        "color": "#000000",
+        "backgroundColor": "#ffffff",
+        "textAlign": "left",
+        "verticalAlign": "middle",
+        "whiteSpace": "nowrap",
+        "borderLeft": "1px solid #e2e2e2",
+        "borderRight": "1px solid #e2e2e2",
+        "borderTop": "1px solid #e2e2e2",
+        "borderBottom": "1px solid #e2e2e2"
+      },
+      "format": "General"
+    },
+    "27": {
+      "css": {
+        "fontFamily": "Times New Roman",
+        "fontSize": 14.67,
+        "fontWeight": 700,
+        "fontStyle": "italic",
+        "color": "#000000",
+        "backgroundColor": "#ffffff",
+        "textAlign": "left",
+        "verticalAlign": "bottom",
+        "whiteSpace": "nowrap",
+        "borderLeft": "1px solid #e2e2e2",
+        "borderRight": "1px solid #e2e2e2",
+        "borderTop": "1px solid #e2e2e2",
+        "borderBottom": "1px solid #e2e2e2"
+      },
+      "format": "General"
+    },
+    "185": {
+      "css": {
+        "fontFamily": "Times New Roman",
+        "fontSize": 21.33,
+        "fontWeight": 700,
+        "fontStyle": "normal",
+        "color": "#000000",
+        "backgroundColor": "#ffffff",
+        "textAlign": "center",
+        "verticalAlign": "middle",
+        "whiteSpace": "pre-wrap",
+        "borderLeft": "1px solid #e2e2e2",
+        "borderRight": "1px solid #e2e2e2",
+        "borderTop": "1px solid #e2e2e2",
+        "borderBottom": "1px solid #e2e2e2"
+      },
+      "format": "General"
+    },
+    "188": {
+      "css": {
+        "fontFamily": "Times New Roman",
+        "fontSize": 14.67,
+        "fontWeight": 700,
+        "fontStyle": "normal",
+        "color": "#000000",
+        "backgroundColor": "#ffffff",
+        "textAlign": "left",
+        "verticalAlign": "middle",
+        "whiteSpace": "pre-wrap",
+        "borderLeft": "1px solid #e2e2e2",
+        "borderRight": "1px solid #e2e2e2",
+        "borderTop": "1px solid #e2e2e2",
+        "borderBottom": "1px solid #000000"
+      },
+      "format": "General"
+    },
+    "11": {
+      "css": {
+        "fontFamily": "Times New Roman",
+        "fontSize": 14.67,
+        "fontWeight": 700,
+        "fontStyle": "normal",
+        "color": "#000000",
+        "backgroundColor": "#8eb4e3",
+        "textAlign": "center",
+        "verticalAlign": "middle",
+        "whiteSpace": "pre-wrap",
+        "borderLeft": "1px solid #000000",
+        "borderRight": "1px solid #000000",
+        "borderTop": "1px solid #000000",
+        "borderBottom": "1px solid #000000"
+      },
+      "format": "mm-dd-yy"
+    },
+    "101": {
+      "css": {
+        "fontFamily": "Times New Roman",
+        "fontSize": 18.67,
+        "fontWeight": 700,
+        "fontStyle": "normal",
+        "color": "#000000",
+        "backgroundColor": "#8eb4e3",
+        "textAlign": "center",
+        "verticalAlign": "middle",
+        "whiteSpace": "pre-wrap",
+        "borderLeft": "1px solid #000000",
+        "borderRight": "1px solid #000000",
+        "borderTop": "1px solid #000000",
+        "borderBottom": "1px solid #000000"
+      },
+      "format": "mm-dd-yy"
+    },
+    "102": {
+      "css": {
+        "fontFamily": "Times New Roman",
+        "fontSize": 18.67,
+        "fontWeight": 700,
+        "fontStyle": "normal",
+        "color": "#000000",
+        "backgroundColor": "#8eb4e3",
+        "textAlign": "center",
+        "verticalAlign": "middle",
+        "whiteSpace": "nowrap",
+        "borderLeft": "1px solid #000000",
+        "borderRight": "1px solid #000000",
+        "borderTop": "1px solid #000000",
+        "borderBottom": "1px solid #000000"
+      },
+      "format": "General"
+    },
+    "24": {
+      "css": {
+        "fontFamily": "Times New Roman",
+        "fontSize": 16.0,
+        "fontWeight": 400,
+        "fontStyle": "normal",
+        "color": "#000000",
+        "backgroundColor": "#ffffff",
+        "textAlign": "left",
+        "verticalAlign": "middle",
+        "whiteSpace": "nowrap",
+        "borderLeft": "1px solid #000000",
+        "borderRight": "1px solid #000000",
+        "borderTop": "1px solid #000000",
+        "borderBottom": "1px solid #000000"
+      },
+      "format": "mm-dd-yy"
+    },
+    "25": {
+      "css": {
+        "fontFamily": "Times New Roman",
+        "fontSize": 16.0,
+        "fontWeight": 400,
+        "fontStyle": "normal",
+        "color": "#000000",
+        "backgroundColor": "#ffffff",
+        "textAlign": "left",
+        "verticalAlign": "middle",
+        "whiteSpace": "nowrap",
+        "borderLeft": "1px solid #000000",
+        "borderRight": "1px solid #000000",
+        "borderTop": "1px solid #000000",
+        "borderBottom": "1px solid #000000"
+      },
+      "format": "General"
+    },
+    "93": {
+      "css": {
+        "fontFamily": "Times New Roman",
+        "fontSize": 17.33,
+        "fontWeight": 400,
+        "fontStyle": "normal",
+        "color": "#000000",
+        "backgroundColor": "#ffffff",
+        "textAlign": "center",
+        "verticalAlign": "bottom",
+        "whiteSpace": "nowrap",
+        "borderLeft": "1px solid #000000",
+        "borderRight": "1px solid #000000",
+        "borderTop": "1px solid #e2e2e2",
+        "borderBottom": "1px solid #000000"
+      },
+      "format": "General"
+    },
+    "106": {
+      "css": {
+        "fontFamily": "Times New Roman",
+        "fontSize": 16.0,
+        "fontWeight": 400,
+        "fontStyle": "normal",
+        "color": "#000000",
+        "backgroundColor": "#ffffff",
+        "textAlign": "left",
+        "verticalAlign": "bottom",
+        "whiteSpace": "nowrap",
+        "borderLeft": "1px solid #000000",
+        "borderRight": "1px solid #000000",
+        "borderTop": "1px solid #e2e2e2",
+        "borderBottom": "1px solid #000000"
+      },
+      "format": "General"
+    },
+    "103": {
+      "css": {
+        "fontFamily": "Times New Roman",
+        "fontSize": 17.33,
+        "fontWeight": 400,
+        "fontStyle": "normal",
+        "color": "#000000",
+        "backgroundColor": "#ffffff",
+        "textAlign": "left",
+        "verticalAlign": "bottom",
+        "whiteSpace": "nowrap",
+        "borderLeft": "1px solid #000000",
+        "borderRight": "1px solid #000000",
+        "borderTop": "1px solid #e2e2e2",
+        "borderBottom": "1px solid #000000"
+      },
+      "format": "General"
+    },
+    "104": {
+      "css": {
+        "fontFamily": "Times New Roman",
+        "fontSize": 17.33,
+        "fontWeight": 700,
+        "fontStyle": "normal",
+        "color": "#000000",
+        "backgroundColor": "#ffffff",
+        "textAlign": "left",
+        "verticalAlign": "bottom",
+        "whiteSpace": "nowrap",
+        "borderLeft": "1px solid #000000",
+        "borderRight": "1px solid #000000",
+        "borderTop": "1px solid #e2e2e2",
+        "borderBottom": "1px solid #000000"
+      },
+      "format": "#,##0"
+    },
+    "222": {
+      "css": {
+        "fontFamily": "Times New Roman",
+        "fontSize": 16.0,
+        "fontWeight": 700,
+        "fontStyle": "normal",
+        "color": "#000000",
+        "backgroundColor": "#ffffff",
+        "textAlign": "left",
+        "verticalAlign": "bottom",
+        "whiteSpace": "nowrap",
+        "borderLeft": "1px solid #000000",
+        "borderRight": "1px solid #000000",
+        "borderTop": "1px solid #000000",
+        "borderBottom": "1px solid #000000"
+      },
+      "format": "_(* #,##0_);_(* \\(#,##0\\);_(* \"-\"??_);_(@_)"
+    },
+    "98": {
+      "css": {
+        "fontFamily": "Times New Roman",
+        "fontSize": 17.33,
+        "fontWeight": 400,
+        "fontStyle": "normal",
+        "color": "#000000",
+        "backgroundColor": "#ffffff",
+        "textAlign": "left",
+        "verticalAlign": "bottom",
+        "whiteSpace": "nowrap",
+        "borderLeft": "1px solid #000000",
+        "borderRight": "1px solid #000000",
+        "borderTop": "1px solid #000000",
+        "borderBottom": "1px solid #000000"
+      },
+      "format": "General"
+    }
+  },
+  "summary": {
+    "title": "KHO NGUYÊN VẬT LIỆU 2026",
+    "headers": [
+      "STT",
+      "Mã vật tư",
+      "Vật tư",
+      "ĐVT",
+      "Tồn đầu",
+      "Nhập",
+      "xuất",
+      "Tồn cuối",
+      "Ghi chú"
+    ],
+    "widths": [9.33, 22.33, 39.11, 12.66, 13.0, 11.55, 11.11, 15.66, 14.89],
+    "heights": {
+      "title": 79.0,
+      "subtitle": 38.0,
+      "header": 62.0,
+      "data": 32.0
+    },
+    "formats": [
+      "General",
+      "General",
+      "General",
+      "General",
+      "#,##0",
+      "#,##0",
+      "#,##0",
+      "_(* #,##0_);_(* \\(#,##0\\);_(* \"-\"??_);_(@_)",
+      "General"
+    ],
+    "styles": {
+      "title": 185,
+      "subtitle": 188,
+      "header": [101, 101, 101, 101, 101, 102, 102, 102, 102],
+      "data": [93, 106, 106, 103, 104, 105, 105, 222, 98]
+    },
+    "rowsAfterTable": [
+      {
+        "cells": { "C85": "Tổng" },
+        "height": 36.0,
+        "styles": [125, 220, 42, 7, 7, 99, 105, 221, 7]
+      },
+      {
+        "cells": { "D87": "Người lập" },
+        "height": 28.0,
+        "styles": [0, 17, 120, 0, 0, 26, 0, 0, 0]
+      },
+      {
+        "cells": { "D88": "Nguyễn Thị Hải Yến" },
+        "height": 30.0,
+        "styles": [0, 27, 0, 0, 0, 26, 0, 0, 0]
+      }
+    ]
+  },
+  "inbound": {
+    "title": "SỔ CHI TIẾT NHẬP NVL\nNĂM 2026",
+    "headers": [
+      "Ngày tháng",
+      "Mã vật tư",
+      "Vật tư",
+      "Diễn giải",
+      "Đơn vị tính",
+      "Số lượng",
+      "Đơn giá",
+      "Thành tiền",
+      "Ghi chú"
+    ],
+    "widths": [13.11, 21.11, 27.22, 16.33, 15.0, 14.89, 13.44, 11.0, 19.44],
+    "heights": { "title": 69.0, "spacer": 20.8, "header": 84.8, "data": 20.0 },
+    "formats": [
+      "mm-dd-yy",
+      "General",
+      "General",
+      "General",
+      "General",
+      "#,##0",
+      "#,##0",
+      "#,##0",
+      "General"
+    ],
+    "styles": {
+      "title": 184,
+      "header": [30, 12, 12, 12, 12, 115, 115, 115, 12],
+      "data": [31, 18, 7, 37, 7, 110, 110, 110, 7]
+    }
+  },
+  "outbound": {
+    "title": "SỔ CHI TIẾT NVL\nNĂM 2026",
+    "headers": [
+      "Ngày tháng",
+      "Mã  cơ sở SX",
+      "Tên cơ sở SX",
+      "Mã vật tư",
+      "Vật tư",
+      "Diễn giải",
+      "Đơn vị tính",
+      "Số lượng",
+      "Ghi chú"
+    ],
+    "widths": [14.44, 17.33, 19.55, 19.66, 25.89, 16.33, 12.44, 13.11, 24.0],
+    "heights": { "title": 62.4, "spacer": 23.2, "header": 28.0, "data": 21.6 },
+    "formats": [
+      "mm-dd-yy",
+      "mm-dd-yy",
+      "mm-dd-yy",
+      "General",
+      "General",
+      "General",
+      "General",
+      "#,##0",
+      "General"
+    ],
+    "styles": {
+      "title": 182,
+      "header": [30, 30, 30, 171, 171, 171, 171, 172, 12],
+      "data": [168, 168, 168, 18, 18, 169, 18, 170, 7]
+    }
+  },
+  "catalog": {
+    "headers": [
+      "STT",
+      "Mã vật tư",
+      "Tên vật tư",
+      "DonViTinh",
+      "Tồn đầu kỳ",
+      null
+    ],
+    "widths": [9.11, 22.33, 32.44, 11.11, 15.44, 9.11],
+    "heights": { "header": 39.0, "data": 18.4 },
+    "styles": {
+      "header": [16, 20, 16, 16, 16, 0],
+      "data": [14, 18, 7, 14, 15, 1]
+    }
+  },
+  "facilities": {
+    "headers": [
+      "STT",
+      "Loại",
+      "Mã cơ sở SX",
+      "Tên cơ sở SX",
+      "Số điện thoại",
+      "Ghi chú"
+    ],
+    "widths": [9.11, 9.11, 16.55, 19.44, 12.55, 9.11],
+    "heights": { "header": 49.0, "data": 18.4 },
+    "styles": { "header": [9, 9, 9, 9, 9, 9], "data": [14, 7, 7, 7, 6, 7] }
+  }
+}

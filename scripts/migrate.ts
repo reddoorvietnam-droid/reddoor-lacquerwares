@@ -14,6 +14,16 @@
  */
 
 import type { Model } from "mongoose";
+import { getPaintRowModel, getPaintMasterModel } from "@/domains/paint-warehouse/models";
+import {
+  getFacilityModel,
+  getMaterialModel,
+  getMaterialTransactionModel,
+} from "@/domains/materials/models";
+import {
+  getSalesSlipCounterModel,
+  getSalesSlipModel,
+} from "@/domains/sales-slips/models";
 
 import {
   getAccessGrantModel,
@@ -56,6 +66,13 @@ import {
 
 function collectModels(): Model<unknown>[] {
   return [
+    getPaintRowModel(),
+    getPaintMasterModel(),
+    getMaterialModel(),
+    getFacilityModel(),
+    getMaterialTransactionModel(),
+    getSalesSlipModel(),
+    getSalesSlipCounterModel(),
     getUserModel(),
     getSampleProgressModel(),
     getSampleProgressArchiveModel(),
