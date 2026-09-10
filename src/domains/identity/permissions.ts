@@ -240,6 +240,27 @@ export const permissionCatalog = [
   "salesSlips.print",
   "salesSlips.export",
   "salesSlips.import",
+  // Công nợ phải thu khách hàng: the counter debt book that replaces
+  // `Reddoor-congno-2026.xlsx`. Distinct from `receivables.read`, which reads
+  // the order/INV receivables the Company Accountant keeps — these two ledgers
+  // track different counterparties and never share a figure. Money on it is a
+  // separate permission (rule 1); the storekeeper holds it because they run the
+  // counter, the same way they already hold `salesSlips.readPrice`.
+  "customerDebt.read",
+  "customerDebt.readAmount",
+  "customerDebt.recordSale",
+  "customerDebt.recordReduction",
+  // Correcting a recorded line in place, audited field by field. Kept apart
+  // from recording so a future role could write without being able to rewrite.
+  "customerDebt.updateEntry",
+  "customerDebt.cancelEntry",
+  // Adding a paint code or repricing one. It writes the SHARED paint
+  // catalogue (paintwarehousemasters), never a copy of it.
+  "customerDebt.manageCatalog",
+  "customerDebt.manageCustomer",
+  "customerDebt.updateOpeningBalance",
+  "customerDebt.export",
+  "customerDebt.import",
 
   // Packing, shipping, trade documents.
   "packing.read",
@@ -325,6 +346,7 @@ export const sensitiveFieldPermissions = [
   "documents.readSensitive",
   "audit.export",
   "salesSlips.readPrice",
+  "customerDebt.readAmount",
 ] as const satisfies readonly Permission[];
 
 export type SensitiveFieldPermission =

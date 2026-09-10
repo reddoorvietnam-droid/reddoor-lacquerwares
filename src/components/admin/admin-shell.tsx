@@ -8,6 +8,7 @@ import type { Permission } from "@/domains/identity/permissions";
 import { resolvePermissionCoverages } from "@/lib/auth";
 import { canSeeSampleProgress } from "@/domains/sample-progress/access";
 import { canSeeMaterials } from "@/domains/materials/access";
+import { canSeeReceivables } from "@/domains/receivables/access";
 import type { AdminLocale } from "@/lib/i18n/admin";
 import { getAdminDictionary } from "@/lib/i18n/admin";
 
@@ -62,6 +63,15 @@ export async function AdminShell({
           href: `${basePath}/sales-slips` as Route,
           label: locale === "vi" ? "Hóa đơn bán hàng" : "Sales slips",
           anyOf: ["salesSlips.read"],
+        },
+        {
+          // Named for the counter it belongs to, because the finance group
+          // already carries "Công nợ khách hàng" — the order/INV receivables
+          // in USD and VND. Two ledgers, two counterparty sets; the labels must
+          // not read alike in a sidebar that shows both to the accountant.
+          href: `${basePath}/receivables` as Route,
+          label: locale === "vi" ? "Công nợ bán sơn" : "Paint sales debt",
+          anyOf: ["customerDebt.read"],
         },
         {
           // The assistant answers only from tools the reader's grants allow;
@@ -224,6 +234,7 @@ export async function AdminShell({
     const coverages = await resolvePermissionCoverages(requested);
     const sampleProgressVisible = await canSeeSampleProgress();
     const materialsVisible = await canSeeMaterials();
+    const receivablesVisible = await canSeeReceivables();
 
     const covered = (permission: Permission): boolean => {
       const coverage = coverages[permission as keyof typeof coverages];
@@ -244,6 +255,10 @@ export async function AdminShell({
               )
               .filter(
                 ({ href }) => !href.endsWith("/materials") || materialsVisible,
+              )
+              .filter(
+                ({ href }) =>
+                  !href.endsWith("/receivables") || receivablesVisible,
               )
               .filter(({ anyOf }) => anyOf === null || anyOf.some(covered))
               .map(({ href, label: itemLabel }) => ({

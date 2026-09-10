@@ -146,6 +146,23 @@ export const roleDefinitionSeeds = [
         "salesSlips.editPrice",
         "salesSlips.print",
         "salesSlips.export",
+        // Công nợ replaces `Reddoor-congno-2026.xlsx`, the debt book the
+        // storekeeper writes at the counter, so they own the daily entries and
+        // the amounts on them. Two things stay out: the opening balance, which
+        // only the accountant and the Director may restate once the period has
+        // started, and the workbook import.
+        "customerDebt.read",
+        "customerDebt.readAmount",
+        "customerDebt.recordSale",
+        "customerDebt.recordReduction",
+        // Correcting a line in place, and adding the paint codes that appear
+        // at the counter every week. Both are audited; a reprice never moves a
+        // debt already recorded, because each sale keeps its own price.
+        "customerDebt.updateEntry",
+        "customerDebt.cancelEntry",
+        "customerDebt.manageCatalog",
+        "customerDebt.manageCustomer",
+        "customerDebt.export",
       ],
       assignedBusinessUnits: [
         ...sharedOperationalReads,
@@ -436,6 +453,21 @@ export const roleDefinitionSeeds = [
         "salesSlips.print",
         "salesSlips.export",
         "salesSlips.import",
+        // Công nợ: the accountant reconciles the counter debt book, restates an
+        // opening balance when a period is corrected, and runs the workbook
+        // migration. The Factory Accountant is deliberately absent — that role
+        // stays blind to customer money (confirmed 2026-09-05).
+        "customerDebt.read",
+        "customerDebt.readAmount",
+        "customerDebt.recordSale",
+        "customerDebt.recordReduction",
+        "customerDebt.updateEntry",
+        "customerDebt.cancelEntry",
+        "customerDebt.manageCatalog",
+        "customerDebt.manageCustomer",
+        "customerDebt.updateOpeningBalance",
+        "customerDebt.export",
+        "customerDebt.import",
         "labor.readSalary",
         "labor.confirmPayroll",
         "production.readLaborQuantity",
