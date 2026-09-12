@@ -389,6 +389,40 @@ const upload = (
   });
 };
 
+/**
+ * An upload we stream ourselves. A `FormData` body is served by undici's own
+ * producer, and cancelling it mid-flight makes undici enqueue the trailing
+ * chunk into the closed stream: an unhandled rejection that fails the run.
+ */
+const streamedUpload = (totalBytes: number) => {
+  const boundary = "lacquerware-oversized-upload";
+  const head = new TextEncoder().encode(
+    `--${boundary}\r\nContent-Disposition: form-data; name="mode"\r\n\r\npreview\r\n` +
+      `--${boundary}\r\nContent-Disposition: form-data; name="file"; filename="to.xlsx"\r\n\r\n`,
+  );
+  const filler = new Uint8Array(64 * 1024);
+  let generated = 0;
+  const body = new ReadableStream<Uint8Array>({
+    start: (controller) => controller.enqueue(head),
+    pull(controller) {
+      if (generated >= totalBytes) return controller.close();
+      const size = Math.min(filler.length, totalBytes - generated);
+      generated += size;
+      controller.enqueue(filler.subarray(0, size));
+    },
+  });
+  const request = new Request("http://localhost/api/paint-warehouse/import", {
+    method: "POST",
+    headers: {
+      ...sameOrigin,
+      "content-type": `multipart/form-data; boundary=${boundary}`,
+    },
+    body,
+    duplex: "half",
+  } as RequestInit & { duplex: "half" });
+  return { request, generated: () => generated };
+};
+
 describe("POST /api/paint-warehouse/import", () => {
   it("checks the import permission before reading the upload", async () => {
     mocks.access.mockRejectedValue(
@@ -460,15 +494,14 @@ describe("POST /api/paint-warehouse/import", () => {
 
   it("stops an oversized upload while it streams", async () => {
     mocks.access.mockResolvedValue({ userId: "user-1", actorType: "user" });
-    const response = await importRoute.POST(
-      upload(
-        { mode: "preview" },
-        { bytes: new Uint8Array(5_400_000), name: "to.xlsx" },
-      ),
-    );
+    const total = 50 * 1024 * 1024;
+    const oversized = streamedUpload(total);
+    const response = await importRoute.POST(oversized.request);
     expect(response.status).toBe(413);
     expect(await response.json()).toMatchObject({
       message: "Tệp vượt quá 5 MB.",
     });
+    // Hung up on the sender instead of buffering the whole upload.
+    expect(oversized.generated()).toBeLessThan(total);
   });
 });
