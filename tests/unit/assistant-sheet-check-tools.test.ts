@@ -197,15 +197,20 @@ describe("offered tools", () => {
     ]);
   });
 
-  it("offers the three read tools and the follow-ups to every operational role, nothing to the content creator", async () => {
+  it("offers the three read tools to every operational role, the follow-ups to the Director alone, nothing to the content creator", async () => {
+    expect(await offered("DIRECTOR")).toEqual(toolNames);
+    // The follow-up tool needs `tasks.create`, which only the Director holds
+    // since work is handed out from one desk (2026-09-12).
+    const readOnly = toolNames.filter(
+      (name) => name !== "propose_sheet_check_follow_ups",
+    );
     for (const role of [
-      "DIRECTOR",
       "COMPANY_ACCOUNTANT",
       "FACTORY_ACCOUNTANT",
       "WAREHOUSE_MANAGER",
       "FACTORY_MANAGER",
     ] as const) {
-      expect(await offered(role), role).toEqual(toolNames);
+      expect(await offered(role), role).toEqual(readOnly);
     }
     expect(await offered("CONTENT_CREATOR")).toEqual([]);
   });
@@ -786,15 +791,15 @@ describe("propose_sheet_check_follow_ups", () => {
     ).toEqual(["Kiểm tra dòng 7 «t", "Kiểm tra dòng 6 «t"]);
   });
 
-  it("lets a unit accountant follow up their own check inside their unit, but not assign to others", async () => {
+  it("groups the rows of a check by order and keeps the unlinked ones together", async () => {
     const { world, store, service } = build();
     const all = seedAll(store);
-    const fa = contextFor("FACTORY_ACCOUNTANT", world, service);
+    const director = contextFor("DIRECTOR", world, service);
     const data = dataOf(
       await run(
         proposeSheetCheckFollowUpsTool,
         { checkId: all.generic.id },
-        fa,
+        director,
       ),
     );
     const proposals = data.proposals as {
@@ -807,48 +812,31 @@ describe("propose_sheet_check_follow_ups", () => {
       expect.objectContaining({ orderCode: null, itemCount: 2 }),
     ]);
     const unlinked = world.proposals.proposals.get(proposals[1]!.proposalId)!;
-    expect(unlinked.businessUnitIds).toEqual([unitId]);
-    expect(unlinked.proposedByUserId).toBe(roleUsers.FACTORY_ACCOUNTANT.id);
-    expect(
-      unlinked.items.every((item) => item.assigneeUserId === fa.userId),
-    ).toBe(true);
+    expect(unlinked.proposedByUserId).toBe(roleUsers.DIRECTOR.id);
+  });
 
-    const before = world.proposals.proposals.size;
+  it("refuses a unit accountant, who no longer hands work out", async () => {
+    const { world, store, service } = build();
+    const all = seedAll(store);
+    const fa = contextFor("FACTORY_ACCOUNTANT", world, service);
     expect(
       codeOf(
         await run(
           proposeSheetCheckFollowUpsTool,
-          { checkId: all.generic.id, assigneeUserId: roleUsers.DIRECTOR.id },
+          { checkId: all.generic.id },
           fa,
         ),
       ),
     ).toBe("PERMISSION_DENIED");
-    expect(world.proposals.proposals.size).toBe(before);
+    expect(world.proposals.proposals.size).toBe(0);
   });
 
-  it("keeps rows whose order is unreadable or closed in the order-less proposal and says so", async () => {
+  it("keeps rows whose order is closed in the order-less proposal and says so", async () => {
+    // The unreadable-order half of this case is gone with the permission
+    // change of 2026-09-12: the only role that may propose follow-ups is the
+    // Director, who reads every order. The branch stays in the tool for a
+    // future role that proposes without a global read.
     const { world, store, service } = build();
-    const foreign = seedGenericCheck(store, {
-      createdByUserId: roleUsers.WAREHOUSE_MANAGER.id,
-      businessUnitIds: [unitId],
-      orderCode: seeded.otherUnitOrderCode,
-    });
-    const wm = dataOf(
-      await run(
-        proposeSheetCheckFollowUpsTool,
-        { checkId: foreign.id },
-        contextFor("WAREHOUSE_MANAGER", world, service),
-      ),
-    );
-    expect(wm.proposals).toEqual([
-      expect.objectContaining({ orderCode: null, itemCount: 3 }),
-    ]);
-    expect(
-      (wm.assumptions as string[]).some((line) =>
-        line.includes(`Đơn ${seeded.otherUnitOrderCode} không đọc được`),
-      ),
-    ).toBe(true);
-
     const closed = world.orders.seed({
       orderCode: "RD-CLOSED-AA01",
       stage: "closed",
@@ -939,18 +927,19 @@ describe("propose_sheet_check_follow_ups", () => {
     expect(world.proposals.proposals.size).toBe(0);
   });
 
-  it("lets the factory manager, who cannot upload, follow up a colleague's check in their unit", async () => {
+  it("refuses the factory manager, who reads checks but hands no work out", async () => {
     const { world, store, service } = build();
     const all = seedAll(store);
-    const data = dataOf(
-      await run(
-        proposeSheetCheckFollowUpsTool,
-        { checkId: all.generic.id },
-        contextFor("FACTORY_MANAGER", world, service),
+    expect(
+      codeOf(
+        await run(
+          proposeSheetCheckFollowUpsTool,
+          { checkId: all.generic.id },
+          contextFor("FACTORY_MANAGER", world, service),
+        ),
       ),
-    );
-    expect((data.proposals as unknown[]).length).toBe(2);
-    expect(world.tasks.tasks.size).toBe(2);
+    ).toBe("PERMISSION_DENIED");
+    expect(world.proposals.proposals.size).toBe(0);
   });
 });
 

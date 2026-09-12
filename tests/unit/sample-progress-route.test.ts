@@ -41,7 +41,7 @@ vi.mock("@/domains/identity/models", () => ({ getUserModel: mocks.user }));
 import { DELETE, GET, POST } from "@/app/api/sample-progress/route";
 
 const editorAccess = { userId: "editor-1", role: "editor", context: {} };
-const viewerAccess = { userId: "director-1", role: "viewer", context: {} };
+const viewerAccess = { userId: "reader-1", role: "viewer", context: {} };
 const sameOrigin = { origin: "http://localhost", host: "localhost" };
 
 function post(query: string, init: RequestInit = {}) {
@@ -59,7 +59,9 @@ function namedUser(displayName: string | null) {
   mocks.user.mockReturnValue({
     findById: () => ({
       select: () => ({
-        lean: () => ({ exec: async () => (displayName ? { displayName } : null) }),
+        lean: () => ({
+          exec: async () => (displayName ? { displayName } : null),
+        }),
       }),
     }),
   });
@@ -134,7 +136,7 @@ describe("reads are guarded before any data is touched", () => {
     expect(response.status).toBe(404);
   });
 
-  it("exports as an attachment the director may download", async () => {
+  it("exports as an attachment a reader may download", async () => {
     mocks.access.mockResolvedValue(viewerAccess);
     mocks.read.mockResolvedValue({ week: "2026-08-24", revision: 2 });
     mocks.export.mockReturnValue(new Uint8Array([1, 2, 3]));
@@ -176,7 +178,7 @@ describe("writes require the editor role and a same-origin request", () => {
   );
 
   it.each(["", "?action=import", "?action=inherit"])(
-    "denies the read-only director on %s",
+    "denies a read-only reader on %s",
     async (query) => {
       // requireSampleProgressEditor is what rejects a viewer.
       mocks.editor.mockRejectedValue(
@@ -250,7 +252,10 @@ describe("saving a revision", () => {
       savedByName: actor.name,
     }));
     const response = await post("", {
-      body: JSON.stringify({ savedBy: "someone-else", savedByName: "Kẻ giả mạo" }),
+      body: JSON.stringify({
+        savedBy: "someone-else",
+        savedByName: "Kẻ giả mạo",
+      }),
     });
     expect(response.status).toBe(201);
     expect(await response.json()).toEqual({
@@ -296,7 +301,11 @@ describe("saving a revision", () => {
     namedUser("Chị Nương");
     mocks.save.mockRejectedValue(
       new ZodError([
-        { code: "custom", path: ["changeNote"], message: "Hãy ghi nội dung cập nhật lần này." },
+        {
+          code: "custom",
+          path: ["changeNote"],
+          message: "Hãy ghi nội dung cập nhật lần này.",
+        },
       ]),
     );
     const response = await post("", { body: "{}" });
@@ -346,7 +355,9 @@ describe("inheriting and importing", () => {
   it("reports an unreadable file as a client error", async () => {
     mocks.editor.mockResolvedValue(editorAccess);
     mocks.parse.mockImplementation(() => {
-      throw new SampleProgressError("File không phải định dạng .xlsx hoặc .xlsm.");
+      throw new SampleProgressError(
+        "File không phải định dạng .xlsx hoặc .xlsm.",
+      );
     });
     const response = await post("?action=import", { body: "nope" });
     expect(response.status).toBe(400);
@@ -420,7 +431,10 @@ describe("deleting a week", () => {
     mocks.remove.mockRejectedValue(
       new SampleProgressError("Không tìm thấy báo cáo.", 404),
     );
-    const response = await del({ week: "2026-08-24", reason: "Nhập nhầm file" });
+    const response = await del({
+      week: "2026-08-24",
+      reason: "Nhập nhầm file",
+    });
     expect(response.status).toBe(404);
   });
 });
@@ -429,7 +443,9 @@ describe("unexpected failures never leak internals", () => {
   it("hides the message and stack of an unknown error", async () => {
     mocks.access.mockResolvedValue(viewerAccess);
     mocks.list.mockRejectedValue(
-      new Error("MongoServerError: connection string mongodb+srv://user:pw@host"),
+      new Error(
+        "MongoServerError: connection string mongodb+srv://user:pw@host",
+      ),
     );
     const errors = vi.spyOn(console, "error").mockImplementation(() => {});
     const response = await GET(

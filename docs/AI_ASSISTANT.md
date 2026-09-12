@@ -8,6 +8,16 @@ Quy ước: **PASS** = đã chạy và đạt; **BLOCKED** = không chạy đư�
 credential/dịch vụ; **NOT RUN** = có thể chạy nhưng chưa chạy. "Mock" chỉ
 chứng minh đường ống quanh mô hình, không chứng minh mô hình thật.
 
+> **Cập nhật 2026-09-12 — phần việc cần làm đã tách đôi.** Giao việc là màn
+> hình riêng của Giám đốc (`/admin/tasks` → "Giao việc"), các vai trò khác có
+> hộp việc của mình (`/admin/my-tasks` → "Công việc được giao") kèm nút xin
+> gia hạn. Chỉ Giám đốc còn `tasks.create`/`tasks.assign`/`tasks.approvePlan`,
+> nên các tool đề xuất (`propose_order_plan`, `propose_tasks`,
+> `propose_sheet_check_follow_ups`) chỉ mở cho Giám đốc; `list_my_tasks` vẫn
+> mở cho mọi vai trò và chỉ đọc việc của chính người hỏi. Ma trận quyền và
+> luồng gia hạn: [`work-assignment.md`](./work-assignment.md). Những đoạn bên
+> dưới mô tả mô hình quyền trước ngày đó.
+
 ## 1. Yêu cầu khách hàng → chức năng đã có
 
 | Yêu cầu                                            | Chức năng                                                                                               | Nơi thực hiện                                                                                                |
@@ -130,11 +140,11 @@ tính). Cần thiết vì `tasks.read` được khai ở cả `assignedBusinessU
      nên không lan từ bản ghi cha xuống con.
    - **Lưu bản đã đọc, không lưu tệp gốc.** Giống ADR-005 của kiểm tra bảng
      biểu. Ảnh chỉ giữ trong lượt mang nó rồi bị xóa payload.
-   Vẫn ghi audit `assistant.chat` mỗi lượt (tool, kết quả, usage, độ dài câu
-   hỏi, định dạng tệp; **không** lưu nội dung, **không** lưu tên tệp). Lưu ý
-   trung thực: audit là append-only và không có TTL, nên lời hứa "7 ngày"
-   phủ nội dung hội thoại, không phủ dấu vết rằng đã có một lượt hỏi. Thu hồi
-   quyền vẫn có hiệu lực ngay ở lượt sau.
+     Vẫn ghi audit `assistant.chat` mỗi lượt (tool, kết quả, usage, độ dài câu
+     hỏi, định dạng tệp; **không** lưu nội dung, **không** lưu tên tệp). Lưu ý
+     trung thực: audit là append-only và không có TTL, nên lời hứa "7 ngày"
+     phủ nội dung hội thoại, không phủ dấu vết rằng đã có một lượt hỏi. Thu hồi
+     quyền vẫn có hiệu lực ngay ở lượt sau.
 5. **Provider giả lập** (`AI_PROVIDER=mock`) chỉ cho phát triển/test; schema
    env từ chối trong production; UI gắn nhãn "GIẢ LẬP" trên từng câu trả lời.
 6. **Gửi thông báo mặc định tắt** (`NOTIFICATION_DELIVERY=off`): intent vẫn
@@ -308,16 +318,16 @@ Vận hành:
 
 Chạy ngày 2026-09-06 trên máy dev (Windows 11, Node 22.14, MongoDB Atlas dev).
 
-| Nhóm                | Lệnh                                                              | Kết quả                                                                                                                           |
-| ------------------- | ----------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| Typecheck           | `npm run typecheck`                                               | PASS                                                                                                                              |
-| Lint                | `npm run lint`                                                    | PASS (0 warning)                                                                                                                  |
-| Build sản xuất      | `npm run build`                                                   | PASS — 5 route mới (`/api/assistant/chat`, `/api/cron/reminders`, `/api/zalo/webhook`, `/admin/assistant`, `/admin/tasks`)        |
-| Prettier            | `npm run format:check`                                            | 61 file lệch định dạng **có từ trước** (ví dụ `tests/unit/role-definitions.test.ts`), không thuộc gate CI; file mới/sửa đã format |
-| Unit + eval (mock)  | `npx vitest run`                                                  | PASS — 39 file, 472 test (389 có trước + 83 mới)                                                                                  |
+| Nhóm                | Lệnh                                                              | Kết quả                                                                                                                                                                                                                                      |
+| ------------------- | ----------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Typecheck           | `npm run typecheck`                                               | PASS                                                                                                                                                                                                                                         |
+| Lint                | `npm run lint`                                                    | PASS (0 warning)                                                                                                                                                                                                                             |
+| Build sản xuất      | `npm run build`                                                   | PASS — 5 route mới (`/api/assistant/chat`, `/api/cron/reminders`, `/api/zalo/webhook`, `/admin/assistant`, `/admin/tasks`)                                                                                                                   |
+| Prettier            | `npm run format:check`                                            | 61 file lệch định dạng **có từ trước** (ví dụ `tests/unit/role-definitions.test.ts`), không thuộc gate CI; file mới/sửa đã format                                                                                                            |
+| Unit + eval (mock)  | `npx vitest run`                                                  | PASS — 39 file, 472 test (389 có trước + 83 mới)                                                                                                                                                                                             |
 | Eval live model     | `ASSISTANT_EVAL_LIVE=1 npm run eval:assistant`                    | Claude: **BLOCKED** — không có `ANTHROPIC_API_KEY`. Gemini 2.5 Flash (`openai-compatible`, free tier): **PASS** 2/2 case chạy thử ngày 2026-09-06 (`wm-own-unit-order`, `ca-remind-tomorrow`); 15 case còn lại **NOT RUN** để giữ quota free |
-| E2E admin (6 role)  | `E2E_ADMIN_BASE_URL=http://localhost:3000 npm run test:e2e:admin` | PASS — 11/11 (10 desktop + 1 mobile Pixel 5), dev server `AI_PROVIDER=mock`                                                       |
-| Gửi email/Zalo thật | —                                                                 | **NOT RUN** (không có test recipient được chỉ định; `NOTIFICATION_DELIVERY=off`)                                                  |
+| E2E admin (6 role)  | `E2E_ADMIN_BASE_URL=http://localhost:3000 npm run test:e2e:admin` | PASS — 11/11 (10 desktop + 1 mobile Pixel 5), dev server `AI_PROVIDER=mock`                                                                                                                                                                  |
+| Gửi email/Zalo thật | —                                                                 | **NOT RUN** (không có test recipient được chỉ định; `NOTIFICATION_DELIVERY=off`)                                                                                                                                                             |
 
 Bộ eval `tests/eval/assistant-cases.json` (version `2026-09-06.1`, 17 case)
 chạy qua `tests/eval/harness.ts`: registry tool thật, vòng lặp chat thật,

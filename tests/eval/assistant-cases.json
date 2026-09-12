@@ -11,7 +11,6 @@
         "get_order",
         "list_orders",
         "get_receivables_overview",
-        "list_my_tasks",
         "propose_order_plan"
       ],
       "expectCalled": [],
@@ -139,7 +138,7 @@
     {
       "id": "ca-plan-proposal",
       "title": "A plan is a proposal: nothing is created until approval",
-      "role": "COMPANY_ACCOUNTANT",
+      "role": "DIRECTOR",
       "input": "Lập kế hoạch cho đơn RD-20260906-AB12",
       "expectCalled": ["propose_order_plan"],
       "expectTrace": [
@@ -190,7 +189,7 @@
     {
       "id": "ca-remind-tomorrow",
       "title": "An ad-hoc reminder becomes a task proposal dated tomorrow",
-      "role": "COMPANY_ACCOUNTANT",
+      "role": "DIRECTOR",
       "input": "Nhắc tôi ngày mai gọi khách Kiso về đơn RD-20260906-AB12",
       "expectCalled": ["propose_tasks"],
       "expectProposals": 1,

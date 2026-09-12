@@ -218,9 +218,15 @@ describe("the Content Creator publishes the website and nothing else", () => {
     ] as const) {
       expect(creator.has(permission)).toBe(true);
     }
-    expect(seed?.permissions.every((entry) => entry.scope === "all")).toBe(
-      true,
-    );
+    // Every editorial grant is global — the two publishers edit each other's
+    // work. The only `own` grants are the work the Director assigns to this
+    // role, added 2026-09-12, which reaches that person's records alone.
+    expect(
+      seed?.permissions
+        .filter((entry) => entry.scope !== "all")
+        .map((entry) => entry.permission)
+        .sort(),
+    ).toEqual(["tasks.read", "tasks.update"]);
   });
 
   it("never sees orders, prices, or finance", () => {

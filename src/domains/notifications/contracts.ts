@@ -14,12 +14,31 @@
 export const notificationChannels = ["email", "zalo"] as const;
 export type NotificationChannel = (typeof notificationChannels)[number];
 
-export const notificationKinds = [
-  "taskDueSoon",
-  "taskDue",
-  "taskOverdue",
+/**
+ * The three deadline reminders the job plans day by day, then the events a
+ * person's action raises immediately: work handed to someone, a plea for
+ * more time, and the answer to it. Reminders are deduped per day; an event
+ * is deduped per revision of the task it concerns.
+ */
+export const reminderKinds = ["taskDueSoon", "taskDue", "taskOverdue"] as const;
+export type ReminderKind = (typeof reminderKinds)[number];
+
+export const taskEventKinds = [
+  "taskAssigned",
+  "taskExtensionRequested",
+  "taskExtensionDecided",
 ] as const;
+export type TaskEventKind = (typeof taskEventKinds)[number];
+
+export const notificationKinds = [...reminderKinds, ...taskEventKinds] as const;
 export type NotificationKind = (typeof notificationKinds)[number];
+
+const reminderKindSet: ReadonlySet<string> = new Set<string>(reminderKinds);
+
+/** True for the day-based reminders, false for the immediate events. */
+export function isReminderKind(kind: NotificationKind): kind is ReminderKind {
+  return reminderKindSet.has(kind);
+}
 
 export const notificationStatuses = [
   "pending",

@@ -12,6 +12,7 @@ type AdminCopy = {
     overview: string;
     assistant: string;
     tasks: string;
+    assignedTasks: string;
     orders: string;
     customers: string;
     suppliers: string;
@@ -256,7 +257,8 @@ const adminDictionaries = {
     navigation: {
       overview: "Tổng quan",
       assistant: "Trợ lý AI",
-      tasks: "Việc cần làm",
+      tasks: "Giao việc",
+      assignedTasks: "Công việc được giao",
       orders: "Sổ đơn hàng",
       customers: "Khách hàng",
       suppliers: "Nhà cung cấp",
@@ -571,7 +573,8 @@ const adminDictionaries = {
     navigation: {
       overview: "Overview",
       assistant: "AI assistant",
-      tasks: "Tasks",
+      tasks: "Assign work",
+      assignedTasks: "My assigned work",
       orders: "Order book",
       customers: "Customers",
       suppliers: "Suppliers",

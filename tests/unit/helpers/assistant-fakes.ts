@@ -21,6 +21,8 @@ import type {
 } from "@/domains/identity/user-directory";
 import type {
   NewTaskRecord,
+  TaskExtensionDecision,
+  TaskExtensionRequest,
   TaskFieldsWrite,
   TaskListFilter,
   TaskRecordDto,
@@ -140,9 +142,17 @@ export function authFor(
     async requireListAccess(permission) {
       const coverage = grantCoverageForPermission(snapshot, permission, now);
       const covered = coverage.global ? [] : coverage.businessUnitIds;
+      // Mirrors the real helper: a grant that only reaches the holder's own
+      // records needs the holder named as the owner of the target.
+      const ownOnly =
+        !coverage.global && coverage.businessUnitIds.length === 0 && coverage.own;
       const context = await requirePermission(
         permission,
-        covered.length > 0 ? { businessUnitIds: covered } : {},
+        covered.length > 0
+          ? { businessUnitIds: covered }
+          : ownOnly
+            ? { businessUnitIds: coverage.ownBusinessUnitIds }
+            : {},
       );
       const effective = context.permissions[0];
       return {
@@ -225,6 +235,8 @@ export class FakeTaskStore implements TaskStore {
       dueAt: record.dueAt,
       dependsOnTaskIds: record.dependsOnTaskIds,
       source: record.source,
+      extensionRequest: null,
+      lastExtensionDecision: null,
       completedAt: null,
       completedBy: null,
       cancelledAt: null,
@@ -293,6 +305,68 @@ export class FakeTaskStore implements TaskStore {
       .slice(0, limit);
   }
 
+  async listPendingExtensions(limit: number) {
+    return [...this.tasks.values()]
+      .filter((task) => task.status === "open" && task.extensionRequest !== null)
+      .sort(
+        (left, right) =>
+          (left.extensionRequest?.requestedAt.getTime() ?? 0) -
+          (right.extensionRequest?.requestedAt.getTime() ?? 0),
+      )
+      .slice(0, limit);
+  }
+
+  async requestExtension(input: {
+    taskId: string;
+    expectedRevision: number;
+    request: TaskExtensionRequest;
+  }) {
+    const task = this.tasks.get(input.taskId);
+    if (
+      !task ||
+      task.revision !== input.expectedRevision ||
+      task.status !== "open" ||
+      task.extensionRequest
+    ) {
+      return null;
+    }
+    const updated: TaskRecordDto = {
+      ...task,
+      extensionRequest: input.request,
+      updatedBy: input.request.requestedBy,
+      revision: task.revision + 1,
+    };
+    this.tasks.set(task.id, updated);
+    return updated;
+  }
+
+  async decideExtension(input: {
+    taskId: string;
+    expectedRevision: number;
+    decision: TaskExtensionDecision;
+    dueAt: Date | null;
+    decidedBy: string;
+  }) {
+    const task = this.tasks.get(input.taskId);
+    if (
+      !task ||
+      task.revision !== input.expectedRevision ||
+      !task.extensionRequest
+    ) {
+      return null;
+    }
+    const updated: TaskRecordDto = {
+      ...task,
+      extensionRequest: null,
+      lastExtensionDecision: input.decision,
+      dueAt: input.dueAt ?? task.dueAt,
+      updatedBy: input.decidedBy,
+      revision: task.revision + 1,
+    };
+    this.tasks.set(task.id, updated);
+    return updated;
+  }
+
   async update(input: {
     taskId: string;
     expectedRevision: number;
@@ -304,6 +378,9 @@ export class FakeTaskStore implements TaskStore {
     const updated = {
       ...task,
       ...input.fields,
+      // Like the real store: setting the deadline by hand answers whatever
+      // was being asked about it.
+      extensionRequest: null,
       updatedBy: input.updatedBy,
       revision: task.revision + 1,
     };
@@ -329,6 +406,10 @@ export class FakeTaskStore implements TaskStore {
       cancelledAt: input.status === "cancelled" ? input.at : task.cancelledAt,
       cancelReason:
         input.status === "cancelled" ? input.reason : task.cancelReason,
+      // Work that is finished or dropped carries no open question about its
+      // deadline, exactly as in the real store.
+      extensionRequest:
+        input.status === "open" ? task.extensionRequest : null,
       revision: task.revision + 1,
     };
     this.tasks.set(task.id, updated);

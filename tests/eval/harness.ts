@@ -224,6 +224,12 @@ export function buildWorld() {
     store: tasks,
     orderStore: orders,
     userDirectory: users,
+    // The fake directory carries no grants; unit-less work stays unit-less.
+    userUnits: {
+      async unitsFor() {
+        return [];
+      },
+    },
     auditRepository: audit,
     timeZone: tz,
     now: () => now,

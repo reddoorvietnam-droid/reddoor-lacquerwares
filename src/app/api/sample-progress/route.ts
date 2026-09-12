@@ -48,7 +48,10 @@ function failure(error: unknown) {
       {
         error: "SAMPLE_PROGRESS_INVALID",
         message: `Dữ liệu chưa hợp lệ: ${error.issues
-          .map((issue) => `${issue.path.join(".") || "biểu mẫu"}: ${issue.message}`)
+          .map(
+            (issue) =>
+              `${issue.path.join(".") || "biểu mẫu"}: ${issue.message}`,
+          )
           .join("; ")}`,
       },
       400,
@@ -106,8 +109,8 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    // Editors only: the Director reads and exports, but does not maintain the
-    // weekly report, so every write names the person who actually keeps it.
+    // Editors only — the Director and the Content Creator — and every write
+    // names the account that made it.
     const access = await requireSampleProgressEditor();
     assertSameOrigin(request);
     const action = new URL(request.url).searchParams.get("action");

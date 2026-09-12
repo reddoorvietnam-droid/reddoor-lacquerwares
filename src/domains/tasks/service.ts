@@ -7,6 +7,8 @@ import type { OrderStore } from "@/domains/orders/contracts";
 import { isTerminalStage } from "@/domains/orders/workflow";
 import {
   createTaskInputSchema,
+  decideTaskExtensionInputSchema,
+  requestTaskExtensionInputSchema,
   setTaskStatusInputSchema,
   TaskCommandError,
   updateTaskInputSchema,
@@ -21,10 +23,21 @@ import {
   type AccessContext,
 } from "@/lib/auth/authorization";
 
+/**
+ * The business units a person's live grants attach them to. A task without
+ * an order has no units of its own, so it is stamped with the units of the
+ * person expected to do it: a unit-bound grant reaches a record only inside
+ * its units, and work handed to someone must be reachable by them.
+ */
+export interface UserBusinessUnits {
+  unitsFor(userId: string): Promise<readonly string[]>;
+}
+
 export type TaskCommandServiceDependencies = {
   store: TaskStore;
   orderStore: OrderStore;
   userDirectory: UserDirectory;
+  userUnits: UserBusinessUnits;
   auditRepository: AuditRepository;
   timeZone: string;
   now?: () => Date;
@@ -128,6 +141,14 @@ export class TaskCommandService {
     const assigneeUserId = await this.resolveAssignee(
       input.assigneeUserId ?? context.userId,
     );
+
+    // Work handed to someone else without an order takes that person's
+    // units, so their own grant reaches it; work kept for oneself keeps the
+    // creator's, as before.
+    if (!orderId && assigneeUserId && assigneeUserId !== context.userId) {
+      businessUnitIds =
+        await this.dependencies.userUnits.unitsFor(assigneeUserId);
+    }
 
     const record: NewTaskRecord = {
       title: input.title,
@@ -303,6 +324,16 @@ export class TaskCommandService {
     }
     const assigneeUserId = await this.resolveAssignee(input.assigneeUserId);
 
+    // Moving unit-less work to another person moves its units with it, for
+    // the same reason `create` stamps them.
+    const businessUnitIds =
+      !existing.orderId &&
+      assigneeUserId &&
+      assigneeUserId !== existing.assigneeUserId &&
+      assigneeUserId !== context.userId
+        ? await this.dependencies.userUnits.unitsFor(assigneeUserId)
+        : null;
+
     const updated = await this.dependencies.store.update({
       taskId: existing.id,
       expectedRevision: input.expectedRevision,
@@ -314,6 +345,7 @@ export class TaskCommandService {
         dueAt: input.dueDate
           ? businessDayEnd(input.dueDate, this.dependencies.timeZone)
           : null,
+        ...(businessUnitIds ? { businessUnitIds } : {}),
       },
       updatedBy: context.userId,
     });
@@ -398,8 +430,173 @@ export class TaskCommandService {
     return updated;
   }
 
+  /**
+   * The assignee asks for more time. Only the person doing the work may ask,
+   * only while it is open, and only for a day that is still ahead — a plea
+   * for a deadline already gone would leave the task overdue on approval.
+   */
+  async requestExtension(
+    context: AccessContext,
+    rawInput: unknown,
+  ): Promise<TaskRecordDto> {
+    this.assertHolds(context, "tasks.update");
+    const input = requestTaskExtensionInputSchema.parse(rawInput);
+
+    const existing = await this.dependencies.store.findById(input.taskId);
+    if (!existing) {
+      throw new TaskCommandError("NOT_FOUND", "Task not found.");
+    }
+    if (existing.assigneeUserId !== context.userId) {
+      throw new TaskCommandError(
+        "NOT_ASSIGNEE",
+        "Only the assignee may ask for more time.",
+      );
+    }
+    if (existing.status !== "open") {
+      throw new TaskCommandError(
+        "INVALID_TRANSITION",
+        "The task is no longer open.",
+      );
+    }
+    if (existing.extensionRequest) {
+      throw new TaskCommandError(
+        "EXTENSION_PENDING",
+        "A request is already waiting for an answer.",
+      );
+    }
+
+    const at = this.now();
+    const requestedDueAt = businessDayEnd(
+      input.requestedDueDate,
+      this.dependencies.timeZone,
+    );
+    if (
+      requestedDueAt.getTime() <= at.getTime() ||
+      requestedDueAt.getTime() === (existing.dueAt?.getTime() ?? 0)
+    ) {
+      throw new TaskCommandError(
+        "INVALID_DUE_DATE",
+        "The new deadline must be a future day other than the current one.",
+      );
+    }
+
+    const updated = await this.dependencies.store.requestExtension({
+      taskId: existing.id,
+      expectedRevision: input.expectedRevision,
+      request: {
+        requestedDueAt,
+        reason: input.reason,
+        requestedBy: context.userId,
+        requestedAt: at,
+      },
+    });
+    if (!updated) {
+      throw new TaskCommandError(
+        "REVISION_CONFLICT",
+        "The task changed while this form was on screen.",
+      );
+    }
+
+    await this.dependencies.auditRepository.append({
+      actor: { type: "user", userId: context.userId },
+      action: "task.extensionRequested",
+      resourceType: TASK_RESOURCE_TYPE,
+      resourceId: existing.id,
+      businessUnitIds: existing.businessUnitIds,
+      requestId: context.requestId,
+      reason: input.reason,
+      metadata: {
+        currentDueAt: existing.dueAt?.toISOString() ?? null,
+        requestedDueAt: requestedDueAt.toISOString(),
+      },
+      occurredAt: at,
+    });
+
+    return updated;
+  }
+
+  /**
+   * The person who hands out work answers the plea. An approval moves the
+   * deadline to the day that was asked for; a rejection leaves it where it
+   * was and the reminder schedule with it.
+   */
+  async decideExtension(
+    context: AccessContext,
+    rawInput: unknown,
+  ): Promise<{
+    task: TaskRecordDto;
+    requestedDueAt: Date;
+    requestedBy: string;
+  }> {
+    this.assertHolds(context, "tasks.assign");
+    const input = decideTaskExtensionInputSchema.parse(rawInput);
+
+    const existing = await this.dependencies.store.findById(input.taskId);
+    if (!existing) {
+      throw new TaskCommandError("NOT_FOUND", "Task not found.");
+    }
+    const request = existing.extensionRequest;
+    if (!request) {
+      throw new TaskCommandError(
+        "EXTENSION_NOT_FOUND",
+        "No extension request is waiting on this task.",
+      );
+    }
+
+    const at = this.now();
+    const updated = await this.dependencies.store.decideExtension({
+      taskId: existing.id,
+      expectedRevision: input.expectedRevision,
+      decision: {
+        outcome: input.outcome,
+        requestedDueAt: request.requestedDueAt,
+        note: input.note,
+        decidedBy: context.userId,
+        decidedAt: at,
+      },
+      dueAt: input.outcome === "approved" ? request.requestedDueAt : null,
+      decidedBy: context.userId,
+    });
+    if (!updated) {
+      throw new TaskCommandError(
+        "REVISION_CONFLICT",
+        "The task changed while this action was on screen.",
+      );
+    }
+
+    await this.dependencies.auditRepository.append({
+      actor: { type: "user", userId: context.userId },
+      action:
+        input.outcome === "approved"
+          ? "task.extensionApproved"
+          : "task.extensionRejected",
+      resourceType: TASK_RESOURCE_TYPE,
+      resourceId: existing.id,
+      businessUnitIds: existing.businessUnitIds,
+      requestId: context.requestId,
+      ...(input.note ? { reason: input.note } : {}),
+      changes: {
+        before: { dueAt: existing.dueAt?.toISOString() ?? null },
+        after: { dueAt: updated.dueAt?.toISOString() ?? null },
+      },
+      metadata: { requestedBy: request.requestedBy },
+      occurredAt: at,
+    });
+
+    return {
+      task: updated,
+      requestedDueAt: request.requestedDueAt,
+      requestedBy: request.requestedBy,
+    };
+  }
+
   async list(filter: TaskListFilter): Promise<TaskRecordDto[]> {
     return this.dependencies.store.list(filter);
+  }
+
+  /** The assigner's queue: tasks whose assignee is waiting for an answer. */
+  async listPendingExtensions(limit = 50): Promise<TaskRecordDto[]> {
+    return this.dependencies.store.listPendingExtensions(limit);
   }
 
   async findById(taskId: string): Promise<TaskRecordDto | null> {

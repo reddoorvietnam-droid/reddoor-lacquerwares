@@ -25,6 +25,28 @@ const sourceSchema = new Schema(
   nestedSchemaOptions,
 );
 
+/** The assignee's pending plea for more time; at most one per task. */
+const extensionRequestSchema = new Schema(
+  {
+    requestedDueAt: { type: Date, required: true },
+    reason: { type: String, required: true, trim: true, maxlength: 2_000 },
+    requestedBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    requestedAt: { type: Date, required: true },
+  },
+  nestedSchemaOptions,
+);
+
+const extensionDecisionSchema = new Schema(
+  {
+    outcome: { type: String, required: true, enum: ["approved", "rejected"] },
+    requestedDueAt: { type: Date, required: true },
+    note: { type: String, trim: true, maxlength: 2_000, default: null },
+    decidedBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    decidedAt: { type: Date, required: true },
+  },
+  nestedSchemaOptions,
+);
+
 export const taskSchema = new Schema(
   {
     title: { type: String, required: true, trim: true, maxlength: 200 },
@@ -58,6 +80,8 @@ export const taskSchema = new Schema(
       default: [],
     },
     source: { type: sourceSchema, required: true },
+    extensionRequest: { type: extensionRequestSchema, default: null },
+    lastExtensionDecision: { type: extensionDecisionSchema, default: null },
     completedAt: { type: Date, default: null },
     completedBy: { type: Schema.Types.ObjectId, ref: "User", default: null },
     cancelledAt: { type: Date, default: null },
@@ -93,6 +117,17 @@ taskSchema.index(
 taskSchema.index(
   { createdBy: 1, status: 1, dueAt: 1 },
   { name: "task_creator_board" },
+);
+// The assigner's queue of pending extension requests: few rows at a time,
+// so the index only covers tasks that actually carry one.
+taskSchema.index(
+  { "extensionRequest.requestedAt": 1 },
+  {
+    name: "task_extension_queue",
+    partialFilterExpression: {
+      "extensionRequest.requestedAt": { $exists: true },
+    },
+  },
 );
 
 export type TaskRecord = InferSchemaType<typeof taskSchema>;

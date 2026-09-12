@@ -47,9 +47,12 @@ export const toolPermissions = [
 
 /**
  * Tools offered to a user: only those whose every required permission is
- * granted somewhere (globally or in at least one unit). A tool that cannot
- * possibly succeed is not described to the model at all, so a Content
- * Creator's assistant does not even know an order tool exists.
+ * granted somewhere — globally, in at least one unit, or over the holder's
+ * own records. A tool that cannot possibly succeed is not described to the
+ * model at all, so a Content Creator's assistant does not even know an
+ * order tool exists. An `own` grant counts because the tool re-guards and
+ * the read narrows to that person's records: "what is on my list today"
+ * still works for a role that only holds its own work.
  */
 export function availableTools(
   coverages: Partial<Record<Permission, PermissionCoverage>>,
@@ -58,7 +61,10 @@ export function availableTools(
     tool.requires.every((permission) => {
       const coverage = coverages[permission];
       return Boolean(
-        coverage && (coverage.global || coverage.businessUnitIds.length > 0),
+        coverage &&
+        (coverage.global ||
+          coverage.businessUnitIds.length > 0 ||
+          coverage.own),
       );
     }),
   );

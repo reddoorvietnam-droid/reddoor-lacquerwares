@@ -2,13 +2,24 @@ import Link from "next/link";
 import type { Route } from "next";
 import type { ReactNode } from "react";
 
-import { AdminNav, type AdminNavGroup } from "@/components/admin/admin-nav";
+import {
+  AdminNav,
+  type AdminNavGroup,
+  type AdminNavRoleGroup,
+} from "@/components/admin/admin-nav";
+import {
+  adminNavSeeds,
+  groupNavByRole,
+  type NavGroupSeed,
+} from "@/components/admin/admin-nav-model";
 import { BrandPlaque } from "@/components/public/logo";
 import type { Permission } from "@/domains/identity/permissions";
-import { resolvePermissionCoverages } from "@/lib/auth";
+import { roleDefinitionSeeds } from "@/domains/identity/role-definitions";
+import { resolveActiveRoleKeys, resolvePermissionCoverages } from "@/lib/auth";
 import { canSeeSampleProgress } from "@/domains/sample-progress/access";
 import { canSeeMaterials } from "@/domains/materials/access";
 import { canSeeReceivables } from "@/domains/receivables/access";
+import { canSeeAssignedTasks } from "@/domains/tasks/access";
 import type { AdminLocale } from "@/lib/i18n/admin";
 import { getAdminDictionary } from "@/lib/i18n/admin";
 
@@ -20,18 +31,6 @@ type AdminShellProps = {
   withNav?: boolean;
 };
 
-type NavItemSeed = {
-  href: Route;
-  label: string;
-  /** Visible when ANY of these is granted; null = visible to every signed-in reader. */
-  anyOf: readonly Permission[] | null;
-};
-
-type NavGroupSeed = {
-  label: string | null;
-  items: readonly NavItemSeed[];
-};
-
 export async function AdminShell({
   locale,
   children,
@@ -40,191 +39,10 @@ export async function AdminShell({
 }: AdminShellProps) {
   const copy = getAdminDictionary(locale);
   const basePath = `/${locale}/admin` as Route;
-
-  // Each entry mirrors the permission its page actually guards with, so the
-  // menu never links to a section the reader would 404 on.
-  const groups: NavGroupSeed[] = [
-    {
-      label: null,
-      items: [
-        { href: basePath, label: copy.navigation.overview, anyOf: null },
-        {
-          href: `${basePath}/paint-warehouse` as Route,
-          label:
-            locale === "vi" ? "Bảng xuất kho sơn" : "Paint warehouse exports",
-          anyOf: ["paintWarehouse.read"],
-        },
-        {
-          href: `${basePath}/materials` as Route,
-          label: locale === "vi" ? "Nguyên vật liệu" : "Raw materials",
-          anyOf: ["materials.read"],
-        },
-        {
-          href: `${basePath}/sales-slips` as Route,
-          label: locale === "vi" ? "Hóa đơn bán hàng" : "Sales slips",
-          anyOf: ["salesSlips.read"],
-        },
-        {
-          // Named for the counter it belongs to, because the finance group
-          // already carries "Công nợ khách hàng" — the order/INV receivables
-          // in USD and VND. Two ledgers, two counterparty sets; the labels must
-          // not read alike in a sidebar that shows both to the accountant.
-          href: `${basePath}/receivables` as Route,
-          label: locale === "vi" ? "Công nợ bán sơn" : "Paint sales debt",
-          anyOf: ["customerDebt.read"],
-        },
-        {
-          // The assistant answers only from tools the reader's grants allow;
-          // the entry itself follows `assistant.use`.
-          href: `${basePath}/assistant` as Route,
-          label: copy.navigation.assistant,
-          anyOf: ["assistant.use"],
-        },
-        {
-          href: `${basePath}/tasks` as Route,
-          label: copy.navigation.tasks,
-          anyOf: ["tasks.read"],
-        },
-        {
-          href: `${basePath}/orders` as Route,
-          label: copy.navigation.orders,
-          anyOf: ["orders.read"],
-        },
-        {
-          // The customer list belongs to the people who invoice and collect
-          // money; other roles see the customer name on the order.
-          href: `${basePath}/customers` as Route,
-          label: copy.navigation.customers,
-          anyOf: ["customers.read"],
-        },
-        {
-          // The supplier list is kept by whoever records factory cost; other
-          // roles only pick from it inside the cost form.
-          href: `${basePath}/suppliers` as Route,
-          label: copy.navigation.suppliers,
-          anyOf: ["suppliers.update"],
-        },
-        {
-          // The workflow reference is for the people who move orders through
-          // it, not for every role that can read the order book.
-          href: `${basePath}/operations` as Route,
-          label: copy.navigation.operations,
-          anyOf: ["orders.transitionOperational"],
-        },
-        {
-          // The approvals queue is the Director's decision desk; requesters
-          // raise and track approvals from the record they concern.
-          href: `${basePath}/approvals` as Route,
-          label: copy.navigation.approvals,
-          anyOf: ["approvals.decide"],
-        },
-        {
-          href: `${basePath}/organization` as Route,
-          label: copy.navigation.organization,
-          anyOf: ["users.read"],
-        },
-        {
-          href: `${basePath}/content` as Route,
-          label: copy.navigation.content,
-          anyOf: ["content.read"],
-        },
-        {
-          href: `${basePath}/sample-progress` as Route,
-          label: locale === "vi" ? "Theo dõi tiến độ mẫu" : "Sample progress",
-          anyOf: ["content.read"],
-        },
-        {
-          href: `${basePath}/products` as Route,
-          label: copy.navigation.products,
-          anyOf: ["content.read"],
-        },
-        {
-          href: `${basePath}/news` as Route,
-          label: copy.navigation.news,
-          anyOf: ["content.read"],
-        },
-        {
-          href: `${basePath}/collections` as Route,
-          label: copy.navigation.collections,
-          anyOf: ["content.read"],
-        },
-        {
-          href: `${basePath}/shop` as Route,
-          label: copy.navigation.shop,
-          anyOf: ["shop.read"],
-        },
-        {
-          // Guest orders are handled by the accountant and the Director;
-          // the content creator never sees them.
-          href: `${basePath}/shop/orders` as Route,
-          label: copy.navigation.shopOrders,
-          anyOf: ["shopOrders.read"],
-        },
-        {
-          // Website quote requests: the Director's inbox, nobody else's.
-          href: `${basePath}/quote-requests` as Route,
-          label: copy.navigation.quoteRequests,
-          anyOf: ["quoteRequests.read"],
-        },
-        {
-          href: `${basePath}/settings` as Route,
-          label: copy.navigation.settings,
-          anyOf: ["settings.read"],
-        },
-      ],
-    },
-    {
-      label: copy.navigation.financeGroup,
-      items: [
-        {
-          href: `${basePath}/finance` as Route,
-          label: copy.navigation.financeOverview,
-          anyOf: ["payments.read"],
-        },
-        {
-          href: `${basePath}/finance/invoices` as Route,
-          label: copy.navigation.invoices,
-          anyOf: ["invoices.read"],
-        },
-        {
-          href: `${basePath}/finance/payments` as Route,
-          label: copy.navigation.payments,
-          anyOf: ["payments.read"],
-        },
-        {
-          href: `${basePath}/finance/receivables` as Route,
-          label: copy.navigation.receivables,
-          anyOf: ["receivables.read"],
-        },
-        {
-          // The check list guards on documents.read; uploading needs
-          // documents.import and is gated again inside the page.
-          href: `${basePath}/checks` as Route,
-          label: copy.navigation.checks,
-          anyOf: ["documents.read"],
-        },
-        {
-          // The ledger page reads receipts, so it guards on payments.read;
-          // expense-only readers get the order-costs screen instead.
-          href: `${basePath}/finance/ledger` as Route,
-          label: copy.navigation.ledger,
-          anyOf: ["payments.read"],
-        },
-        {
-          href: `${basePath}/finance/expenses` as Route,
-          label: copy.navigation.expenses,
-          anyOf: ["expenses.read"],
-        },
-        {
-          href: `${basePath}/finance/fx` as Route,
-          label: copy.navigation.fxRates,
-          anyOf: ["finance.manageFxSnapshot"],
-        },
-      ],
-    },
-  ];
+  const groups = adminNavSeeds(locale, basePath);
 
   let visibleGroups: AdminNavGroup[] = [];
+  let roleGroups: AdminNavRoleGroup[] = [];
   if (withNav) {
     const requested = [
       ...new Set(
@@ -235,6 +53,7 @@ export async function AdminShell({
     const sampleProgressVisible = await canSeeSampleProgress();
     const materialsVisible = await canSeeMaterials();
     const receivablesVisible = await canSeeReceivables();
+    const assignedTasksVisible = await canSeeAssignedTasks();
 
     const covered = (permission: Permission): boolean => {
       const coverage = coverages[permission as keyof typeof coverages];
@@ -244,7 +63,7 @@ export async function AdminShell({
 
     // An unauthenticated or fully unauthorized reader gets no menu at all; the
     // always-visible items only make sense alongside at least one granted area.
-    visibleGroups = anyGranted
+    const granted: NavGroupSeed[] = anyGranted
       ? groups
           .map(({ label, items }) => ({
             label,
@@ -260,14 +79,35 @@ export async function AdminShell({
                 ({ href }) =>
                   !href.endsWith("/receivables") || receivablesVisible,
               )
-              .filter(({ anyOf }) => anyOf === null || anyOf.some(covered))
-              .map(({ href, label: itemLabel }) => ({
-                href,
-                label: itemLabel,
-              })),
+              // The personal task inbox is granted at `own`, which reports no
+              // coverage; its own guard decides whether the entry shows.
+              .filter(({ href, anyOf }) =>
+                href.endsWith("/my-tasks")
+                  ? assignedTasksVisible
+                  : anyOf === null || anyOf.some(covered),
+              ),
           }))
           .filter(({ items }) => items.length > 0)
       : [];
+
+    // The Director holds every role's screens, so their menu is laid out by
+    // role to show who works where; everyone else keeps their own flat menu.
+    if (
+      granted.length > 0 &&
+      (await resolveActiveRoleKeys()).includes("DIRECTOR")
+    ) {
+      const arranged = groupNavByRole(granted, roleDefinitionSeeds, locale);
+      visibleGroups = [arranged.standalone];
+      roleGroups = arranged.roleGroups;
+    } else {
+      visibleGroups = granted.map(({ label, items }) => ({
+        label,
+        items: items.map(({ href, label: itemLabel }) => ({
+          href,
+          label: itemLabel,
+        })),
+      }));
+    }
   }
 
   return (
@@ -315,6 +155,7 @@ export async function AdminShell({
             navigationLabel={copy.navigationLabel}
             basePath={basePath}
             groups={visibleGroups}
+            roleGroups={roleGroups}
           />
           <main
             id="admin-main"

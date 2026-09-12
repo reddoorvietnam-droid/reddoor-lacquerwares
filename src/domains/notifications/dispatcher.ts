@@ -1,12 +1,14 @@
 import type { AuditRepository } from "@/domains/audit/contracts";
 import type { UserDirectory } from "@/domains/identity/user-directory";
-import type {
-  ChannelLinkStore,
-  DeliveryMode,
-  EmailChannel,
-  NotificationIntentDto,
-  NotificationIntentStore,
-  ZaloChannel,
+import {
+  isReminderKind,
+  type ChannelLinkStore,
+  type DeliveryMode,
+  type EmailChannel,
+  type NotificationIntentDto,
+  type NotificationIntentStore,
+  type TaskEventKind,
+  type ZaloChannel,
 } from "@/domains/notifications/contracts";
 import {
   dedupeKeyFor,
@@ -17,8 +19,8 @@ import {
   planReminders,
   reminderStillApplies,
 } from "@/domains/notifications/scheduler";
-import { reminderMessage } from "@/domains/notifications/templates";
-import type { TaskStore } from "@/domains/tasks/contracts";
+import { letterHtml, reminderMessage } from "@/domains/notifications/templates";
+import type { TaskRecordDto, TaskStore } from "@/domains/tasks/contracts";
 
 /**
  * The reminder job, in two halves that are each safe to repeat:
@@ -159,28 +161,13 @@ export async function runReminderJob(
   }
 
   // 2. Drain.
-  const claimed = await dependencies.intentStore.claimDue({
-    now,
-    limit: drainLimit,
-    staleAfterMs,
-  });
-  summary.claimed = claimed.length;
-  for (const intent of claimed) {
-    try {
-      await deliver(dependencies, intent, now, summary);
-    } catch (error) {
-      summary.errors.push(
-        `deliver ${intent.id}: ${error instanceof Error ? error.message : "error"}`,
-      );
-      await dependencies.intentStore.markFailed({
-        intentId: intent.id,
-        error: error instanceof Error ? error.message : "Unexpected error",
-        retryAt: nextRetryAt(intent.attempts + 1, now),
-        at: now,
-      });
-      summary.failed += 1;
-    }
-  }
+  const drained = await drainIntents(dependencies, { now, limit: drainLimit });
+  summary.claimed = drained.claimed;
+  summary.sent = drained.sent;
+  summary.skipped += drained.skipped;
+  summary.failed = drained.failed;
+  summary.deadLettered = drained.deadLettered;
+  summary.errors.push(...drained.errors);
 
   try {
     await dependencies.auditRepository.append({
@@ -205,20 +192,170 @@ export async function runReminderJob(
   return summary;
 }
 
+/** Where the fact lines of an event body end; the whole body when it has no blank line. */
+function indexOfBlankLine(body: string): number {
+  const lines = body.split("\n");
+  const index = lines.indexOf("");
+  return index === -1 ? lines.length : index;
+}
+
+export type DrainSummary = {
+  claimed: number;
+  sent: number;
+  skipped: number;
+  failed: number;
+  deadLettered: number;
+  errors: string[];
+};
+
+/**
+ * The second half on its own: claim whatever is due and send it. The
+ * reminder job calls it after its scan, and an action that raises an event
+ * calls it straight after queueing so the message goes out with the request
+ * rather than at the next scheduled run.
+ */
+export async function drainIntents(
+  dependencies: ReminderJobDependencies,
+  options: { now?: Date; limit?: number } = {},
+): Promise<DrainSummary> {
+  const now = options.now ?? dependencies.now?.() ?? new Date();
+  const summary: DrainSummary = {
+    claimed: 0,
+    sent: 0,
+    skipped: 0,
+    failed: 0,
+    deadLettered: 0,
+    errors: [],
+  };
+
+  const claimed = await dependencies.intentStore.claimDue({
+    now,
+    limit: options.limit ?? drainLimit,
+    staleAfterMs,
+  });
+  summary.claimed = claimed.length;
+  for (const intent of claimed) {
+    try {
+      await deliver(dependencies, intent, now, summary);
+    } catch (error) {
+      summary.errors.push(
+        `deliver ${intent.id}: ${error instanceof Error ? error.message : "error"}`,
+      );
+      await dependencies.intentStore.markFailed({
+        intentId: intent.id,
+        error: error instanceof Error ? error.message : "Unexpected error",
+        retryAt: nextRetryAt(intent.attempts + 1, now),
+        at: now,
+      });
+      summary.failed += 1;
+    }
+  }
+  return summary;
+}
+
+/**
+ * Queues one event message for one person on every channel they can be
+ * reached on. `eventKey` separates one event from the next on the same task
+ * — the task's revision — so a repeated submit of the same action cannot
+ * send twice while a genuinely new event still gets through.
+ */
+export async function queueTaskEvent(
+  dependencies: ReminderJobDependencies,
+  input: {
+    kind: TaskEventKind;
+    task: TaskRecordDto;
+    recipientUserId: string;
+    eventKey: string;
+    message: { subject: string; text: string; chat: string };
+    link: string;
+  },
+): Promise<number> {
+  const now = dependencies.now?.() ?? new Date();
+  const { settings } = dependencies;
+  const users = await dependencies.userDirectory.findActiveUsers([
+    input.recipientUserId,
+  ]);
+  if (!users.has(input.recipientUserId)) return 0;
+
+  const zaloLink = await dependencies.channelLinks.findActive(
+    input.recipientUserId,
+    "zalo",
+  );
+  const channels: ("email" | "zalo")[] = zaloLink
+    ? ["email", "zalo"]
+    : ["email"];
+  // Night silence applies to events too: an assignment made at 22:00 waits
+  // for the morning rather than waking the person it is for.
+  const deliverAt = nextDeliveryInstant(
+    now,
+    settings.timeZone,
+    parseQuietHours(settings.quietHours),
+  );
+
+  let queued = 0;
+  for (const channel of channels) {
+    const { created } = await dependencies.intentStore.upsertPending({
+      kind: input.kind,
+      channel,
+      recipientUserId: input.recipientUserId,
+      dedupeKey: `task:${input.task.id}:${input.kind}:${input.eventKey}:${channel}`,
+      subject: input.message.subject,
+      body: channel === "email" ? input.message.text : input.message.chat,
+      link: input.link,
+      resourceType: "task",
+      resourceId: input.task.id,
+      businessUnitIds: input.task.businessUnitIds,
+      nextAttemptAt: deliverAt,
+    });
+    if (created) queued += 1;
+  }
+  return queued;
+}
+
+/**
+ * Whether an event message is still worth sending when it reaches the front
+ * of the queue. A reminder asks the day-based question; an event asks
+ * whether the thing it announces still holds.
+ */
+function eventStillApplies(
+  task: TaskRecordDto | null,
+  intent: NotificationIntentDto,
+): { applies: true } | { applies: false; reason: string } {
+  if (!task) return { applies: false, reason: "TASK_MISSING" };
+  if (intent.kind === "taskAssigned") {
+    if (task.status !== "open")
+      return { applies: false, reason: "TASK_CLOSED" };
+    if (task.assigneeUserId !== intent.recipientUserId) {
+      return { applies: false, reason: "TASK_REASSIGNED" };
+    }
+  }
+  if (intent.kind === "taskExtensionRequested" && !task.extensionRequest) {
+    return { applies: false, reason: "EXTENSION_DECIDED" };
+  }
+  return { applies: true };
+}
+
 async function deliver(
   dependencies: ReminderJobDependencies,
   intent: NotificationIntentDto,
   now: Date,
-  summary: ReminderJobSummary,
+  summary: Pick<DrainSummary, "sent" | "skipped" | "failed" | "deadLettered">,
 ): Promise<void> {
   const { settings } = dependencies;
 
-  // Is the reminder still warranted?
+  // Is the message still warranted?
   const task =
     intent.resourceType === "task"
       ? await dependencies.taskStore.findById(intent.resourceId)
       : null;
-  const check = reminderStillApplies(task, intent, now, settings.timeZone);
+  const check = isReminderKind(intent.kind)
+    ? reminderStillApplies(
+        task,
+        { ...intent, kind: intent.kind },
+        now,
+        settings.timeZone,
+      )
+    : eventStillApplies(task, intent);
   if (!check.applies) {
     await dependencies.intentStore.markSkipped({
       intentId: intent.id,
@@ -274,18 +411,33 @@ async function deliver(
       summary.skipped += 1;
       return;
     }
-    const message = reminderMessage({
-      kind: intent.kind,
-      task: task!,
-      dueDay: intent.dedupeKey.split(":")[3] ?? "",
-      daysLate: 0,
-      link: intent.link ?? settings.siteUrl,
-    });
+    // A reminder's letter is rebuilt from the task; an event's body was
+    // written when it happened, so it only needs the house shell around it.
+    const html = isReminderKind(intent.kind)
+      ? reminderMessage({
+          kind: intent.kind,
+          task: task!,
+          dueDay: intent.dedupeKey.split(":")[3] ?? "",
+          daysLate: 0,
+          link: intent.link ?? settings.siteUrl,
+        }).html
+      : letterHtml({
+          heading: intent.subject.replace(/^\[Red Door\]\s*/, ""),
+          // `taskEventMessage` writes the facts first, then a blank line
+          // before the link and the footer, so the block before that blank
+          // line is exactly what the letter should show.
+          lines: intent.body
+            .split("\n")
+            .slice(0, indexOfBlankLine(intent.body)),
+          link: intent.link ?? settings.siteUrl,
+          linkLabel: "Mở trong cổng quản trị",
+          footer: "Mọi thao tác được thực hiện trên cổng quản trị.",
+        });
     result = await dependencies.email.send({
       to,
       subject: intent.subject,
       text: intent.body,
-      html: message.html,
+      html,
       idempotencyKey: intent.dedupeKey,
     });
   } else {

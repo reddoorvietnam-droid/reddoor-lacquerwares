@@ -122,6 +122,27 @@ function unique(values: readonly string[]): string[] {
 }
 
 /**
+ * Keys of the active roles the snapshot's live grants carry, for arranging the
+ * UI around the positions someone holds. Never an authorization decision: the
+ * guard still evaluates every permission on its own.
+ */
+export function activeRoleKeys(
+  snapshot: AuthorizationSnapshot,
+  now: Date,
+): string[] {
+  const activeRoles = new Set(
+    snapshot.roles.filter(({ active }) => active).map(({ key }) => key),
+  );
+  return unique(
+    snapshot.grants
+      .filter(
+        (grant) => activeGrant(grant, now) && activeRoles.has(grant.roleKey),
+      )
+      .map(({ roleKey }) => roleKey),
+  );
+}
+
+/**
  * The business units an actor's active grants attach to a permission, plus
  * whether any grant satisfies it globally.
  *
@@ -134,8 +155,24 @@ export function grantCoverageForPermission(
   snapshot: AuthorizationSnapshot,
   permission: Permission,
   now: Date,
-): { global: boolean; businessUnitIds: readonly string[] } {
+): {
+  global: boolean;
+  businessUnitIds: readonly string[];
+  /**
+   * A grant that only reaches the holder's own records. It opens no list
+   * screen, so the sidebar ignores it, but a screen or a tool that works on
+   * the holder's own records can still run — the guard narrows the read.
+   */
+  own: boolean;
+  /**
+   * The units such a grant is bound to; empty when it is global. A personal
+   * list read presents them as its target, because a unit-bound `own` grant
+   * reaches the holder's records only inside those units.
+   */
+  ownBusinessUnitIds: readonly string[];
+} {
   const candidates = candidatesForPermission(snapshot, permission, now);
+  const ownCandidates = candidates.filter(({ scope }) => scope === "own");
 
   return {
     global: candidates.some(
@@ -148,6 +185,16 @@ export function grantCoverageForPermission(
           : [],
       ),
     ),
+    own: ownCandidates.length > 0,
+    ownBusinessUnitIds: ownCandidates.some(
+      ({ businessUnitId }) => businessUnitId === null,
+    )
+      ? []
+      : unique(
+          ownCandidates.flatMap(({ businessUnitId }) =>
+            businessUnitId ? [businessUnitId] : [],
+          ),
+        ),
   };
 }
 

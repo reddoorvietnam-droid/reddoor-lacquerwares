@@ -12,16 +12,16 @@ Mở `/vi/admin/sample-progress` từ mục **Theo dõi tiến độ mẫu** tro
 | Vai trò | Quyền |
 | --- | --- |
 | `CONTENT_CREATOR` (biên tập nội dung) | Xem, tạo tuần mới, kế thừa tuần trước, nhập Excel, thêm/sửa/bỏ mẫu, lưu phiên bản, xóa cả báo cáo tuần, xem lịch sử, xuất Excel, in |
-| `DIRECTOR` (giám đốc) | Xem mọi báo cáo đã lưu, chọn tuần và phiên bản, xem lịch sử, tìm kiếm và lọc, xuất Excel, in |
+| `DIRECTOR` (giám đốc) | Như biên tập nội dung |
 | Vai trò khác | Không thấy menu, vào thẳng URL nhận 404, mọi API trả 403 |
 
-Giám đốc **chỉ đọc**: mọi thao tác ghi (`POST`) đều đi qua
-`requireSampleProgressEditor()`, nên một phiên bản đã lưu luôn mang tên người
-thực sự cập nhật báo cáo.
+Giám đốc **được sửa** như biên tập nội dung (chốt ngày 11/09/2026; trước đó chỉ
+đọc). Mọi thao tác ghi (`POST`, `DELETE`) vẫn đi qua
+`requireSampleProgressEditor()`, và mỗi phiên bản đã lưu mang tên người bấm lưu.
 
-Vì `CONTENT_CREATOR` có tập quyền là tập con của `DIRECTOR`, không permission
-nào phân biệt được hai vai trò này — việc phân tách dựa trên `roleKeys` của
-`AccessContext`. Tài khoản giữ cả hai vai trò được coi là biên tập viên.
+Danh sách cho phép (`CONTENT_CREATOR`, `DIRECTOR`) dựa trên `roleKeys` của
+`AccessContext`, không dựa trên permission, nên một vai trò khác lỡ được cấp
+`content.read` vẫn bị từ chối.
 
 Kiểm tra quyền diễn ra ở menu, Server Component của trang, API route, và cả
 endpoint nhập/xuất Excel. Module này tự dựng guard riêng **không truyền**

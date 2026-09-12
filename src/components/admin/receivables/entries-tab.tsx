@@ -74,6 +74,9 @@ const copy: Record<
 };
 
 const cellInput = `${fieldClass} min-w-0 px-2 py-1 text-sm`;
+/** Numeric cells need a floor, or a six-digit price is clipped mid-number. */
+const numberInput = `${cellInput} min-w-[5.5rem] text-right`;
+const codeInput = `${cellInput} min-w-[8rem]`;
 
 export function ReceivablesEntries({ kind }: { kind: Kind }) {
   const {
@@ -315,6 +318,7 @@ export function ReceivablesEntries({ kind }: { kind: Kind }) {
                   key={entry.id}
                   kind={kind}
                   entry={entry}
+                  columns={columns}
                   onClose={() => setEditing(null)}
                   onSaved={async () => {
                     setEditing(null);
@@ -538,11 +542,13 @@ export function ReceivablesEntries({ kind }: { kind: Kind }) {
 function EditableRow({
   kind,
   entry,
+  columns,
   onClose,
   onSaved,
 }: {
   kind: Kind;
   entry: ReceivableEntry;
+  columns: number;
   onClose: () => void;
   onSaved: () => Promise<void>;
 }) {
@@ -609,145 +615,166 @@ function EditableRow({
     });
 
   return (
-    <tr className="border-burgundy/25 bg-ivory/60 border-b">
-      <td className={tdClass}>
-        <input
-          type="date"
-          max={today}
-          className={cellInput}
-          aria-label="Ngày tháng"
-          value={draft.entryDate}
-          onChange={(event) => set({ entryDate: event.target.value })}
-        />
-      </td>
-      <td className={tdClass} colSpan={2}>
-        <select
-          className={cellInput}
-          aria-label="Khách hàng"
-          value={draft.customerId}
-          onChange={(event) => set({ customerId: event.target.value })}
-        >
-          {customers.map((customer) => (
-            <option key={customer.id} value={customer.id}>
-              {customer.code} — {customer.name || "(chưa có tên)"}
-            </option>
-          ))}
-        </select>
-      </td>
-      <td className={tdClass}>
-        <input
-          className={cellInput}
-          aria-label="Số chứng từ"
-          value={draft.documentNumber}
-          onChange={(event) => set({ documentNumber: event.target.value })}
-        />
-      </td>
-      {kind === "sales" ? (
-        <>
-          <td className={tdClass} colSpan={2}>
-            <input
-              className={cellInput}
-              list="receivables-items"
-              aria-label="Mã hàng hóa"
-              value={draft.itemCode}
-              onChange={(event) => set({ itemCode: event.target.value })}
-            />
-          </td>
-          <td className={tdClass}>
-            <input
-              className={`${cellInput} text-right`}
-              inputMode="decimal"
-              aria-label="Số lượng"
-              value={draft.quantity}
-              onChange={(event) => set({ quantity: event.target.value })}
-            />
-          </td>
-          <td className={tdClass}>
-            <input
-              className={`${cellInput} text-right`}
-              inputMode="decimal"
-              aria-label="Đơn giá"
-              value={draft.unitPrice}
-              onChange={(event) => set({ unitPrice: event.target.value })}
-            />
-          </td>
-          <td className={`${tdClass} text-right font-semibold tabular-nums`}>
-            {preview && amountsVisible ? formatMoney(preview) : "—"}
-          </td>
-        </>
-      ) : (
-        <>
-          <td className={tdClass}>
-            <select
-              className={cellInput}
-              aria-label="Loại giảm nợ"
-              value={draft.type}
-              onChange={(event) =>
-                set({ type: event.target.value as EntryType })
-              }
+    <>
+      <tr className="border-burgundy/25 bg-ivory/60 border-t-2">
+        <td className={tdClass}>
+          <input
+            type="date"
+            max={today}
+            className={cellInput}
+            aria-label="Ngày tháng"
+            value={draft.entryDate}
+            onChange={(event) => set({ entryDate: event.target.value })}
+          />
+        </td>
+        <td className={tdClass} colSpan={2}>
+          <select
+            className={cellInput}
+            aria-label="Khách hàng"
+            value={draft.customerId}
+            onChange={(event) => set({ customerId: event.target.value })}
+          >
+            {customers.map((customer) => (
+              <option key={customer.id} value={customer.id}>
+                {customer.code} — {customer.name || "(chưa có tên)"}
+              </option>
+            ))}
+          </select>
+        </td>
+        <td className={tdClass}>
+          <input
+            className={cellInput}
+            aria-label="Số chứng từ"
+            value={draft.documentNumber}
+            onChange={(event) => set({ documentNumber: event.target.value })}
+          />
+        </td>
+        {kind === "sales" ? (
+          <>
+            <td className={tdClass} colSpan={2}>
+              <input
+                className={codeInput}
+                list="receivables-items"
+                aria-label="Mã hàng hóa"
+                value={draft.itemCode}
+                onChange={(event) => set({ itemCode: event.target.value })}
+              />
+            </td>
+            <td className={tdClass}>
+              <input
+                className={numberInput}
+                inputMode="decimal"
+                aria-label="Số lượng"
+                value={draft.quantity}
+                onChange={(event) => set({ quantity: event.target.value })}
+              />
+            </td>
+            <td className={tdClass}>
+              <input
+                className={numberInput}
+                inputMode="decimal"
+                aria-label="Đơn giá"
+                value={draft.unitPrice}
+                onChange={(event) => set({ unitPrice: event.target.value })}
+              />
+            </td>
+            <td className={`${tdClass} text-right font-semibold tabular-nums`}>
+              {preview && amountsVisible ? formatMoney(preview) : "—"}
+            </td>
+          </>
+        ) : (
+          <>
+            <td className={tdClass}>
+              <select
+                className={cellInput}
+                aria-label="Loại giảm nợ"
+                value={draft.type}
+                onChange={(event) =>
+                  set({ type: event.target.value as EntryType })
+                }
+              >
+                {reductionOptions.map((option) => (
+                  <option key={option.id} value={option.id}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </td>
+            <td className={tdClass}>
+              <input
+                className={cellInput}
+                aria-label="Diễn giải"
+                value={draft.description}
+                onChange={(event) => set({ description: event.target.value })}
+              />
+            </td>
+            <td className={tdClass}>
+              <input
+                className={numberInput}
+                inputMode="decimal"
+                aria-label="Số tiền"
+                value={draft.amount}
+                onChange={(event) => set({ amount: event.target.value })}
+              />
+            </td>
+          </>
+        )}
+        <td className={tdClass}>
+          <input
+            className={cellInput}
+            aria-label="Ghi chú"
+            value={draft.note}
+            onChange={(event) => set({ note: event.target.value })}
+          />
+        </td>
+        <td className={`${tdClass} receivables-no-print`}>
+          <div className="flex gap-1.5">
+            <button
+              type="button"
+              className={buttonClass}
+              disabled={busy}
+              onClick={save}
             >
-              {reductionOptions.map((option) => (
-                <option key={option.id} value={option.id}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </td>
-          <td className={tdClass}>
+              Lưu
+            </button>
+            <button
+              type="button"
+              className={ghostButtonClass}
+              disabled={busy}
+              onClick={onClose}
+            >
+              Bỏ
+            </button>
+          </div>
+        </td>
+      </tr>
+      {/*
+        The reason gets its own full-width line rather than being squeezed into
+        the note column, where it was unreadable at this table width.
+      */}
+      <tr className="border-burgundy/25 bg-ivory/60 border-b-2">
+        <td className={`${tdClass} receivables-no-print`} colSpan={columns}>
+          <div className="flex flex-wrap items-center gap-2">
+            <label
+              className="text-charcoal/60 text-xs"
+              htmlFor={`edit-reason-${entry.id}`}
+            >
+              Lý do sửa
+            </label>
             <input
-              className={cellInput}
-              aria-label="Diễn giải"
-              value={draft.description}
-              onChange={(event) => set({ description: event.target.value })}
+              id={`edit-reason-${entry.id}`}
+              className={`${cellInput} w-full max-w-md`}
+              placeholder="Ví dụ: đếm lại thực tế, gõ nhầm số tiền…"
+              value={draft.reason}
+              onChange={(event) => set({ reason: event.target.value })}
             />
-          </td>
-          <td className={tdClass}>
-            <input
-              className={`${cellInput} text-right`}
-              inputMode="decimal"
-              aria-label="Số tiền"
-              value={draft.amount}
-              onChange={(event) => set({ amount: event.target.value })}
-            />
-          </td>
-        </>
-      )}
-      <td className={tdClass}>
-        <input
-          className={cellInput}
-          aria-label="Ghi chú"
-          value={draft.note}
-          onChange={(event) => set({ note: event.target.value })}
-        />
-        <input
-          className={`${cellInput} mt-1`}
-          aria-label="Lý do sửa"
-          placeholder="Lý do sửa (ghi vào nhật ký)"
-          value={draft.reason}
-          onChange={(event) => set({ reason: event.target.value })}
-        />
-      </td>
-      <td className={`${tdClass} receivables-no-print`}>
-        <div className="flex gap-1.5">
-          <button
-            type="button"
-            className={buttonClass}
-            disabled={busy}
-            onClick={save}
-          >
-            Lưu
-          </button>
-          <button
-            type="button"
-            className={ghostButtonClass}
-            disabled={busy}
-            onClick={onClose}
-          >
-            Bỏ
-          </button>
-        </div>
-      </td>
-    </tr>
+            <span className="text-charcoal/50 text-xs">
+              Ghi vào Nhật ký kèm số cũ, số mới và người sửa.
+            </span>
+          </div>
+        </td>
+      </tr>
+    </>
   );
 }
 
@@ -1104,7 +1131,7 @@ function SaleBatchForm({
                   <td className={`${tdClass} text-charcoal/60`}>{index + 1}</td>
                   <td className={tdClass}>
                     <input
-                      className={cellInput}
+                      className={codeInput}
                       list="receivables-items"
                       aria-label={`Mã hàng dòng ${index + 1}`}
                       value={line.itemCode}
@@ -1129,7 +1156,7 @@ function SaleBatchForm({
                   </td>
                   <td className={tdClass}>
                     <input
-                      className={`${cellInput} text-right`}
+                      className={numberInput}
                       inputMode="decimal"
                       aria-label={`Số lượng dòng ${index + 1}`}
                       value={line.quantity}
@@ -1140,7 +1167,7 @@ function SaleBatchForm({
                   </td>
                   <td className={tdClass}>
                     <input
-                      className={`${cellInput} text-right`}
+                      className={numberInput}
                       inputMode="decimal"
                       aria-label={`Đơn giá dòng ${index + 1}`}
                       value={line.unitPrice}

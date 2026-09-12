@@ -2,13 +2,16 @@
 
 import type { Route } from "next";
 import { redirect, unstable_rethrow } from "next/navigation";
+import { after } from "next/server";
 import { z } from "zod";
 
 import { AssistantError } from "@/domains/assistant/contracts";
 import { assistantProposalService } from "@/domains/assistant/runtime";
+import { mongoUserDirectory } from "@/domains/identity/user-directory";
 import { NotificationError } from "@/domains/notifications/contracts";
 import {
   channelLinkService,
+  notifyTaskEvent,
   runScheduledReminderJob,
 } from "@/domains/notifications/runtime";
 import { orderCommandService } from "@/domains/orders/runtime";
@@ -45,7 +48,8 @@ function errorCode(error: unknown): string {
   return "UNAVAILABLE";
 }
 
-function backToTasks(
+function backTo(
+  path: "tasks" | "my-tasks",
   locale: string,
   outcome: { error?: string; notice?: string; extra?: Record<string, string> },
 ): never {
@@ -56,7 +60,37 @@ function backToTasks(
     params.set(key, value);
   }
   const query = params.toString();
-  redirect(`/${locale}/admin/tasks${query ? `?${query}` : ""}` as Route);
+  redirect(`/${locale}/admin/${path}${query ? `?${query}` : ""}` as Route);
+}
+
+function backToTasks(
+  locale: string,
+  outcome: { error?: string; notice?: string; extra?: Record<string, string> },
+): never {
+  backTo("tasks", locale, outcome);
+}
+
+/** The display name a notification names as the person who acted. */
+async function displayNameOf(userId: string): Promise<string> {
+  const users = await mongoUserDirectory.findActiveUsers([userId]);
+  return users.get(userId)?.displayName ?? "Cổng quản trị";
+}
+
+/**
+ * Sends an event message after the response has gone out: the person who
+ * acted waits for their own page, not for an email and a Zalo round trip,
+ * and a provider that is down never turns a saved change into an error.
+ */
+function notifyAfterResponse(
+  input: Parameters<typeof notifyTaskEvent>[0],
+): void {
+  after(async () => {
+    try {
+      await notifyTaskEvent(input);
+    } catch (error) {
+      console.error("[tasks] notification failed", error);
+    }
+  });
 }
 
 async function currentUserId(): Promise<string | null> {
@@ -133,7 +167,7 @@ export async function createTaskAction(formData: FormData): Promise<void> {
       );
     }
 
-    await taskCommandService.create(
+    const task = await taskCommandService.create(
       context,
       {
         title: String(formData.get("title") ?? ""),
@@ -145,12 +179,179 @@ export async function createTaskAction(formData: FormData): Promise<void> {
       },
       { fallbackBusinessUnitIds: fallbackUnits },
     );
+
+    // Work handed to someone else is announced at once; work one keeps for
+    // oneself needs no message.
+    if (task.assigneeUserId && task.assigneeUserId !== userId) {
+      notifyAfterResponse({
+        kind: "taskAssigned",
+        task,
+        recipientUserId: task.assigneeUserId,
+        actorName: await displayNameOf(userId),
+      });
+    }
   } catch (error) {
     unstable_rethrow(error);
     code = errorCode(error);
   }
 
   backToTasks(locale, code ? { error: code } : { notice: "created" });
+}
+
+/**
+ * Edits an existing task: its wording, its deadline, its priority, or the
+ * person expected to do it. Moving it to someone else takes `tasks.assign`
+ * and tells the new holder at once.
+ */
+export async function updateTaskAction(formData: FormData): Promise<void> {
+  const locale = localeSchema.parse(formData.get("locale"));
+  let code: string | null = null;
+
+  try {
+    const userId = await currentUserId();
+    if (!userId) throw new ContentAccessDeniedError("UNAUTHENTICATED");
+    const taskId = idSchema.parse(formData.get("taskId"));
+    const existing = await taskCommandService.findForAuthorization(taskId);
+    if (!existing) throw new TaskCommandError("NOT_FOUND", "Task not found.");
+
+    const target = taskTarget(existing, userId);
+    let context = await requirePermission("tasks.update", target);
+    const assigneeUserId =
+      String(formData.get("assigneeUserId") ?? "").trim() || null;
+    if (assigneeUserId !== existing.assigneeUserId) {
+      context = merge(context, await requirePermission("tasks.assign", target));
+    }
+
+    const updated = await taskCommandService.update(context, {
+      taskId,
+      expectedRevision: String(formData.get("expectedRevision") ?? ""),
+      title: String(formData.get("title") ?? ""),
+      note: String(formData.get("note") ?? "").trim() || null,
+      priority: String(formData.get("priority") ?? "normal"),
+      assigneeUserId: assigneeUserId ?? "",
+      dueDate: String(formData.get("dueDate") ?? "").trim(),
+    });
+
+    const deadlineMoved =
+      (updated.dueAt?.getTime() ?? null) !==
+      (existing.dueAt?.getTime() ?? null);
+    if (
+      updated.assigneeUserId &&
+      updated.assigneeUserId !== userId &&
+      (updated.assigneeUserId !== existing.assigneeUserId || deadlineMoved)
+    ) {
+      notifyAfterResponse({
+        kind: "taskAssigned",
+        task: updated,
+        recipientUserId: updated.assigneeUserId,
+        actorName: await displayNameOf(userId),
+      });
+    }
+  } catch (error) {
+    unstable_rethrow(error);
+    code = errorCode(error);
+  }
+
+  backToTasks(locale, code ? { error: code } : { notice: "updated" });
+}
+
+/**
+ * The assignee asks for more time, with a reason. The deadline does not
+ * move until the person who handed the work out answers.
+ */
+export async function requestExtensionAction(
+  formData: FormData,
+): Promise<void> {
+  const locale = localeSchema.parse(formData.get("locale"));
+  let code: string | null = null;
+
+  try {
+    const userId = await currentUserId();
+    if (!userId) throw new ContentAccessDeniedError("UNAUTHENTICATED");
+    const taskId = idSchema.parse(formData.get("taskId"));
+    const task = await taskCommandService.findForAuthorization(taskId);
+    if (!task) throw new TaskCommandError("NOT_FOUND", "Task not found.");
+
+    const context = await requirePermission(
+      "tasks.update",
+      taskTarget(task, userId),
+    );
+    const updated = await taskCommandService.requestExtension(context, {
+      taskId,
+      expectedRevision: String(formData.get("expectedRevision") ?? ""),
+      requestedDueDate: String(formData.get("requestedDueDate") ?? "").trim(),
+      reason: String(formData.get("reason") ?? "").trim(),
+    });
+
+    // The person who handed the work out is the one who answers, so they are
+    // the one told. A task created by the holder themself tells nobody.
+    if (updated.createdBy !== userId) {
+      notifyAfterResponse({
+        kind: "taskExtensionRequested",
+        task: updated,
+        recipientUserId: updated.createdBy,
+        actorName: await displayNameOf(userId),
+        requestedDueAt: updated.extensionRequest?.requestedDueAt ?? null,
+        reason: updated.extensionRequest?.reason ?? null,
+      });
+    }
+  } catch (error) {
+    unstable_rethrow(error);
+    code = errorCode(error);
+  }
+
+  backTo(
+    "my-tasks",
+    locale,
+    code ? { error: code } : { notice: "extensionRequested" },
+  );
+}
+
+/** The Director answers a plea for more time; approval moves the deadline. */
+export async function decideExtensionAction(formData: FormData): Promise<void> {
+  const locale = localeSchema.parse(formData.get("locale"));
+  let code: string | null = null;
+  let notice = "extensionApproved";
+
+  try {
+    const userId = await currentUserId();
+    if (!userId) throw new ContentAccessDeniedError("UNAUTHENTICATED");
+    const taskId = idSchema.parse(formData.get("taskId"));
+    const task = await taskCommandService.findForAuthorization(taskId);
+    if (!task) throw new TaskCommandError("NOT_FOUND", "Task not found.");
+
+    const context = await requirePermission(
+      "tasks.assign",
+      taskTarget(task, userId),
+    );
+    const outcome = z
+      .enum(["approved", "rejected"])
+      .parse(formData.get("outcome"));
+    const decided = await taskCommandService.decideExtension(context, {
+      taskId,
+      expectedRevision: String(formData.get("expectedRevision") ?? ""),
+      outcome,
+      note: String(formData.get("note") ?? "").trim() || null,
+    });
+    notice = outcome === "approved" ? "extensionApproved" : "extensionRejected";
+
+    if (decided.requestedBy !== userId) {
+      notifyAfterResponse({
+        kind: "taskExtensionDecided",
+        task: decided.task,
+        recipientUserId: decided.requestedBy,
+        actorName: await displayNameOf(userId),
+        requestedDueAt: decided.requestedDueAt,
+        reason: String(formData.get("note") ?? "").trim() || null,
+        outcome,
+      });
+    }
+  } catch (error) {
+    unstable_rethrow(error);
+    code = errorCode(error);
+  }
+
+  backToTasks(locale, code ? { error: code } : { notice });
 }
 
 export async function setTaskStatusAction(formData: FormData): Promise<void> {
@@ -196,7 +397,11 @@ export async function setTaskStatusAction(formData: FormData): Promise<void> {
       );
     }
   }
-  backToTasks(locale, code ? { error: code } : { notice });
+  backTo(
+    returnTo === "my-tasks" ? "my-tasks" : "tasks",
+    locale,
+    code ? { error: code } : { notice },
+  );
 }
 
 export type DecideProposalResult =
@@ -330,6 +535,7 @@ export async function retryIntentAction(formData: FormData): Promise<void> {
 
 export async function startZaloLinkAction(formData: FormData): Promise<void> {
   const locale = localeSchema.parse(formData.get("locale"));
+  const returnTo = String(formData.get("returnTo") ?? "");
   let code: string | null = null;
   try {
     const userId = await currentUserId();
@@ -343,11 +549,16 @@ export async function startZaloLinkAction(formData: FormData): Promise<void> {
     unstable_rethrow(error);
     code = errorCode(error);
   }
-  backToTasks(locale, code ? { error: code } : { notice: "zaloCode" });
+  backTo(
+    returnTo === "my-tasks" ? "my-tasks" : "tasks",
+    locale,
+    code ? { error: code } : { notice: "zaloCode" },
+  );
 }
 
 export async function revokeZaloLinkAction(formData: FormData): Promise<void> {
   const locale = localeSchema.parse(formData.get("locale"));
+  const returnTo = String(formData.get("returnTo") ?? "");
   let code: string | null = null;
   try {
     const userId = await currentUserId();
@@ -361,5 +572,9 @@ export async function revokeZaloLinkAction(formData: FormData): Promise<void> {
     unstable_rethrow(error);
     code = errorCode(error);
   }
-  backToTasks(locale, code ? { error: code } : { notice: "zaloRevoked" });
+  backTo(
+    returnTo === "my-tasks" ? "my-tasks" : "tasks",
+    locale,
+    code ? { error: code } : { notice: "zaloRevoked" },
+  );
 }

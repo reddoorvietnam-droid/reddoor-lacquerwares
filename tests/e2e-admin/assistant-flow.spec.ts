@@ -35,7 +35,12 @@ test("content creator: assistant visible, orders and tasks invisible, order ques
   await signInAs(page, "CONTENT_CREATOR");
   const nav = page.getByRole("navigation", { name: /Điều hướng quản trị/ });
   await expect(nav.getByRole("link", { name: "Trợ lý AI" })).toBeVisible();
-  await expect(nav.getByRole("link", { name: "Việc cần làm" })).toHaveCount(0);
+  // Work assigned to this role is readable since 2026-09-12; handing work
+  // out and the order book are not.
+  await expect(
+    nav.getByRole("link", { name: "Công việc được giao" }),
+  ).toBeVisible();
+  await expect(nav.getByRole("link", { name: "Giao việc" })).toHaveCount(0);
   await expect(nav.getByRole("link", { name: "Sổ đơn hàng" })).toHaveCount(0);
 
   // Direct API call with an order intent: no tool runs, no order data.
@@ -48,7 +53,7 @@ test("content creator: assistant visible, orders and tasks invisible, order ques
   expect(body.text).toContain("không có quyền");
   expect(JSON.stringify(body)).not.toContain("productionPlanning");
 
-  // The tasks page itself is closed to this role.
+  // The assigning screen itself is closed to this role.
   await page.goto("/vi/admin/tasks", { waitUntil: "domcontentloaded" });
   await expect(
     page.getByText(/Không tìm thấy trang quản trị|not found/i),
@@ -79,10 +84,12 @@ test("factory accountant: reads the order stage, never the selling price or invo
   expect(receivables.body.text).toContain("không có quyền");
 });
 
-test("company accountant: plans the fixture order through the chat and approves the proposal", async ({
+test("director: plans the fixture order through the chat and approves the proposal", async ({
   page,
 }) => {
-  await signInAs(page, "COMPANY_ACCOUNTANT");
+  // Planning and approving belong to the Director since 2026-09-12: work is
+  // handed out from one desk.
+  await signInAs(page, "DIRECTOR");
   await page.goto("/vi/admin/assistant", { waitUntil: "domcontentloaded" });
   await expect(page.locator("#assistant-input")).toBeVisible();
   await expect(page.getByText("GIẢ LẬP").first()).toBeVisible();
@@ -138,24 +145,59 @@ test("approving the same proposal again is refused and creates no duplicate task
   expect(taskIds.length).toBeGreaterThanOrEqual(5);
 });
 
-test("factory manager completes their own step from the task list and it stays done after reload", async ({
+test("factory manager completes their own step from their assigned work and it stays done after reload", async ({
   page,
 }) => {
   await signInAs(page, "FACTORY_MANAGER");
-  await page.goto(`/vi/admin/tasks?order=${fixtureOrderCode}`, {
-    waitUntil: "domcontentloaded",
-  });
-  const mine = page.locator("li[id^='task-']", { hasText: "Bước 4" }).first();
+  await page.goto("/vi/admin/my-tasks", { waitUntil: "domcontentloaded" });
+  const mine = page
+    .locator("li[id^='task-']", { hasText: fixtureOrderCode })
+    .first();
   await expect(mine).toBeVisible();
   await mine.getByRole("button", { name: "Xong" }).click();
   await expect(page).toHaveURL(/notice=done/);
-  await page.goto(`/vi/admin/tasks?status=done&order=${fixtureOrderCode}`, {
+  await page.goto("/vi/admin/my-tasks?status=done", {
     waitUntil: "domcontentloaded",
   });
   await expect(
-    page.locator("li[id^='task-']", { hasText: "Bước 4" }),
+    page.locator("li[id^='task-']", { hasText: fixtureOrderCode }),
   ).toHaveCount(1);
   await expect(page.getByText(/Xong lúc/).first()).toBeVisible();
+});
+
+test("storekeeper asks for more time and the director answers", async ({
+  page,
+}) => {
+  await signInAs(page, "WAREHOUSE_MANAGER");
+  await page.goto("/vi/admin/my-tasks", { waitUntil: "domcontentloaded" });
+  const mine = page
+    .locator("li[id^='task-']", { hasText: fixtureOrderCode })
+    .first();
+  await expect(mine).toBeVisible();
+  await mine.getByText("Xin gia hạn").click();
+  const later = new Date(Date.now() + 14 * 86_400_000)
+    .toISOString()
+    .slice(0, 10);
+  await mine.locator('input[name="requestedDueDate"]').fill(later);
+  await mine.locator('input[name="reason"]').fill("Chờ sơn về kho");
+  await mine.getByRole("button", { name: "Gửi yêu cầu" }).click();
+  await expect(page).toHaveURL(/notice=extensionRequested/);
+  await expect(page.getByText(/Đang chờ Giám đốc duyệt/)).toBeVisible();
+
+  await signInAs(page, "DIRECTOR");
+  await page.goto("/vi/admin/tasks", { waitUntil: "domcontentloaded" });
+  const queue = page.locator("#extensions");
+  await expect(queue.getByText("Chờ sơn về kho")).toBeVisible();
+  await queue.getByRole("button", { name: "Duyệt gia hạn" }).first().click();
+  await expect(page).toHaveURL(/notice=extensionApproved/);
+  await expect(
+    page.locator("#extensions").getByText("Chờ sơn về kho"),
+  ).toHaveCount(0);
+
+  // The assignee reads the answer on their own list.
+  await signInAs(page, "WAREHOUSE_MANAGER");
+  await page.goto("/vi/admin/my-tasks", { waitUntil: "domcontentloaded" });
+  await expect(page.getByText(/Giám đốc đã duyệt gia hạn tới/)).toBeVisible();
 });
 
 test("warehouse manager sees the order's storekeeper steps and the assistant lists them as today's work", async ({

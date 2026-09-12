@@ -63,7 +63,12 @@ describe("only the director and the content creator reach sample progress", () =
     },
   );
 
-  it.each(["FACTORY_MANAGER", "WAREHOUSE_MANAGER", "FACTORY_ACCOUNTANT", "COMPANY_ACCOUNTANT"])(
+  it.each([
+    "FACTORY_MANAGER",
+    "WAREHOUSE_MANAGER",
+    "FACTORY_ACCOUNTANT",
+    "COMPANY_ACCOUNTANT",
+  ])(
     "denies %s at the allowlist even if it somehow held content.read",
     (roleKey) => {
       const data = snapshot(roleKey);
@@ -110,22 +115,25 @@ describe("only the director and the content creator reach sample progress", () =
     "stale",
     "inactive",
     "unit",
-  ])("rejects %s authorization before the allowlist is reached", (condition) => {
-    const data = snapshot();
-    if (condition === "revoked") data.grants[0]!.status = "revoked";
-    if (condition === "expired")
-      data.grants[0]!.expiresAt = new Date("2000-01-01");
-    if (condition === "suspended" || condition === "pending")
-      data.user.status = condition;
-    if (condition === "stale") data.user.authzVersion = 2;
-    if (condition === "inactive")
-      data.roles = data.roles.map((role) => ({ ...role, active: false }));
-    if (condition === "unit") data.grants[0]!.businessUnitId = "factory";
-    const decision = evaluate(data);
-    expect(decision.allowed).toBe(false);
-    // The guard denies first, so no context ever reaches the role check.
-    if (!decision.allowed) expect(decision.code).toBeTruthy();
-  });
+  ])(
+    "rejects %s authorization before the allowlist is reached",
+    (condition) => {
+      const data = snapshot();
+      if (condition === "revoked") data.grants[0]!.status = "revoked";
+      if (condition === "expired")
+        data.grants[0]!.expiresAt = new Date("2000-01-01");
+      if (condition === "suspended" || condition === "pending")
+        data.user.status = condition;
+      if (condition === "stale") data.user.authzVersion = 2;
+      if (condition === "inactive")
+        data.roles = data.roles.map((role) => ({ ...role, active: false }));
+      if (condition === "unit") data.grants[0]!.businessUnitId = "factory";
+      const decision = evaluate(data);
+      expect(decision.allowed).toBe(false);
+      // The guard denies first, so no context ever reaches the role check.
+      if (!decision.allowed) expect(decision.code).toBeTruthy();
+    },
+  );
 
   it("never treats a dev-open-access context as an allowed role", async () => {
     const guard = createPermissionGuard({
@@ -145,13 +153,13 @@ describe("only the director and the content creator reach sample progress", () =
   });
 });
 
-describe("the director reads, the content creator maintains", () => {
+describe("the director and the content creator both maintain the report", () => {
   it("gives the content creator edit rights", () => {
     expect(sampleProgressRole(contextFor("CONTENT_CREATOR"))).toBe("editor");
   });
 
-  it("gives the director read-only rights", () => {
-    expect(sampleProgressRole(contextFor("DIRECTOR"))).toBe("viewer");
+  it("gives the director edit rights too", () => {
+    expect(sampleProgressRole(contextFor("DIRECTOR"))).toBe("editor");
   });
 
   it("treats someone holding both roles as an editor", () => {

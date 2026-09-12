@@ -6,6 +6,7 @@ import { mongoAuditRepository } from "@/domains/audit/mongo-repository";
 import { mongoIdentityRepository } from "@/domains/identity/mongo-repository";
 import type { Permission } from "@/domains/identity/permissions";
 import {
+  activeRoleKeys,
   grantCoverageForPermission,
   type AccessContext,
   type AccessDenialCode,
@@ -119,6 +120,10 @@ export async function resolvePortalEntry(
 export type PermissionCoverage = {
   global: boolean;
   businessUnitIds: readonly string[];
+  /** Granted for the holder's own records only; opens no list screen. */
+  own: boolean;
+  /** The units such a grant is bound to; empty when it is global. */
+  ownBusinessUnitIds: readonly string[];
 };
 
 /**
@@ -130,7 +135,12 @@ export type PermissionCoverage = {
 export async function resolvePermissionCoverages<
   const P extends readonly Permission[],
 >(permissions: P): Promise<Record<P[number], PermissionCoverage>> {
-  const empty: PermissionCoverage = { global: false, businessUnitIds: [] };
+  const empty: PermissionCoverage = {
+    global: false,
+    businessUnitIds: [],
+    own: false,
+    ownBusinessUnitIds: [],
+  };
   const coverages = Object.fromEntries(
     permissions.map((permission) => [permission, empty]),
   ) as Record<P[number], PermissionCoverage>;
@@ -141,7 +151,12 @@ export async function resolvePermissionCoverages<
   }
 
   if (isDevOpenAccessEnabled()) {
-    const open: PermissionCoverage = { global: true, businessUnitIds: [] };
+    const open: PermissionCoverage = {
+      global: true,
+      businessUnitIds: [],
+      own: true,
+      ownBusinessUnitIds: [],
+    };
     for (const permission of permissions) {
       coverages[permission as P[number]] = open;
     }
@@ -169,6 +184,33 @@ export async function resolvePermissionCoverages<
     );
   }
   return coverages;
+}
+
+/**
+ * The roles the session actively holds, for arranging the UI only — like
+ * `resolvePermissionCoverages`, it writes no audit event and decides nothing:
+ * every page and action still re-authorizes through its own guard.
+ */
+export async function resolveActiveRoleKeys(): Promise<readonly string[]> {
+  const resolution = await resolveSessionIdentityCached();
+  if (
+    !resolution.configured ||
+    !resolution.identity ||
+    resolution.identity.status !== "active"
+  ) {
+    return [];
+  }
+
+  const snapshot = await findSnapshotByUserIdCached(resolution.identity.userId);
+  if (
+    !snapshot ||
+    snapshot.user.status !== "active" ||
+    snapshot.user.authzVersion !== resolution.identity.authzVersion
+  ) {
+    return [];
+  }
+
+  return activeRoleKeys(snapshot, new Date());
 }
 
 /** Whether coverage reaches a specific record's business units. */
@@ -201,12 +243,16 @@ export async function requireListAccess(
   permission: Permission,
 ): Promise<{ context: AccessContext; scope: ListReadScope }> {
   const resolution = await resolveSessionIdentityCached();
+  const userId =
+    resolution.configured && resolution.identity
+      ? resolution.identity.userId
+      : null;
   let coveredUnitIds: readonly string[] = [];
+  let ownUnitIds: readonly string[] = [];
+  let ownOnly = false;
 
-  if (resolution.configured && resolution.identity) {
-    const snapshot = await findSnapshotByUserIdCached(
-      resolution.identity.userId,
-    );
+  if (userId) {
+    const snapshot = await findSnapshotByUserIdCached(userId);
     if (snapshot) {
       const coverage = grantCoverageForPermission(
         snapshot,
@@ -214,12 +260,28 @@ export async function requireListAccess(
         new Date(),
       );
       coveredUnitIds = coverage.global ? [] : coverage.businessUnitIds;
+      // A grant that only reaches the holder's own records still opens the
+      // holder's own list — but the evaluator has to be told whose records
+      // are being asked for, or an `own` grant judges a target with no
+      // owner and refuses.
+      ownOnly =
+        !coverage.global &&
+        coverage.businessUnitIds.length === 0 &&
+        coverage.own;
+      ownUnitIds = coverage.ownBusinessUnitIds;
     }
   }
 
   const context = await requirePermission(
     permission,
-    coveredUnitIds.length > 0 ? { businessUnitIds: coveredUnitIds } : {},
+    coveredUnitIds.length > 0
+      ? { businessUnitIds: coveredUnitIds }
+      : ownOnly
+        ? // A list carries no record, so the target names only the units the
+          // `own` grant is bound to (none when it is global); the repository
+          // then narrows the query to the reader's own records.
+          { businessUnitIds: ownUnitIds }
+        : {},
   );
 
   const effective = context.permissions[0];

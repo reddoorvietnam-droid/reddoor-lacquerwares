@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-import { fixtureOrderCode, signInAs } from "./helpers";
+import { signInAs } from "./helpers";
 
 /**
  * Phone-sized checks (Pixel 5 project): the task list and the assistant
@@ -15,17 +15,17 @@ async function noHorizontalOverflow(page: import("@playwright/test").Page) {
   expect(overflow).toBeLessThanOrEqual(1);
 }
 
-test("tasks page and assistant fit a phone and a deep link opens the task", async ({
+test("assigned-work page and assistant fit a phone and a deep link opens the task", async ({
   page,
 }) => {
   // Deep link first: unauthenticated visit is redirected to sign-in.
-  await page.goto(`/vi/admin/tasks?status=all&order=${fixtureOrderCode}`, {
+  await page.goto("/vi/admin/my-tasks?status=all", {
     waitUntil: "domcontentloaded",
   });
   await expect(page).toHaveURL(/\/vi\/admin\/sign-in/);
 
   await signInAs(page, "WAREHOUSE_MANAGER");
-  await page.goto(`/vi/admin/tasks?status=all&order=${fixtureOrderCode}`, {
+  await page.goto("/vi/admin/my-tasks?status=all", {
     waitUntil: "domcontentloaded",
   });
   const first = page.locator("li[id^='task-']").first();
@@ -33,7 +33,7 @@ test("tasks page and assistant fit a phone and a deep link opens the task", asyn
   await noHorizontalOverflow(page);
 
   const taskId = (await first.getAttribute("id"))!.replace("task-", "");
-  await page.goto(`/vi/admin/tasks?task=${taskId}`, {
+  await page.goto(`/vi/admin/my-tasks?task=${taskId}`, {
     waitUntil: "domcontentloaded",
   });
   await expect(page.locator(`#task-${taskId}`)).toHaveClass(/ring-gold/);

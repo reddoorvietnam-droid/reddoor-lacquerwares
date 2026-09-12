@@ -196,21 +196,18 @@ export const roleDefinitionSeeds = [
         "media.upload",
         "reports.submitDaily",
         "approvals.request",
-        // Work items and the assistant: the storekeeper tracks their own
-        // steps of an order and asks about orders inside their units.
-        "tasks.read",
-        "tasks.create",
-        "tasks.update",
+        // The assistant answers about orders inside their units; work items
+        // are personal and stay at `own` below.
         "assistant.use",
       ],
       own: [
         "media.updateOwnMetadata",
         "media.softDelete",
         "notifications.manageOwnChannels",
-        // A personal to-do without an order has no business unit; `own`
-        // lets the holder create and keep those alongside the unit ones.
+        // Work handed to this person by the Director: read it, mark it done,
+        // ask for more time. Handing work out is the Director's alone
+        // (confirmed 2026-09-12), so no `tasks.create` or `tasks.assign`.
         "tasks.read",
-        "tasks.create",
         "tasks.update",
       ],
     }),
@@ -235,20 +232,13 @@ export const roleDefinitionSeeds = [
         "media.updateOwnMetadata",
         "media.softDelete",
         "notifications.manageOwnChannels",
+        // Work handed to this person by the Director (see the storekeeper's
+        // note): read, complete, ask for more time — nothing else.
         "tasks.read",
-        "tasks.create",
         "tasks.update",
       ],
       assignedBusinessUnits: [
         ...sharedOperationalReads,
-        // Production planning (step 4) is this position's stage, so the
-        // Factory Manager may approve an assistant-drafted plan for their
-        // units and assign the resulting work.
-        "tasks.read",
-        "tasks.create",
-        "tasks.update",
-        "tasks.assign",
-        "tasks.approvePlan",
         "assistant.use",
         "products.readCost",
         "products.create",
@@ -341,16 +331,13 @@ export const roleDefinitionSeeds = [
         "media.upload",
         "reports.submitDaily",
         "approvals.request",
-        "tasks.read",
-        "tasks.create",
-        "tasks.update",
         "assistant.use",
       ],
       own: [
         "media.updateOwnMetadata",
         "notifications.manageOwnChannels",
+        // Work handed to this person by the Director; see the storekeeper.
         "tasks.read",
-        "tasks.create",
         "tasks.update",
       ],
     }),
@@ -486,16 +473,15 @@ export const roleDefinitionSeeds = [
         // confirms, completes, and cancels them alongside the Director.
         "shopOrders.read",
         "shopOrders.manage",
-        // Order coordination: the accountant opens the order file, so she
-        // may approve the assistant's plan for it and assign the steps.
-        "tasks.read",
-        "tasks.create",
-        "tasks.update",
-        "tasks.assign",
-        "tasks.approvePlan",
         "assistant.use",
       ],
-      own: ["media.updateOwnMetadata", "notifications.manageOwnChannels"],
+      own: [
+        "media.updateOwnMetadata",
+        "notifications.manageOwnChannels",
+        // Work handed to this person by the Director; see the storekeeper.
+        "tasks.read",
+        "tasks.update",
+      ],
     }),
   },
   {
@@ -525,10 +511,17 @@ export const roleDefinitionSeeds = [
         "shop.manage",
         "shop.publish",
         // The assistant answers about editorial work only: with no
-        // `orders.read`, `tasks.read`, or finance permission, none of the
-        // operational tools can run for this role.
+        // `orders.read` or finance permission, none of the operational
+        // tools can run for this role. Work items are `own` below, so the
+        // assistant's task tools stay out of reach as well.
         "assistant.use",
         "notifications.manageOwnChannels",
+      ],
+      own: [
+        // Added 2026-09-12: the Director assigns work to this role too, and
+        // without a read of their own tasks the assignment reached nobody.
+        "tasks.read",
+        "tasks.update",
       ],
     }),
   },

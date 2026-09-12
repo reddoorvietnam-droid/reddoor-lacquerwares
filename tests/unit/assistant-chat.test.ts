@@ -186,20 +186,22 @@ describe("tool catalog", () => {
     expect(await offered("DIRECTOR")).toEqual(
       assistantTools.map((tool) => tool.name),
     );
-    expect(await offered("CONTENT_CREATOR")).toEqual(["list_editorial_work"]);
+    // The content creator now also holds the work the Director assigns them,
+    // so their own list is readable through the assistant (2026-09-12).
+    expect(await offered("CONTENT_CREATOR")).toEqual([
+      "list_my_tasks",
+      "list_editorial_work",
+    ]);
+    // Handing work out became the Director's alone on 2026-09-12: the
+    // proposal tools need `tasks.create`, which no operational role holds.
     const unitRoleTools = [
       "list_my_tasks",
       "list_orders",
       "get_order",
       "list_pending_approvals",
-      "propose_order_plan",
-      "propose_tasks",
-      // documents.read + tasks.create at unit scope: the sheet-check tools
-      // are offered and re-check every check on the server.
       "list_sheet_checks",
       "get_sheet_check",
       "get_sheet_check_row",
-      "propose_sheet_check_follow_ups",
     ];
     expect(await offered("FACTORY_ACCOUNTANT")).toEqual(unitRoleTools);
     expect(await offered("WAREHOUSE_MANAGER")).toEqual(unitRoleTools);

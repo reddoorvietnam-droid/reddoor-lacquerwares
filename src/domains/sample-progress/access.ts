@@ -34,9 +34,11 @@ export type SampleProgressAccess = {
 
 /**
  * `AccessContext.permissions` carries exactly one entry — the permission just
- * evaluated — and its `roleKeys` are the active roles that granted it. That is
- * the only thing that separates the two allowed roles, because CONTENT_CREATOR
- * holds a strict subset of DIRECTOR's permissions.
+ * evaluated — and its `roleKeys` are the active roles that granted it. The
+ * allowlist reads those rather than a permission, so another role that is
+ * someday granted `content.read` still stays out. Both allowed roles edit: the
+ * Director maintains the report alongside the Content Creator (confirmed
+ * 2026-09-11).
  */
 export function sampleProgressRole(context: AccessContext): SampleProgressRole {
   const entry = context.permissions.find(
@@ -45,8 +47,12 @@ export function sampleProgressRole(context: AccessContext): SampleProgressRole {
   );
   // DEV_OPEN_ACCESS stamps the literal role key "DEV_OPEN_ACCESS", so a bypassed
   // context can never match either name below.
-  if (entry?.roleKeys.includes("CONTENT_CREATOR")) return "editor";
-  if (entry?.roleKeys.includes("DIRECTOR")) return "viewer";
+  if (
+    entry?.roleKeys.some(
+      (roleKey) => roleKey === "CONTENT_CREATOR" || roleKey === "DIRECTOR",
+    )
+  )
+    return "editor";
   throw new ContentAccessDeniedError("PERMISSION_DENIED");
 }
 
@@ -61,8 +67,8 @@ export async function requireSampleProgressAccess(): Promise<SampleProgressAcces
 }
 
 /**
- * Write access. The Director reads and exports every report but does not edit
- * one, so a saved revision always names the person who actually maintains it.
+ * Write access. Every allowed role edits today, but each write still passes
+ * through here, and a saved revision names the account that saved it.
  */
 export async function requireSampleProgressEditor(): Promise<SampleProgressAccess> {
   const access = await requireSampleProgressAccess();

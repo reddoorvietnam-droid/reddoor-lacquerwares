@@ -32,6 +32,16 @@ test.beforeAll(cleanup);
 test.afterAll(cleanup);
 
 async function openManager(page: Page) {
+  // The Director's menu is laid out by role, with the report under the
+  // content editor's group; the content creator's own menu is flat.
+  const group = page
+    .getByRole("navigation", { name: /Điều hướng quản trị/ })
+    .getByRole("button", { name: "Biên tập nội dung" });
+  if (
+    (await group.count()) > 0 &&
+    (await group.getAttribute("aria-expanded")) === "false"
+  )
+    await group.click();
   await page.getByRole("link", { name: "Theo dõi tiến độ mẫu" }).click();
   await expect(
     page.getByRole("heading", { name: "Theo dõi tiến độ mẫu" }),
@@ -78,7 +88,9 @@ test("content creator builds, revises and inherits the weekly report", async ({
   await expect(page.getByRole("cell", { name: "Đang dán bạc" })).toBeVisible();
 
   // Saving is blocked until the change note is written.
-  await expect(page.getByRole("button", { name: "Lưu báo cáo" })).toBeDisabled();
+  await expect(
+    page.getByRole("button", { name: "Lưu báo cáo" }),
+  ).toBeDisabled();
   await page
     .getByLabel("Nội dung cập nhật lần này")
     .fill("Tạo báo cáo tuần đầu tiên");
@@ -87,7 +99,9 @@ test("content creator builds, revises and inherits the weekly report", async ({
   await expect(page.getByRole("status")).toContainText("phiên bản 1");
 
   // A saved row shows who last touched it.
-  await expect(page.getByRole("cell", { name: /Biên tập/ }).first()).toBeVisible();
+  await expect(
+    page.getByRole("cell", { name: /Biên tập/ }).first(),
+  ).toBeVisible();
 
   await page.reload();
   await openManagerAfterReload(page);
@@ -122,7 +136,9 @@ test("content creator builds, revises and inherits the weekly report", async ({
   await expect(page.getByRole("cell", { name: "Đang dán bạc" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Sửa mẫu 1" })).toHaveCount(0);
   await page.getByRole("button", { name: "Mở phiên bản mới nhất" }).click();
-  await expect(page.getByRole("cell", { name: "Đã mờ hậu xong" })).toBeVisible();
+  await expect(
+    page.getByRole("cell", { name: "Đã mờ hậu xong" }),
+  ).toBeVisible();
 
   const download = page.waitForEvent("download");
   await page.getByRole("button", { name: "Xuất Excel" }).click();
@@ -137,7 +153,9 @@ test("content creator builds, revises and inherits the weekly report", async ({
   await expect(confirm).toContainText("13/01/2098");
   await page.getByRole("button", { name: "Xác nhận kế thừa" }).click();
   await expect(page.getByRole("status")).toContainText("Đã kế thừa 1 mẫu");
-  await expect(page.getByRole("cell", { name: "Đã mờ hậu xong" })).toBeVisible();
+  await expect(
+    page.getByRole("cell", { name: "Đã mờ hậu xong" }),
+  ).toBeVisible();
 
   // A second inherit must not overwrite the week already in progress.
   const duplicate = await page.request.post(
@@ -175,48 +193,44 @@ async function openManagerAfterReload(page: Page) {
     .catch(() => undefined);
 }
 
-test("director reads and exports but cannot change the report", async ({
-  page,
-}) => {
+test("director reads, exports and maintains the report", async ({ page }) => {
+  test.slow();
   await signInAs(page, "DIRECTOR");
   await openManager(page);
   await page.getByLabel("Báo cáo đã lưu").selectOption(nextWeek);
-  await expect(page.getByRole("cell", { name: "Đã mờ hậu xong" })).toBeVisible();
+  await expect(
+    page.getByRole("cell", { name: "Đã mờ hậu xong" }),
+  ).toBeVisible();
 
-  // Read-only: no editing affordance anywhere on the page.
-  for (const name of [
-    "Lưu báo cáo",
-    "Thêm mẫu",
-    "Nhập Excel",
-    "Kế thừa sang tuần mới",
-    "Sửa mẫu 1",
-    "Bỏ mẫu 1",
-    "Xóa báo cáo tuần này",
-  ])
-    await expect(page.getByRole("button", { name })).toHaveCount(0);
-  await expect(page.getByLabel("Nội dung cập nhật lần này")).toHaveCount(0);
-
-  // Reading and exporting still work.
-  await expect(page.getByRole("button", { name: "Xuất Excel" })).toBeEnabled();
+  // Reading and exporting work as before.
   await expect(page.getByRole("button", { name: "In báo cáo" })).toBeEnabled();
   const download = page.waitForEvent("download");
   await page.getByRole("button", { name: "Xuất Excel" }).click();
   expect((await download).suggestedFilename()).toContain("2098-W03-v1.xlsx");
 
-  const origin = new URL(page.url()).origin;
-  // The server refuses a write even when the request is made directly.
-  for (const query of ["", "?action=import", "?action=inherit"]) {
-    const response = await page.request.post(
-      `/api/sample-progress${query}`,
-      { headers: { origin }, data: { week: reportWeek } },
-    );
-    expect(response.status()).toBe(403);
-  }
-  const deletion = await page.request.delete("/api/sample-progress", {
-    headers: { origin },
-    data: { week: reportWeek, reason: "Giám đốc không được xóa" },
-  });
-  expect(deletion.status()).toBe(403);
+  // The Director edits too (confirmed 2026-09-11): the editor's controls.
+  for (const name of [
+    "Thêm mẫu",
+    "Nhập Excel",
+    "Kế thừa sang tuần mới",
+    "Bỏ mẫu 1",
+    "Xóa báo cáo tuần này",
+  ])
+    await expect(page.getByRole("button", { name })).toBeVisible();
+
+  await page.getByRole("button", { name: "Sửa mẫu 1" }).click();
+  await page
+    .getByLabel("Chi tiết tiến độ / ghi chú nhật ký")
+    .fill("Giám đốc đã duyệt màu");
+  await page.getByRole("button", { name: "Áp dụng vào bảng" }).click();
+  await page
+    .getByLabel("Nội dung cập nhật lần này")
+    .fill("Giám đốc cập nhật ghi chú");
+  await page.getByRole("button", { name: "Lưu báo cáo" }).click();
+  await expect(page.getByRole("status")).toContainText("phiên bản 2");
+  await expect(
+    page.getByRole("cell", { name: "Giám đốc đã duyệt màu" }),
+  ).toBeVisible();
 });
 
 for (const role of [
@@ -244,10 +258,10 @@ for (const role of [
     }
     const origin = new URL(page.url()).origin;
     for (const query of ["", "?action=import", "?action=inherit"]) {
-      const response = await page.request.post(
-        `/api/sample-progress${query}`,
-        { headers: { origin }, data: {} },
-      );
+      const response = await page.request.post(`/api/sample-progress${query}`, {
+        headers: { origin },
+        data: {},
+      });
       expect(response.status()).toBe(403);
     }
 
@@ -272,13 +286,19 @@ const workbook = process.env.SAMPLE_PROGRESS_WORKBOOK;
  * into a week that holds real data.
  */
 function fixtureWorkbook(source: string): string {
-  const book = XLSX.read(readFileSync(source), { type: "buffer", cellNF: true });
+  const book = XLSX.read(readFileSync(source), {
+    type: "buffer",
+    cellNF: true,
+  });
   const sheet = book.Sheets[book.SheetNames[0]!]!;
   const range = XLSX.utils.decode_range(sheet["!ref"]!);
   let headerRow = -1;
   for (let r = range.s.r; r <= range.e.r && headerRow < 0; r++)
     for (let c = range.s.c; c <= range.e.c; c++)
-      if (String(sheet[XLSX.utils.encode_cell({ r, c })]?.v ?? "").trim() === "STT") {
+      if (
+        String(sheet[XLSX.utils.encode_cell({ r, c })]?.v ?? "").trim() ===
+        "STT"
+      ) {
         headerRow = r;
         break;
       }
@@ -295,7 +315,10 @@ function fixtureWorkbook(source: string): string {
     if (!cell || !String(cell.v ?? "").trim()) continue;
     sheet[address] = { t: "s", v: `${fixtureMarker} ${String(cell.v)}` };
   }
-  const target = path.join(tmpdir(), `sample-progress-fixture-${Date.now()}.xlsx`);
+  const target = path.join(
+    tmpdir(),
+    `sample-progress-fixture-${Date.now()}.xlsx`,
+  );
   writeFileSync(target, XLSX.write(book, { type: "buffer", bookType: "xlsx" }));
   return target;
 }
@@ -376,7 +399,9 @@ test("imports the supplied workbook as a preview before saving", async ({
   await page.getByRole("button", { name: "Lưu báo cáo" }).click();
   await expect(page.getByRole("status")).toContainText("Đã lưu 24 mẫu");
 
-  const saved = await page.request.get(`/api/sample-progress?week=${importWeek}`);
+  const saved = await page.request.get(
+    `/api/sample-progress?week=${importWeek}`,
+  );
   expect(saved.status()).toBe(200);
   const body = (await saved.json()) as { report: { rows: unknown[] } };
   expect(body.report.rows).toHaveLength(24);
@@ -398,9 +423,7 @@ test("deletes a whole week saved from the wrong file", async ({ page }) => {
   ).toBeVisible();
 
   await page.getByRole("button", { name: "Xóa báo cáo tuần này" }).click();
-  const panel = page.locator(
-    'section[aria-label="Xác nhận xóa báo cáo tuần"]',
-  );
+  const panel = page.locator('section[aria-label="Xác nhận xóa báo cáo tuần"]');
   await expect(panel).toContainText("20/01/2098");
   await expect(panel).toContainText("24 mẫu");
 

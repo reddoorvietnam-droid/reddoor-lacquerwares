@@ -31,6 +31,8 @@ function task(partial: Partial<TaskRecordDto> = {}): TaskRecordDto {
     dueAt: businessDayEnd("2026-09-10", tz),
     dependsOnTaskIds: [],
     source: { kind: "manual" },
+    extensionRequest: null,
+    lastExtensionDecision: null,
     completedAt: null,
     completedBy: null,
     cancelledAt: null,

@@ -6,6 +6,8 @@ import type { SystemRoleKey } from "@/domains/identity/role-definitions";
 import type { OrderStage } from "@/domains/orders/workflow";
 import type {
   NewTaskRecord,
+  TaskExtensionDecision,
+  TaskExtensionRequest,
   TaskFieldsWrite,
   TaskListFilter,
   TaskListScope,
@@ -37,6 +39,19 @@ type TaskDocument = {
     proposalId?: Types.ObjectId | null;
     itemIndex?: number | null;
   };
+  extensionRequest: {
+    requestedDueAt: Date;
+    reason: string;
+    requestedBy: Types.ObjectId;
+    requestedAt: Date;
+  } | null;
+  lastExtensionDecision: {
+    outcome: "approved" | "rejected";
+    requestedDueAt: Date;
+    note: string | null;
+    decidedBy: Types.ObjectId;
+    decidedAt: Date;
+  } | null;
   completedAt: Date | null;
   completedBy: Types.ObjectId | null;
   cancelledAt: Date | null;
@@ -79,6 +94,23 @@ function toDto(document: TaskDocument): TaskRecordDto {
       id.toHexString(),
     ),
     source: sourceToDto(document.source),
+    extensionRequest: document.extensionRequest
+      ? {
+          requestedDueAt: document.extensionRequest.requestedDueAt,
+          reason: document.extensionRequest.reason,
+          requestedBy: document.extensionRequest.requestedBy.toHexString(),
+          requestedAt: document.extensionRequest.requestedAt,
+        }
+      : null,
+    lastExtensionDecision: document.lastExtensionDecision
+      ? {
+          outcome: document.lastExtensionDecision.outcome,
+          requestedDueAt: document.lastExtensionDecision.requestedDueAt,
+          note: document.lastExtensionDecision.note ?? null,
+          decidedBy: document.lastExtensionDecision.decidedBy.toHexString(),
+          decidedAt: document.lastExtensionDecision.decidedAt,
+        }
+      : null,
     completedAt: document.completedAt ?? null,
     completedBy: document.completedBy
       ? document.completedBy.toHexString()
@@ -154,6 +186,8 @@ export class MongoTaskStore implements TaskStore {
         dueAt: record.dueAt,
         dependsOnTaskIds: toObjectIds(record.dependsOnTaskIds),
         source,
+        extensionRequest: null,
+        lastExtensionDecision: null,
         completedAt: null,
         completedBy: null,
         cancelledAt: null,
@@ -244,6 +278,93 @@ export class MongoTaskStore implements TaskStore {
     return documents.map(toDto);
   }
 
+  async listPendingExtensions(limit: number): Promise<TaskRecordDto[]> {
+    await connectToDatabase();
+    const documents = await getTaskModel()
+      .find({ status: "open", extensionRequest: { $ne: null } })
+      .sort({ "extensionRequest.requestedAt": 1 })
+      .limit(limit)
+      .lean<TaskDocument[]>()
+      .exec();
+    return documents.map(toDto);
+  }
+
+  /**
+   * A request is recorded only while the task is open and nothing is already
+   * waiting, so a second submit of the same form finds the condition unmet
+   * and returns null instead of replacing the first plea.
+   */
+  async requestExtension(input: {
+    taskId: string;
+    expectedRevision: number;
+    request: TaskExtensionRequest;
+  }): Promise<TaskRecordDto | null> {
+    await connectToDatabase();
+    const document = await getTaskModel()
+      .findOneAndUpdate(
+        {
+          _id: new Types.ObjectId(input.taskId),
+          revision: input.expectedRevision,
+          status: "open",
+          extensionRequest: null,
+        },
+        {
+          $set: {
+            extensionRequest: {
+              requestedDueAt: input.request.requestedDueAt,
+              reason: input.request.reason,
+              requestedBy: new Types.ObjectId(input.request.requestedBy),
+              requestedAt: input.request.requestedAt,
+            },
+            updatedBy: new Types.ObjectId(input.request.requestedBy),
+          },
+          $inc: { revision: 1 },
+        },
+        { new: true },
+      )
+      .lean<TaskDocument>()
+      .exec();
+    return document ? toDto(document) : null;
+  }
+
+  async decideExtension(input: {
+    taskId: string;
+    expectedRevision: number;
+    decision: TaskExtensionDecision;
+    dueAt: Date | null;
+    decidedBy: string;
+  }): Promise<TaskRecordDto | null> {
+    await connectToDatabase();
+    const decidedBy = new Types.ObjectId(input.decidedBy);
+    const document = await getTaskModel()
+      .findOneAndUpdate(
+        {
+          _id: new Types.ObjectId(input.taskId),
+          revision: input.expectedRevision,
+          extensionRequest: { $ne: null },
+        },
+        {
+          $set: {
+            extensionRequest: null,
+            lastExtensionDecision: {
+              outcome: input.decision.outcome,
+              requestedDueAt: input.decision.requestedDueAt,
+              note: input.decision.note,
+              decidedBy,
+              decidedAt: input.decision.decidedAt,
+            },
+            ...(input.dueAt ? { dueAt: input.dueAt } : {}),
+            updatedBy: decidedBy,
+          },
+          $inc: { revision: 1 },
+        },
+        { new: true },
+      )
+      .lean<TaskDocument>()
+      .exec();
+    return document ? toDto(document) : null;
+  }
+
   async update(input: {
     taskId: string;
     expectedRevision: number;
@@ -266,6 +387,12 @@ export class MongoTaskStore implements TaskStore {
               ? new Types.ObjectId(input.fields.assigneeUserId)
               : null,
             dueAt: input.fields.dueAt,
+            ...(input.fields.businessUnitIds
+              ? { businessUnitIds: toObjectIds(input.fields.businessUnitIds) }
+              : {}),
+            // Setting the deadline by hand answers whatever was being asked,
+            // so a pending request never outlives the date it was about.
+            extensionRequest: null,
             updatedBy: new Types.ObjectId(input.updatedBy),
           },
           $inc: { revision: 1 },
@@ -287,12 +414,15 @@ export class MongoTaskStore implements TaskStore {
   }): Promise<TaskRecordDto | null> {
     await connectToDatabase();
     const actorId = new Types.ObjectId(input.actorId);
+    // Work that is finished or dropped carries no open question about its
+    // deadline any more.
     const set =
       input.status === "done"
         ? {
             status: "done",
             completedAt: input.at,
             completedBy: actorId,
+            extensionRequest: null,
             updatedBy: actorId,
           }
         : input.status === "cancelled"
@@ -300,6 +430,7 @@ export class MongoTaskStore implements TaskStore {
               status: "cancelled",
               cancelledAt: input.at,
               cancelReason: input.reason,
+              extensionRequest: null,
               updatedBy: actorId,
             }
           : {

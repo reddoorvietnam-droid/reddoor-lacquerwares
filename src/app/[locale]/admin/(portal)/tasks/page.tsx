@@ -4,16 +4,21 @@ import { notFound } from "next/navigation";
 
 import {
   createTaskAction,
+  decideExtensionAction,
   decideProposalFormAction,
   retryIntentAction,
   revokeZaloLinkAction,
   runRemindersAction,
   setTaskStatusAction,
   startZaloLinkAction,
+  updateTaskAction,
 } from "@/app/[locale]/admin/(portal)/tasks/actions";
 import type { AssistantProposalDto } from "@/domains/assistant/contracts";
 import { assistantProposalService } from "@/domains/assistant/runtime";
-import { mongoUserDirectory } from "@/domains/identity/user-directory";
+import {
+  mongoUserDirectory,
+  type UserSummary,
+} from "@/domains/identity/user-directory";
 import type { NotificationIntentDto } from "@/domains/notifications/contracts";
 import {
   channelLinkStore,
@@ -46,15 +51,27 @@ export const dynamic = "force-dynamic";
 const copy = {
   vi: {
     eyebrow: "Công việc",
-    title: "Việc cần làm",
+    title: "Giao việc",
     description:
-      "Việc của bạn và của đơn vị bạn phụ trách. Hạn tính theo cuối ngày làm việc (Asia/Ho_Chi_Minh). Đánh dấu xong ngay tại đây; trợ lý chỉ đề xuất, không tự tạo việc.",
+      "Giao việc cho từng người kèm hạn hoàn thành (cuối ngày làm việc, giờ Việt Nam), theo dõi ai đang làm gì, ai quá hạn, và trả lời các yêu cầu xin gia hạn. Người được giao thấy việc của mình ở mục Công việc được giao.",
     filterOpen: "Đang mở",
     filterDone: "Đã xong",
     filterCancelled: "Đã hủy",
     filterAll: "Tất cả",
     empty: "Không có việc nào trong bộ lọc này.",
-    createTitle: "Thêm việc",
+    createTitle: "Giao việc mới",
+    editTitle: "Sửa việc",
+    save: "Lưu thay đổi",
+    extensionsTitle: "Xin gia hạn chờ duyệt",
+    extensionsHint:
+      "Người được giao xin dời hạn và ghi lý do. Duyệt thì hạn đổi ngay và nhắc việc tính lại theo hạn mới; từ chối thì hạn giữ nguyên. Người xin nhận được câu trả lời qua email và Zalo.",
+    extensionsEmpty: "Không có yêu cầu nào đang chờ.",
+    extensionCurrent: "Hạn hiện tại",
+    extensionRequested: "Xin dời sang",
+    extensionReason: "Lý do",
+    extensionNote: "Ghi chú cho người xin (tùy chọn)",
+    extensionApprove: "Duyệt gia hạn",
+    extensionReject: "Từ chối",
     fieldTitle: "Việc",
     fieldNote: "Ghi chú",
     fieldDue: "Hạn (ngày)",
@@ -119,6 +136,8 @@ const copy = {
       reopened: "Đã mở lại việc.",
       cancelled: "Đã hủy việc.",
       updated: "Đã cập nhật.",
+      extensionApproved: "Đã duyệt gia hạn; hạn mới đã có hiệu lực.",
+      extensionRejected: "Đã từ chối gia hạn; hạn cũ giữ nguyên.",
       proposalApproved: "Đã duyệt đề xuất và tạo việc.",
       proposalRejected: "Đã từ chối đề xuất.",
       remindersRan: "Đã chạy nhắc việc.",
@@ -133,6 +152,11 @@ const copy = {
       ORDER_NOT_FOUND: "Không tìm thấy đơn hàng với mã này.",
       ORDER_CLOSED: "Đơn hàng đã đóng hoặc đã hủy.",
       ASSIGNEE_NOT_FOUND: "Người được gán không phải tài khoản đang hoạt động.",
+      NOT_ASSIGNEE: "Chỉ người được giao việc mới xin gia hạn được.",
+      EXTENSION_PENDING: "Việc này đã có một yêu cầu đang chờ duyệt.",
+      EXTENSION_NOT_FOUND: "Yêu cầu gia hạn đã được xử lý trước đó.",
+      INVALID_DUE_DATE:
+        "Hạn mới phải là một ngày trong tương lai và khác hạn cũ.",
       INVALID_TRANSITION: "Trạng thái hiện tại không cho phép thao tác này.",
       REASON_REQUIRED: "Thao tác này bắt buộc ghi lý do.",
       REVISION_CONFLICT:
@@ -149,15 +173,27 @@ const copy = {
   },
   en: {
     eyebrow: "Work",
-    title: "Tasks",
+    title: "Assign work",
     description:
-      "Your tasks and those of the units you cover. Deadlines are end of business day (Asia/Ho_Chi_Minh). Mark work done here; the assistant only proposes, it never creates tasks.",
+      "Hand work to a person with a deadline (end of business day, Vietnam time), follow who is doing what and who is late, and answer requests for more time. The assignee sees their own list under My assigned work.",
     filterOpen: "Open",
     filterDone: "Done",
     filterCancelled: "Cancelled",
     filterAll: "All",
     empty: "No tasks match this filter.",
-    createTitle: "Add a task",
+    createTitle: "Assign new work",
+    editTitle: "Edit task",
+    save: "Save changes",
+    extensionsTitle: "Extension requests awaiting an answer",
+    extensionsHint:
+      "The assignee asks to move a deadline and says why. Approving moves it at once and the reminders follow the new date; declining leaves it where it was. Either way the asker is told by email and Zalo.",
+    extensionsEmpty: "No request is waiting.",
+    extensionCurrent: "Current deadline",
+    extensionRequested: "Asked to move to",
+    extensionReason: "Reason",
+    extensionNote: "Note back to the asker (optional)",
+    extensionApprove: "Approve",
+    extensionReject: "Decline",
     fieldTitle: "Task",
     fieldNote: "Note",
     fieldDue: "Due (day)",
@@ -222,6 +258,8 @@ const copy = {
       reopened: "Task reopened.",
       cancelled: "Task cancelled.",
       updated: "Updated.",
+      extensionApproved: "Extension approved; the new deadline is in force.",
+      extensionRejected: "Extension declined; the deadline stands.",
       proposalApproved: "Proposal approved and tasks created.",
       proposalRejected: "Proposal rejected.",
       remindersRan: "Reminders ran.",
@@ -236,6 +274,11 @@ const copy = {
       ORDER_NOT_FOUND: "No order carries this code.",
       ORDER_CLOSED: "The order is closed or cancelled.",
       ASSIGNEE_NOT_FOUND: "The assignee is not an active account.",
+      NOT_ASSIGNEE: "Only the assignee may ask for more time.",
+      EXTENSION_PENDING: "A request is already waiting on this task.",
+      EXTENSION_NOT_FOUND: "That request was already decided.",
+      INVALID_DUE_DATE:
+        "The new deadline must be a future day other than the current one.",
       INVALID_TRANSITION: "The current status does not allow this action.",
       REASON_REQUIRED: "This action must record a reason.",
       REVISION_CONFLICT:
@@ -323,6 +366,10 @@ export default async function AdminTasksPage({
   const canApprovePlans =
     coverages["tasks.approvePlan"].global ||
     coverages["tasks.approvePlan"].businessUnitIds.length > 0;
+  // Handing work out is what this screen is for. A reader who may only do
+  // their own work has "Công việc được giao" instead, so there is no page
+  // here for them to land on.
+  if (!canAssign) notFound();
   const canRunReminders = coverages["notifications.retry"].global;
   const canLinkZalo =
     coverages["notifications.manageOwnChannels"].global ||
@@ -356,12 +403,17 @@ export default async function AdminTasksPage({
     limit: 300,
   });
 
+  // The queue of people waiting for an answer about a deadline.
+  const pendingExtensions = await taskCommandService.listPendingExtensions(50);
+
   const userIds = [
     ...new Set(
-      tasks.flatMap((task) =>
-        [task.assigneeUserId, task.createdBy].filter((id): id is string =>
-          Boolean(id),
-        ),
+      [...tasks, ...pendingExtensions].flatMap((task) =>
+        [
+          task.assigneeUserId,
+          task.createdBy,
+          task.extensionRequest?.requestedBy ?? null,
+        ].filter((id): id is string => Boolean(id)),
       ),
     ),
   ];
@@ -457,6 +509,101 @@ export default async function AdminTasksPage({
         </p>
       ) : null}
 
+      {/* Extension requests */}
+      <section id="extensions" className={`${cardClass} mt-8`}>
+        <h2 className="text-burgundy font-serif text-2xl">
+          {text.extensionsTitle}
+        </h2>
+        <p className="text-charcoal/60 mt-2 text-sm">{text.extensionsHint}</p>
+        {pendingExtensions.length === 0 ? (
+          <p className="text-charcoal/55 mt-4 text-sm">
+            {text.extensionsEmpty}
+          </p>
+        ) : (
+          <ul className="mt-4 grid gap-4">
+            {pendingExtensions.map((task) => {
+              const request = task.extensionRequest!;
+              return (
+                <li
+                  key={task.id}
+                  className="border-burgundy/10 rounded-xl border p-4"
+                >
+                  <p className="text-charcoal font-semibold">{task.title}</p>
+                  <p className="text-charcoal/55 mt-1 flex flex-wrap gap-x-3 text-xs">
+                    <span>{nameOf(request.requestedBy)}</span>
+                    <span>
+                      {text.extensionCurrent}:{" "}
+                      {task.dueAt
+                        ? formatBusinessDay(task.dueAt, timeZone)
+                        : text.noDue}
+                    </span>
+                    <span className="text-burgundy font-semibold">
+                      {text.extensionRequested}:{" "}
+                      {formatBusinessDay(request.requestedDueAt, timeZone)}
+                    </span>
+                    {task.orderCode && task.orderId ? (
+                      <Link
+                        href={
+                          `/${locale}/admin/orders/${task.orderId}` as Route
+                        }
+                        className="text-burgundy font-mono hover:underline"
+                      >
+                        {task.orderCode}
+                      </Link>
+                    ) : null}
+                  </p>
+                  <p className="text-charcoal/70 mt-2 text-sm">
+                    {text.extensionReason}: “{request.reason}”
+                  </p>
+                  <form
+                    action={decideExtensionAction}
+                    className="border-burgundy/10 mt-3 border-t pt-3"
+                  >
+                    <input type="hidden" name="locale" value={locale} />
+                    <input type="hidden" name="taskId" value={task.id} />
+                    <input
+                      type="hidden"
+                      name="expectedRevision"
+                      value={task.revision}
+                    />
+                    <label
+                      htmlFor={`ext-note-${task.id}`}
+                      className={labelClass}
+                    >
+                      {text.extensionNote}
+                    </label>
+                    <input
+                      id={`ext-note-${task.id}`}
+                      name="note"
+                      maxLength={2000}
+                      className={fieldClass}
+                    />
+                    <div className="mt-3 flex flex-wrap gap-3">
+                      <button
+                        type="submit"
+                        name="outcome"
+                        value="approved"
+                        className={buttonClass}
+                      >
+                        {text.extensionApprove}
+                      </button>
+                      <button
+                        type="submit"
+                        name="outcome"
+                        value="rejected"
+                        className={ghostButtonClass}
+                      >
+                        {text.extensionReject}
+                      </button>
+                    </div>
+                  </form>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </section>
+
       {/* Filters */}
       <nav className="mt-8 flex flex-wrap gap-2" aria-label={text.title}>
         {filters.map((entry) => (
@@ -500,6 +647,7 @@ export default async function AdminTasksPage({
                 timeZone={timeZone}
                 highlighted={task.id === highlight}
                 assigneeName={nameOf(task.assigneeUserId)}
+                assignable={assignable}
                 canUpdate={
                   task.assigneeUserId === userId ||
                   task.createdBy === userId ||
@@ -877,6 +1025,7 @@ function TaskCard({
   timeZone,
   highlighted,
   assigneeName,
+  assignable,
   canUpdate,
 }: {
   task: TaskRecordDto;
@@ -887,6 +1036,7 @@ function TaskCard({
   timeZone: string;
   highlighted: boolean;
   assigneeName: string;
+  assignable: readonly UserSummary[];
   canUpdate: boolean;
 }) {
   const overdue = isOverdue(task, now);
@@ -959,6 +1109,17 @@ function TaskCard({
               “{task.cancelReason}”
             </p>
           ) : null}
+          {task.extensionRequest ? (
+            <p className="text-burgundy mt-2 text-xs font-semibold">
+              <a href="#extensions" className="hover:underline">
+                {text.extensionRequested}:{" "}
+                {formatBusinessDay(
+                  task.extensionRequest.requestedDueAt,
+                  timeZone,
+                )}
+              </a>
+            </p>
+          ) : null}
         </div>
         {canUpdate ? (
           <div className="flex flex-wrap items-center gap-2">
@@ -1021,6 +1182,105 @@ function TaskCard({
           </div>
         ) : null}
       </div>
+
+      {canUpdate && task.status === "open" ? (
+        <details className="border-burgundy/10 mt-4 border-t pt-3">
+          <summary className="text-burgundy cursor-pointer text-sm font-semibold">
+            {text.editTitle}
+          </summary>
+          <form action={updateTaskAction} className="mt-3 grid gap-3">
+            <input type="hidden" name="locale" value={locale} />
+            <input type="hidden" name="taskId" value={task.id} />
+            <input
+              type="hidden"
+              name="expectedRevision"
+              value={task.revision}
+            />
+            <div>
+              <label htmlFor={`edit-title-${task.id}`} className={labelClass}>
+                {text.fieldTitle}
+              </label>
+              <input
+                id={`edit-title-${task.id}`}
+                name="title"
+                required
+                maxLength={200}
+                defaultValue={task.title}
+                className={fieldClass}
+              />
+            </div>
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div>
+                <label htmlFor={`edit-due-${task.id}`} className={labelClass}>
+                  {text.fieldDue}
+                </label>
+                <input
+                  id={`edit-due-${task.id}`}
+                  name="dueDate"
+                  type="date"
+                  defaultValue={dueDay ?? ""}
+                  className={fieldClass}
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor={`edit-priority-${task.id}`}
+                  className={labelClass}
+                >
+                  {text.fieldPriority}
+                </label>
+                <select
+                  id={`edit-priority-${task.id}`}
+                  name="priority"
+                  defaultValue={task.priority}
+                  className={fieldClass}
+                >
+                  <option value="normal">{text.priorityNormal}</option>
+                  <option value="high">{text.priorityHigh}</option>
+                </select>
+              </div>
+              <div>
+                <label
+                  htmlFor={`edit-assignee-${task.id}`}
+                  className={labelClass}
+                >
+                  {text.fieldAssignee}
+                </label>
+                <select
+                  id={`edit-assignee-${task.id}`}
+                  name="assigneeUserId"
+                  defaultValue={task.assigneeUserId ?? ""}
+                  className={fieldClass}
+                >
+                  {assignable.map((user) => (
+                    <option key={user.id} value={user.id}>
+                      {user.displayName} ({user.roleKeys.join(", ")})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <div>
+              <label htmlFor={`edit-note-${task.id}`} className={labelClass}>
+                {text.fieldNote}
+              </label>
+              <textarea
+                id={`edit-note-${task.id}`}
+                name="note"
+                rows={2}
+                maxLength={2000}
+                defaultValue={task.note ?? ""}
+                className={fieldClass}
+              />
+            </div>
+            <div>
+              <button type="submit" className={ghostButtonClass}>
+                {text.save}
+              </button>
+            </div>
+          </form>
+        </details>
+      ) : null}
     </li>
   );
 }

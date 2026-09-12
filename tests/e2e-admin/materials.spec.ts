@@ -232,10 +232,16 @@ test("other roles see no menu, get not-found and 403", async ({ page }) => {
     ).toBe(403);
   }
   await signInAs(page, "DIRECTOR");
+  const directorNav = page.getByRole("navigation", {
+    name: /Điều hướng quản trị/,
+  });
+  // The Director's menu is laid out by role: materials sit under the
+  // storekeeper's group, closed until its heading is pressed.
+  await directorNav
+    .getByRole("button", { name: "Thủ kho / Quản lý kho" })
+    .click();
   await expect(
-    page
-      .getByRole("navigation", { name: /Điều hướng quản trị/ })
-      .getByRole("link", { name: "Nguyên vật liệu" }),
+    directorNav.getByRole("link", { name: "Nguyên vật liệu" }),
   ).toBeVisible();
   expect((await page.request.get("/api/materials/summary")).status()).toBe(200);
 });

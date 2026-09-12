@@ -24,6 +24,28 @@ export type TaskSource =
   | { kind: "manual" }
   | { kind: "proposal"; proposalId: string; itemIndex: number };
 
+/**
+ * A deadline the assignee asked to move. One task carries at most one
+ * pending request: the assignee cannot stack requests while the first is
+ * waiting, and the person who assigned the work decides it. The decision is
+ * kept on the task so both sides read the same history without a join.
+ */
+export type TaskExtensionRequest = {
+  requestedDueAt: Date;
+  reason: string;
+  requestedBy: string;
+  requestedAt: Date;
+};
+
+export type TaskExtensionDecision = {
+  outcome: "approved" | "rejected";
+  /** The deadline that was asked for, kept even when the answer was no. */
+  requestedDueAt: Date;
+  note: string | null;
+  decidedBy: string;
+  decidedAt: Date;
+};
+
 export type TaskRecordDto = {
   id: string;
   title: string;
@@ -43,6 +65,10 @@ export type TaskRecordDto = {
   dueAt: Date | null;
   dependsOnTaskIds: readonly string[];
   source: TaskSource;
+  /** The assignee's pending request to move the deadline; null when none waits. */
+  extensionRequest: TaskExtensionRequest | null;
+  /** The last answer given to such a request, for both sides to read. */
+  lastExtensionDecision: TaskExtensionDecision | null;
   completedAt: Date | null;
   completedBy: string | null;
   cancelledAt: Date | null;
@@ -99,6 +125,8 @@ export type TaskFieldsWrite = {
   priority: TaskPriority;
   assigneeUserId: string | null;
   dueAt: Date | null;
+  /** Only when unit-less work moves to another person; omitted otherwise. */
+  businessUnitIds?: readonly string[];
 };
 
 export interface TaskStore {
@@ -117,6 +145,8 @@ export interface TaskStore {
   list(filter: TaskListFilter): Promise<TaskRecordDto[]>;
   /** Open tasks with a due date on or before `dueBefore`, across every scope (for the reminder job). */
   listOpenDue(dueBefore: Date, limit: number): Promise<TaskRecordDto[]>;
+  /** Tasks whose assignee is waiting for an answer, oldest request first. */
+  listPendingExtensions(limit: number): Promise<TaskRecordDto[]>;
   /** Conditional on the revision; null means the record moved on. */
   update(input: {
     taskId: string;
@@ -132,6 +162,29 @@ export interface TaskStore {
     reason: string | null;
     actorId: string;
     at: Date;
+  }): Promise<TaskRecordDto | null>;
+  /**
+   * Records the assignee's request to move the deadline. Conditional on the
+   * revision, on the task still being open, and on no request already
+   * waiting, so a double submit cannot queue two.
+   */
+  requestExtension(input: {
+    taskId: string;
+    expectedRevision: number;
+    request: TaskExtensionRequest;
+  }): Promise<TaskRecordDto | null>;
+  /**
+   * Answers the pending request: an approval moves `dueAt` to the day that
+   * was asked for, a rejection leaves the deadline untouched. Either way the
+   * request is cleared and the decision stored. Conditional on the revision.
+   */
+  decideExtension(input: {
+    taskId: string;
+    expectedRevision: number;
+    decision: TaskExtensionDecision;
+    /** The new deadline on approval; null leaves `dueAt` as it stands. */
+    dueAt: Date | null;
+    decidedBy: string;
   }): Promise<TaskRecordDto | null>;
   /** Fills in dependency ids after a batch of plan tasks exists. */
   setDependencies(input: {
@@ -149,6 +202,14 @@ export const taskCommandErrorCodes = [
   "REASON_REQUIRED",
   "REVISION_CONFLICT",
   "INVALID_INPUT",
+  /** Only the person doing the work may ask for more time. */
+  "NOT_ASSIGNEE",
+  /** A request is already waiting for an answer on this task. */
+  "EXTENSION_PENDING",
+  /** Nothing is waiting to be decided. */
+  "EXTENSION_NOT_FOUND",
+  /** The new deadline is in the past or is the one already set. */
+  "INVALID_DUE_DATE",
 ] as const;
 
 export type TaskCommandErrorCode = (typeof taskCommandErrorCodes)[number];
@@ -234,3 +295,36 @@ export const setTaskStatusInputSchema = z.object({
 });
 
 export type SetTaskStatusInput = z.infer<typeof setTaskStatusInputSchema>;
+
+/**
+ * The assignee asks for more time. A reason is required: the deadline was
+ * set by someone else, so the answer has to rest on something written down.
+ */
+export const requestTaskExtensionInputSchema = z.object({
+  taskId: objectIdSchema,
+  expectedRevision: z.coerce.number().int().min(0),
+  /** `YYYY-MM-DD` in the business timezone. */
+  requestedDueDate: businessDaySchema,
+  reason: z.string().trim().min(1).max(2_000),
+});
+
+export type RequestTaskExtensionInput = z.infer<
+  typeof requestTaskExtensionInputSchema
+>;
+
+export const decideTaskExtensionInputSchema = z.object({
+  taskId: objectIdSchema,
+  expectedRevision: z.coerce.number().int().min(0),
+  outcome: z.enum(["approved", "rejected"]),
+  note: z
+    .string()
+    .trim()
+    .max(2_000)
+    .nullable()
+    .default(null)
+    .transform((value) => (value && value.length > 0 ? value : null)),
+});
+
+export type DecideTaskExtensionInput = z.infer<
+  typeof decideTaskExtensionInputSchema
+>;

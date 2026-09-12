@@ -1,6 +1,6 @@
 import type {
   NotificationChannel,
-  NotificationKind,
+  ReminderKind,
 } from "@/domains/notifications/contracts";
 import type { TaskRecordDto } from "@/domains/tasks/contracts";
 import {
@@ -21,7 +21,7 @@ import {
 
 export type ReminderPlan = {
   taskId: string;
-  kind: NotificationKind;
+  kind: ReminderKind;
   /** The business day this reminder belongs to (`YYYY-MM-DD`). */
   day: string;
   dueDay: string;
@@ -94,7 +94,7 @@ export function planReminders(input: {
     if (task.status !== "open" || !task.dueAt || !task.assigneeUserId) continue;
     const dueDay = formatBusinessDay(task.dueAt, input.timeZone);
     const daysUntil = daysBetween(today, dueDay);
-    let kind: NotificationKind | null = null;
+    let kind: ReminderKind | null = null;
     if (daysUntil < 0) kind = "taskOverdue";
     else if (daysUntil === 0) kind = "taskDue";
     else if (input.leadDays > 0 && daysUntil === input.leadDays)
@@ -137,7 +137,7 @@ export function nextRetryAt(attemptsSoFar: number, now: Date): Date | null {
 export function reminderStillApplies(
   task: TaskRecordDto | null,
   intent: {
-    kind: NotificationKind;
+    kind: ReminderKind;
     recipientUserId: string;
     dedupeKey: string;
   },

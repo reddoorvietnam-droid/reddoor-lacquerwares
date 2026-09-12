@@ -150,9 +150,24 @@ describe("issueCodesFromQuery", () => {
 });
 
 describe("templateAllowed", () => {
-  const none = { global: false, businessUnitIds: [] as readonly string[] };
-  const unit = { global: false, businessUnitIds: ["u1"] as readonly string[] };
-  const all = { global: true, businessUnitIds: [] as readonly string[] };
+  const none = {
+    global: false,
+    businessUnitIds: [] as readonly string[],
+    own: false,
+    ownBusinessUnitIds: [] as readonly string[],
+  };
+  const unit = {
+    global: false,
+    businessUnitIds: ["u1"] as readonly string[],
+    own: false,
+    ownBusinessUnitIds: [] as readonly string[],
+  };
+  const all = {
+    global: true,
+    businessUnitIds: [] as readonly string[],
+    own: false,
+    ownBusinessUnitIds: [] as readonly string[],
+  };
 
   it("needs global finance coverage for the money templates", () => {
     expect(templateAllowed("incomingCash", { "payments.read": unit })).toBe(
