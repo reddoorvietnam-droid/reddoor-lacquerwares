@@ -139,6 +139,13 @@ export function adminNavSeeds(
           anyOf: ["users.read"],
         },
         {
+          // Approving Gmail sign-ins and choosing each person's one role is
+          // the Director's alone (confirmed 2026-09-13).
+          href: `${basePath}/staff` as Route,
+          label: locale === "vi" ? "Danh sách nhân sự" : "Staff",
+          anyOf: ["users.manageRoles"],
+        },
+        {
           href: `${basePath}/content` as Route,
           label: copy.navigation.content,
           anyOf: ["content.read"],

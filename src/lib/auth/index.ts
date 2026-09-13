@@ -213,6 +213,23 @@ export async function resolveActiveRoleKeys(): Promise<readonly string[]> {
   return activeRoleKeys(snapshot, new Date());
 }
 
+export type SignedInProfile = { displayName: string | null; email: string };
+
+/**
+ * The name and Gmail of the person signed in, for the header and the welcome
+ * page. Whatever the account's status, so the waiting and locked screens can
+ * say which Gmail is in use. Decides nothing about access.
+ */
+export const resolveSignedInProfile = cache(
+  async (): Promise<SignedInProfile | null> => {
+    const resolution = await resolveSessionIdentityCached();
+    if (!resolution.configured || !resolution.identity) return null;
+    return mongoIdentityRepository.findAccountProfile(
+      resolution.identity.userId,
+    );
+  },
+);
+
 /** Whether coverage reaches a specific record's business units. */
 export function coverageReaches(
   coverage: PermissionCoverage,

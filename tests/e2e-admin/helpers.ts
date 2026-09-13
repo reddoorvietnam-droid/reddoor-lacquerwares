@@ -1,52 +1,50 @@
-import { expect, type Page, type APIRequestContext } from "@playwright/test";
+import { readFileSync } from "node:fs";
+
+import { expect, type APIRequestContext, type Page } from "@playwright/test";
+
+import { roleSessionFile, type RoleKey } from "./role-session-file";
+
+export type { RoleKey } from "./role-session-file";
 
 /**
- * Dev-preview sign-in: the sign-in page lists one button per role with the
- * account username in a `span.font-mono`. Clicking before hydration is a
- * known hazard, so the click is retried until the button disables (sign-in
- * in flight) and the portal URL appears.
+ * Signs a page in as one of the six roles. Sign-in is Gmail only, so there is
+ * no role button to press: the global setup provisions one internal account
+ * per role (`<role>@e2e.reddoor.local`) and leaves the session cookie a Google
+ * sign-in would have set. The page then opens the portal overview and waits
+ * for the role-filtered sidebar, which only renders for a granted session.
  */
-export const roleUsernames = {
-  DIRECTOR: "admin",
-  COMPANY_ACCOUNTANT: "company_accountant",
-  FACTORY_ACCOUNTANT: "factory_accountant",
-  FACTORY_MANAGER: "factory_manager",
-  WAREHOUSE_MANAGER: "warehouse_manager",
-  CONTENT_CREATOR: "content_creator",
-} as const;
+const baseURL = process.env.E2E_ADMIN_BASE_URL ?? "http://localhost:3000";
+let sessions: Partial<Record<RoleKey, string>> | null = null;
 
-export type RoleKey = keyof typeof roleUsernames;
+export function sessionTokenFor(role: RoleKey): string {
+  sessions ??= JSON.parse(readFileSync(roleSessionFile, "utf8")) as Partial<
+    Record<RoleKey, string>
+  >;
+  const token = sessions[role];
+  if (!token) {
+    throw new Error(
+      `No E2E session for ${role}: the global setup did not run.`,
+    );
+  }
+  return token;
+}
 
 export async function signInAs(page: Page, role: RoleKey): Promise<void> {
-  await page.context().clearCookies();
-  await page.goto("/vi/admin/sign-in", { waitUntil: "domcontentloaded" });
-  const button = page
-    .locator("button", {
-      has: page.locator("span.font-mono", {
-        hasText: new RegExp(`^${roleUsernames[role]}$`),
-      }),
-    })
-    .first();
-  await expect(button).toBeVisible();
-  for (let attempt = 0; attempt < 6; attempt += 1) {
-    await button.click();
-    await page.waitForTimeout(700);
-    if (await button.isDisabled().catch(() => true)) break;
-  }
-  // The sign-in page also lives under /vi/admin, so wait for the portal
-  // overview itself (no `/sign-in` segment) and for the role-filtered
-  // sidebar, which only renders for a signed-in, granted session.
-  await page.waitForURL(
-    (url) => /\/vi\/admin\/?(?:\?.*)?$/.test(url.pathname + url.search),
+  const context = page.context();
+  await context.clearCookies();
+  await context.addCookies([
     {
-      timeout: 60_000,
+      name: "next-auth.session-token",
+      value: sessionTokenFor(role),
+      url: baseURL,
     },
-  );
+  ]);
+  await page.goto("/vi/admin", { waitUntil: "domcontentloaded" });
   await expect(
     page.getByRole("navigation", {
       name: /Điều hướng quản trị|Administration navigation/,
     }),
-  ).toBeVisible();
+  ).toBeVisible({ timeout: 90_000 });
 }
 
 export const fixtureOrderCode =

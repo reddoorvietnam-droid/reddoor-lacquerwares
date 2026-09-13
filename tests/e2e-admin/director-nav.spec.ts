@@ -16,7 +16,13 @@ async function openRole(page: Page, name: string) {
 // Agreed with the client on 2026-09-11: every role's screens, grouped by
 // role, shared entries repeated, the assistant outside every group.
 const expectedMenus: Record<string, string[]> = {
-  "Giám đốc": ["Giao việc", "Phê duyệt", "Cơ cấu tổ chức", "Yêu cầu báo giá"],
+  "Giám đốc": [
+    "Giao việc",
+    "Phê duyệt",
+    "Cơ cấu tổ chức",
+    "Danh sách nhân sự",
+    "Yêu cầu báo giá",
+  ],
   "Thủ kho / Quản lý kho": [
     "Bảng xuất kho sơn",
     "Nguyên vật liệu",

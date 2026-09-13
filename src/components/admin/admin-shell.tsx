@@ -2,31 +2,18 @@ import Link from "next/link";
 import type { Route } from "next";
 import type { ReactNode } from "react";
 
-import {
-  AdminNav,
-  type AdminNavGroup,
-  type AdminNavRoleGroup,
-} from "@/components/admin/admin-nav";
-import {
-  adminNavSeeds,
-  groupNavByRole,
-  type NavGroupSeed,
-} from "@/components/admin/admin-nav-model";
+import { AdminNav } from "@/components/admin/admin-nav";
+import { resolveAdminNavigation } from "@/components/admin/admin-nav-access";
+import { SignOutButton } from "@/components/admin/sign-out-button";
 import { BrandPlaque } from "@/components/public/logo";
-import type { Permission } from "@/domains/identity/permissions";
-import { roleDefinitionSeeds } from "@/domains/identity/role-definitions";
-import { resolveActiveRoleKeys, resolvePermissionCoverages } from "@/lib/auth";
-import { canSeeSampleProgress } from "@/domains/sample-progress/access";
-import { canSeeMaterials } from "@/domains/materials/access";
-import { canSeeReceivables } from "@/domains/receivables/access";
-import { canSeeAssignedTasks } from "@/domains/tasks/access";
 import type { AdminLocale } from "@/lib/i18n/admin";
 import { getAdminDictionary } from "@/lib/i18n/admin";
 
 type AdminShellProps = {
   locale: AdminLocale;
   children: ReactNode;
-  userLabel?: string;
+  /** The signed-in person, shown with a sign-out button; absent before sign-in. */
+  account?: { name: string; email: string } | null;
   /** False on screens outside a session (sign-in): no sidebar, full width. */
   withNav?: boolean;
 };
@@ -34,81 +21,14 @@ type AdminShellProps = {
 export async function AdminShell({
   locale,
   children,
-  userLabel,
+  account = null,
   withNav = true,
 }: AdminShellProps) {
   const copy = getAdminDictionary(locale);
   const basePath = `/${locale}/admin` as Route;
-  const groups = adminNavSeeds(locale, basePath);
-
-  let visibleGroups: AdminNavGroup[] = [];
-  let roleGroups: AdminNavRoleGroup[] = [];
-  if (withNav) {
-    const requested = [
-      ...new Set(
-        groups.flatMap(({ items }) => items.flatMap((i) => i.anyOf ?? [])),
-      ),
-    ] as Permission[];
-    const coverages = await resolvePermissionCoverages(requested);
-    const sampleProgressVisible = await canSeeSampleProgress();
-    const materialsVisible = await canSeeMaterials();
-    const receivablesVisible = await canSeeReceivables();
-    const assignedTasksVisible = await canSeeAssignedTasks();
-
-    const covered = (permission: Permission): boolean => {
-      const coverage = coverages[permission as keyof typeof coverages];
-      return coverage.global || coverage.businessUnitIds.length > 0;
-    };
-    const anyGranted = requested.some(covered);
-
-    // An unauthenticated or fully unauthorized reader gets no menu at all; the
-    // always-visible items only make sense alongside at least one granted area.
-    const granted: NavGroupSeed[] = anyGranted
-      ? groups
-          .map(({ label, items }) => ({
-            label,
-            items: items
-              .filter(
-                ({ href }) =>
-                  !href.endsWith("/sample-progress") || sampleProgressVisible,
-              )
-              .filter(
-                ({ href }) => !href.endsWith("/materials") || materialsVisible,
-              )
-              .filter(
-                ({ href }) =>
-                  !href.endsWith("/receivables") || receivablesVisible,
-              )
-              // The personal task inbox is granted at `own`, which reports no
-              // coverage; its own guard decides whether the entry shows.
-              .filter(({ href, anyOf }) =>
-                href.endsWith("/my-tasks")
-                  ? assignedTasksVisible
-                  : anyOf === null || anyOf.some(covered),
-              ),
-          }))
-          .filter(({ items }) => items.length > 0)
-      : [];
-
-    // The Director holds every role's screens, so their menu is laid out by
-    // role to show who works where; everyone else keeps their own flat menu.
-    if (
-      granted.length > 0 &&
-      (await resolveActiveRoleKeys()).includes("DIRECTOR")
-    ) {
-      const arranged = groupNavByRole(granted, roleDefinitionSeeds, locale);
-      visibleGroups = [arranged.standalone];
-      roleGroups = arranged.roleGroups;
-    } else {
-      visibleGroups = granted.map(({ label, items }) => ({
-        label,
-        items: items.map(({ href, label: itemLabel }) => ({
-          href,
-          label: itemLabel,
-        })),
-      }));
-    }
-  }
+  const navigation = withNav
+    ? await resolveAdminNavigation(locale, basePath)
+    : null;
 
   return (
     <div className="text-charcoal min-h-screen bg-[#f2ede4]">
@@ -134,28 +54,32 @@ export async function AdminShell({
               </span>
             </span>
           </Link>
-          <div className="flex items-center gap-3 text-sm">
-            {userLabel ? (
-              <span className="text-ivory/70 hidden sm:inline">
-                {userLabel}
+          <div className="flex flex-wrap items-center gap-3 text-sm">
+            {account ? (
+              <span
+                className="text-ivory/75 hidden max-w-56 truncate md:inline"
+                title={account.email}
+              >
+                {account.name}
               </span>
             ) : null}
             <Link
               href={`/${locale}` as Route}
-              className="border-ivory/25 hover:border-gold/60 hover:bg-ivory/10 rounded-full border px-4 py-2 font-semibold transition-colors"
+              className="border-ivory/25 hover:border-gold/60 hover:bg-ivory/10 inline-flex min-h-10 items-center rounded-full border px-4 font-semibold transition-colors"
             >
               {copy.openPublicSite}
             </Link>
+            {account ? <SignOutButton locale={locale} /> : null}
           </div>
         </div>
       </header>
-      {withNav ? (
+      {navigation ? (
         <div className="admin-portal-grid mx-auto grid max-w-[100rem] grid-cols-1 lg:grid-cols-[15rem_minmax(0,1fr)]">
           <AdminNav
             navigationLabel={copy.navigationLabel}
             basePath={basePath}
-            groups={visibleGroups}
-            roleGroups={roleGroups}
+            groups={navigation.groups}
+            roleGroups={navigation.roleGroups}
           />
           <main
             id="admin-main"

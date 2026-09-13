@@ -12,8 +12,8 @@ import { signInAs } from "./helpers";
  * the transcript survives a full reload, and that deleting it removes it for
  * good. The wording of the answer is the provider's business.
  *
- * Prerequisites: `npm run seed -- --with-demo`, `DEV_LOGIN_PASSWORD` set and
- * `AI_PROVIDER=mock`. The conversation is deleted by the last step, so the
+ * Prerequisites: `npm run seed -- --with-demo`, the E2E role sessions (global
+ * setup) and `AI_PROVIDER=mock`. The conversation is deleted by the last step, so the
  * spec leaves nothing behind in the development database.
  */
 test.describe.configure({ mode: "serial" });

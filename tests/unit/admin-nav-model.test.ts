@@ -56,7 +56,13 @@ describe("the Director's menu, laid out by role", () => {
     expect(menuOf(roleGroups, "DIRECTOR")).toEqual([
       {
         label: null,
-        items: ["Giao việc", "Phê duyệt", "Cơ cấu tổ chức", "Yêu cầu báo giá"],
+        items: [
+          "Giao việc",
+          "Phê duyệt",
+          "Cơ cấu tổ chức",
+          "Danh sách nhân sự",
+          "Yêu cầu báo giá",
+        ],
       },
     ]);
     expect(menuOf(roleGroups, "WAREHOUSE_MANAGER")).toEqual([

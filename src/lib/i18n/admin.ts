@@ -83,11 +83,6 @@ type AdminCopy = {
     visibilityTitle: string;
     visibilityDescription: string;
   };
-  overview: {
-    eyebrow: string;
-    title: string;
-    description: string;
-  };
   content: {
     eyebrow: string;
     title: string;
@@ -144,8 +139,19 @@ type AdminCopy = {
     eyebrow: string;
     title: string;
     description: string;
+    steps: readonly string[];
+    cardTitle: string;
+    cardHint: string;
     googleButton: string;
+    googleRedirecting: string;
+    signInErrors: Record<
+      "AccessDenied" | "Configuration" | "Unavailable" | "default",
+      string
+    >;
     privacyNote: string;
+    signedInAs: string;
+    signOut: string;
+    signingOut: string;
     pendingTitle: string;
     pendingDescription: string;
     suspendedTitle: string;
@@ -200,6 +206,8 @@ type AdminCopy = {
     description: string;
     mongo: string;
     auth: string;
+    admin: string;
+    callback: string;
     safeDefault: string;
   };
   settings: {
@@ -217,7 +225,6 @@ type AdminCopy = {
     featureMongo: string;
     featureAuth: string;
     featureGoogle: string;
-    featureDevLogin: string;
     featureOpenAccess: string;
     featureCloudinary: string;
     featureEmail: string;
@@ -240,7 +247,6 @@ type AdminCopy = {
     zaloConnected: string;
     zaloErrorLead: string;
     zaloErrors: Record<string, string>;
-    noteDevLogin: string;
     noteOpenAccess: string;
     noteGoogle: string;
     plannedTitle: string;
@@ -344,12 +350,6 @@ const adminDictionaries = {
       visibilityDescription:
         "Giá bán, biên lợi nhuận và lợi nhuận chỉ Giám đốc và Kế toán công ty được xem. Giá mua và các phần dữ liệu vận hành còn lại thì mọi vị trí đều xem được; quyền chỉnh sửa phải được cấp riêng.",
     },
-    overview: {
-      eyebrow: "Tổng quan",
-      title: "Cổng quản trị Red Door",
-      description:
-        "Chọn khu vực làm việc ở thanh bên trái. Bên dưới là vai trò và quyền hạn của phiên đăng nhập này.",
-    },
     content: {
       eyebrow: "Content Studio",
       title: "Nội dung thương hiệu",
@@ -417,18 +417,39 @@ const adminDictionaries = {
     },
     auth: {
       eyebrow: "Truy cập nội bộ",
-      title: "Đăng nhập Cổng quản trị",
+      title: "Cổng làm việc Red Door",
       description:
-        "Dùng tài khoản Google đã được cấp quyền. Tài khoản mới luôn ở trạng thái chờ duyệt và chưa thể đọc dữ liệu nội bộ.",
+        "Nơi đội ngũ Red Door làm việc mỗi ngày. Đăng nhập bằng Gmail của bạn; Giám đốc duyệt và chọn vai trò cho từng người.",
+      steps: [
+        "Đăng nhập bằng Gmail của bạn.",
+        "Giám đốc duyệt và chọn vai trò cho tài khoản.",
+        "Mở đúng các mục công việc của vai trò đó.",
+      ],
+      cardTitle: "Đăng nhập bằng Gmail",
+      cardHint:
+        "Chọn đúng Gmail bạn dùng cho công việc. Lần đầu đăng nhập, tài khoản sẽ chờ Giám đốc duyệt.",
       googleButton: "Tiếp tục với Google",
+      googleRedirecting: "Đang chuyển sang Google…",
+      signInErrors: {
+        AccessDenied:
+          "Tài khoản Google này chưa xác minh địa chỉ Gmail nên chưa đăng nhập được. Hãy dùng Gmail đã xác minh.",
+        Configuration:
+          "Đăng nhập Google trên máy chủ chưa được cấu hình đúng. Kiểm tra AUTH_GOOGLE_ID, AUTH_GOOGLE_SECRET và URL callback.",
+        Unavailable:
+          "Máy chủ chưa xử lý được lượt đăng nhập này. Thử lại sau ít phút; nếu vẫn lỗi, báo bộ phận kỹ thuật kiểm tra.",
+        default: "Chưa đăng nhập được với Google. Thử lại sau ít phút.",
+      },
       privacyNote:
-        "Hệ thống chỉ lưu định danh cần thiết cho xác thực và phân quyền; không lưu token Google trong nội dung CMS.",
-      pendingTitle: "Tài khoản đang chờ duyệt",
+        "Hệ thống chỉ lưu tên, Gmail, ảnh đại diện và mã tài khoản Google để xác thực và phân quyền; không lưu mật khẩu hay token Google.",
+      signedInAs: "Đang đăng nhập bằng",
+      signOut: "Đăng xuất",
+      signingOut: "Đang đăng xuất…",
+      pendingTitle: "Tài khoản đang chờ Giám đốc duyệt",
       pendingDescription:
-        "Đăng nhập đã thành công nhưng quyền truy cập chưa được một quản trị viên kích hoạt.",
-      suspendedTitle: "Tài khoản đã bị tạm ngưng",
+        "Bạn đã đăng nhập bằng Gmail. Giám đốc sẽ duyệt và chọn vai trò cho tài khoản này; khi đã được duyệt, tải lại trang để vào hệ thống.",
+      suspendedTitle: "Tài khoản đã bị khoá",
       suspendedDescription:
-        "Mọi quyền quản trị hiện bị từ chối. Liên hệ quản trị viên nội bộ để được hỗ trợ.",
+        "Giám đốc đã khoá tài khoản này nên mọi quyền truy cập đang bị từ chối. Liên hệ Giám đốc nếu cần mở lại.",
       deniedTitle: "Bạn chưa có quyền xem khu vực này",
       deniedDescription:
         "Quyền được kiểm tra lại trên máy chủ cho mỗi lượt đọc và thay đổi dữ liệu.",
@@ -489,8 +510,11 @@ const adminDictionaries = {
       title: "CMS đang khóa an toàn",
       description:
         "Cổng quản trị chỉ mở khi MongoDB và Google OAuth được cấu hình hợp lệ. Dữ liệu DEMO của website công khai không thể bị sửa như dữ liệu thật.",
-      mongo: "Khai báo MONGODB_URI trực tiếp trong .env.local hoặc Vercel.",
-      auth: "Khai báo AUTH_SECRET, AUTH_GOOGLE_ID và AUTH_GOOGLE_SECRET.",
+      mongo: "Khai báo MONGODB_URI trong .env hoặc Vercel.",
+      auth: "Khai báo AUTH_SECRET (ít nhất 32 ký tự), AUTH_GOOGLE_ID và AUTH_GOOGLE_SECRET lấy từ Google Cloud Console.",
+      admin:
+        "Đặt ADMIN_EMAILS là Gmail của Giám đốc: lần đầu Gmail này đăng nhập sẽ trở thành Giám đốc.",
+      callback: "Trên OAuth client của Google, thêm URL chuyển hướng:",
       safeDefault:
         "Khi thiếu cấu hình, mọi đọc/ghi quản trị đều bị từ chối theo mặc định.",
     },
@@ -510,7 +534,6 @@ const adminDictionaries = {
       featureMongo: "Cơ sở dữ liệu MongoDB",
       featureAuth: "Đăng nhập & phiên làm việc",
       featureGoogle: "Google OAuth",
-      featureDevLogin: "Đăng nhập xem thử theo vai trò",
       featureOpenAccess: "Mở toàn quyền khi phát triển",
       featureCloudinary: "Lưu trữ ảnh Cloudinary",
       featureEmail: "Email thông báo (Resend)",
@@ -554,15 +577,13 @@ const adminDictionaries = {
           "Zalo từ chối mã cấp quyền. Kiểm tra App Secret Key và URL callback đã đăng ký đúng chưa.",
         UNAVAILABLE: "không liên lạc được với Zalo. Thử lại sau ít phút.",
       },
-      noteDevLogin:
-        "Chỉ dùng khi phát triển — xóa DEV_LOGIN_PASSWORD trước khi vận hành thật.",
       noteOpenAccess:
         "Mọi tài khoản đã đăng nhập được xem mọi khu vực. Xóa DEV_OPEN_ACCESS trước khi vận hành thật để phân quyền theo vai trò hoạt động lại.",
       noteGoogle:
-        "Khi chưa cấu hình, đăng nhập Google bị ẩn trên trang đăng nhập.",
-      plannedTitle: "Quản trị vai trò & phân quyền",
+        "Chưa cấu hình thì không ai đăng nhập được: khai báo AUTH_GOOGLE_ID và AUTH_GOOGLE_SECRET.",
+      plannedTitle: "Cấp quyền cho nhân sự",
       plannedDescription:
-        "Màn hình cấp vai trò, gán đơn vị kinh doanh và thu hồi quyền sẽ được bổ sung ở giai đoạn sau. Hiện tại quyền được cấp qua dữ liệu khởi tạo và tài khoản xem thử.",
+        "Người mới đăng nhập bằng Gmail sẽ chờ ở Danh sách nhân sự; Giám đốc duyệt và chọn một vai trò cho từng người. Gmail của Giám đốc đặt trong ADMIN_EMAILS và trở thành Giám đốc ở lần đăng nhập đầu tiên.",
     },
   },
   en: {
@@ -660,12 +681,6 @@ const adminDictionaries = {
       visibilityDescription:
         "Selling price, margin, and profit are visible only to the Director and the Company Accountant. Purchase price and the remaining operational data are readable by every position; the right to edit is granted separately.",
     },
-    overview: {
-      eyebrow: "Overview",
-      title: "Red Door administration",
-      description:
-        "Pick a working area in the sidebar. Below are this session's roles and permissions.",
-    },
     content: {
       eyebrow: "Content Studio",
       title: "Brand content",
@@ -733,18 +748,40 @@ const adminDictionaries = {
     },
     auth: {
       eyebrow: "Internal access",
-      title: "Sign in to the administration portal",
+      title: "The Red Door workspace",
       description:
-        "Use an authorized Google account. New accounts always remain pending and cannot read internal data until approved.",
+        "Where the Red Door team works every day. Sign in with your Gmail; the Director approves each person and chooses their role.",
+      steps: [
+        "Sign in with your Gmail.",
+        "The Director approves the account and chooses its role.",
+        "Open the screens that role works in.",
+      ],
+      cardTitle: "Sign in with Gmail",
+      cardHint:
+        "Pick the Gmail you use for work. On a first sign-in the account waits for the Director's approval.",
       googleButton: "Continue with Google",
+      googleRedirecting: "Redirecting to Google…",
+      signInErrors: {
+        AccessDenied:
+          "This Google account has no verified Gmail address, so it cannot sign in. Use a verified Gmail.",
+        Configuration:
+          "Google sign-in is not configured correctly on the server. Check AUTH_GOOGLE_ID, AUTH_GOOGLE_SECRET and the callback URL.",
+        Unavailable:
+          "The server could not complete this sign-in. Try again in a few minutes; if it keeps failing, ask technical support to check.",
+        default:
+          "Signing in with Google did not complete. Try again in a few minutes.",
+      },
       privacyNote:
-        "Only identity data needed for authentication and authorization is stored; Google tokens are never persisted in CMS content.",
-      pendingTitle: "Account awaiting approval",
+        "Only your name, Gmail, profile picture and Google account ID are stored, for sign-in and permissions; no password or Google token is kept.",
+      signedInAs: "Signed in as",
+      signOut: "Sign out",
+      signingOut: "Signing out…",
+      pendingTitle: "Account awaiting the Director's approval",
       pendingDescription:
-        "Sign-in succeeded, but an administrator has not activated this account yet.",
-      suspendedTitle: "Account suspended",
+        "You signed in with Google. The Director will approve this account and choose its role; once approved, reload the page to enter.",
+      suspendedTitle: "Account locked",
       suspendedDescription:
-        "All administration access is currently denied. Contact an internal administrator for support.",
+        "The Director has locked this account, so all access is denied. Contact the Director to have it unlocked.",
       deniedTitle: "You do not have access to this area",
       deniedDescription:
         "Permissions are rechecked on the server for every sensitive read and mutation.",
@@ -805,8 +842,11 @@ const adminDictionaries = {
       title: "The CMS is safely locked",
       description:
         "The administration portal opens only after MongoDB and Google OAuth are configured. Public DEMO records can never be edited as if they were persisted content.",
-      mongo: "Set MONGODB_URI directly in .env.local or Vercel.",
-      auth: "Set AUTH_SECRET, AUTH_GOOGLE_ID, and AUTH_GOOGLE_SECRET.",
+      mongo: "Set MONGODB_URI in .env or Vercel.",
+      auth: "Set AUTH_SECRET (32+ characters), AUTH_GOOGLE_ID and AUTH_GOOGLE_SECRET from Google Cloud Console.",
+      admin:
+        "Set ADMIN_EMAILS to the Director's Gmail: its first sign-in becomes the Director.",
+      callback: "On the Google OAuth client, add the redirect URI:",
       safeDefault:
         "Without configuration, all administration reads and writes are denied by default.",
     },
@@ -826,7 +866,6 @@ const adminDictionaries = {
       featureMongo: "MongoDB database",
       featureAuth: "Sign-in & sessions",
       featureGoogle: "Google OAuth",
-      featureDevLogin: "Role-preview sign-in",
       featureOpenAccess: "Development open access",
       featureCloudinary: "Cloudinary media storage",
       featureEmail: "Notification email (Resend)",
@@ -870,15 +909,13 @@ const adminDictionaries = {
           "Zalo rejected the authorization code. Check the App Secret Key and the registered callback URL.",
         UNAVAILABLE: "Zalo could not be reached. Try again in a few minutes.",
       },
-      noteDevLogin:
-        "Development only — remove DEV_LOGIN_PASSWORD before going live.",
       noteOpenAccess:
         "Every signed-in account can view every area. Remove DEV_OPEN_ACCESS before going live so role-based access applies again.",
       noteGoogle:
-        "While unconfigured, Google sign-in is hidden on the sign-in page.",
-      plannedTitle: "Role & permission administration",
+        "Until it is configured nobody can sign in: set AUTH_GOOGLE_ID and AUTH_GOOGLE_SECRET.",
+      plannedTitle: "Granting staff access",
       plannedDescription:
-        "Screens for granting roles, assigning business units, and revoking access arrive in a later phase. For now, access is granted through seed data and the preview accounts.",
+        "Anyone signing in with Gmail for the first time waits on the Staff list, where the Director approves them and chooses one role. The Director's Gmail goes in ADMIN_EMAILS and becomes the Director on its first sign-in.",
     },
   },
 } as const satisfies Record<AdminLocale, AdminCopy>;

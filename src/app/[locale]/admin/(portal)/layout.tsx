@@ -7,7 +7,7 @@ import {
   AdminSetupRequired,
   AdminShell,
 } from "@/components/admin";
-import { resolvePortalEntry } from "@/lib/auth";
+import { resolvePortalEntry, resolveSignedInProfile } from "@/lib/auth";
 import { inspectAuthEnv, inspectMongoEnv } from "@/lib/env/server";
 import { isLocale } from "@/lib/i18n/config";
 import { resolveAdminLocale } from "@/lib/i18n/admin";
@@ -30,7 +30,7 @@ export default async function ProtectedAdminLayout({
 
   if (!configured) {
     return (
-      <AdminShell locale={locale}>
+      <AdminShell locale={locale} withNav={false}>
         <AdminSetupRequired locale={locale} />
       </AdminShell>
     );
@@ -54,19 +54,35 @@ export default async function ProtectedAdminLayout({
 
   if (entry.kind === "unconfigured") {
     return (
-      <AdminShell locale={locale}>
+      <AdminShell locale={locale} withNav={false}>
         <AdminSetupRequired locale={locale} />
       </AdminShell>
     );
   }
 
+  // Every signed-in screen offers a way out (and, from tablet width, names the
+  // person), including the waiting and locked screens, where signing out is
+  // how someone switches to another Gmail.
+  const profile = await resolveSignedInProfile();
+  const account = profile
+    ? { name: profile.displayName ?? profile.email, email: profile.email }
+    : null;
+
   if (entry.kind === "denied") {
     return (
-      <AdminShell locale={locale} withNav={false}>
-        <AdminAccessState locale={locale} code={entry.code} />
+      <AdminShell locale={locale} withNav={false} account={account}>
+        <AdminAccessState
+          locale={locale}
+          code={entry.code}
+          email={profile?.email ?? null}
+        />
       </AdminShell>
     );
   }
 
-  return <AdminShell locale={locale}>{children}</AdminShell>;
+  return (
+    <AdminShell locale={locale} account={account}>
+      {children}
+    </AdminShell>
+  );
 }

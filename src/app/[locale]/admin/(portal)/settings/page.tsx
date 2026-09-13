@@ -125,8 +125,6 @@ export default async function AdminSettingsPage({
       : null;
   const googleConfigured =
     auth.configured && Boolean(auth.value.AUTH_GOOGLE_ID);
-  const devLoginEnabled =
-    auth.configured && Boolean(auth.value.DEV_LOGIN_PASSWORD);
   const openAccess = isDevOpenAccessEnabled();
 
   const missingDetail = (feature: {
@@ -168,15 +166,6 @@ export default async function AdminSettingsPage({
       detail: null,
       note: googleConfigured ? null : copy.noteGoogle,
       warn: false,
-    },
-    {
-      key: "devLogin",
-      label: copy.featureDevLogin,
-      configured: devLoginEnabled,
-      statusLabel: devLoginEnabled ? copy.statusEnabled : copy.statusDisabled,
-      detail: null,
-      note: devLoginEnabled ? copy.noteDevLogin : null,
-      warn: devLoginEnabled,
     },
     {
       key: "openAccess",

@@ -11,7 +11,7 @@ import { signInAs } from "./helpers";
  * done. The fixture task carries a timestamped title and is left finished,
  * so a rerun never collides with the last one.
  *
- * Needs a running server with the dev-preview logins; a dev server compiles
+ * Needs a running server and the E2E role sessions; a dev server compiles
  * each server action on first use, hence the generous navigation timeouts.
  */
 const title = `E2E giao việc ${Date.now()}`;

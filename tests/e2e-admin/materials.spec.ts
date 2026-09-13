@@ -9,7 +9,7 @@ import { signInAs } from "./helpers";
 /**
  * Nguyên vật liệu walk-through against a running dev server (see
  * playwright.admin.config.ts). Needs the migrated catalogue (Quang, CNdenbong)
- * and the dev-preview accounts. Creates one `E2E-UI-*` material and removes
+ * and the E2E role sessions. Creates one `E2E-UI-*` material and removes
  * it again through tests/integration/materials-e2e-cleanup.ts.
  */
 

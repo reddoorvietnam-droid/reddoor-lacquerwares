@@ -362,6 +362,10 @@ export type SensitiveFieldPermission =
  */
 export const globallyScopedPermissions = [
   "users.manageSuperAdmin",
+  // Approving, locking and re-roling staff accounts ("Danh sách nhân sự").
+  "users.activate",
+  "users.suspend",
+  "users.manageRoles",
   "roles.update",
   "settings.publishPublic",
   "settings.manageSystem",

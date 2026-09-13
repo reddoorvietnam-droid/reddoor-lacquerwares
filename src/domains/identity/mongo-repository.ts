@@ -130,6 +130,27 @@ export class MongoIdentityRepository
     return user ? toIdentity(user) : null;
   }
 
+  /** Name and address of an account, for greeting the person signed in. */
+  async findAccountProfile(
+    userId: string,
+  ): Promise<{ displayName: string | null; email: string } | null> {
+    if (!Types.ObjectId.isValid(userId)) {
+      return null;
+    }
+
+    await connectToDatabase();
+
+    const user = await getUserModel()
+      .findById(new Types.ObjectId(userId))
+      .select("email displayName")
+      .lean<{ email: string; displayName?: string | null }>()
+      .exec();
+
+    return user
+      ? { displayName: user.displayName?.trim() || null, email: user.email }
+      : null;
+  }
+
   async findSnapshotByUserId(
     userId: string,
   ): Promise<AuthorizationSnapshot | null> {

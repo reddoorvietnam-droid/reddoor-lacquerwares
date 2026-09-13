@@ -4,14 +4,14 @@ import { ask, chat, fixtureOrderCode, signInAs } from "./helpers";
 
 /**
  * End-to-end walk of the assistant, the proposal gate and the task list
- * through the six dev-preview roles against a running dev server with
+ * through the six E2E role sessions against a running dev server with
  * `AI_PROVIDER=mock`. Every assertion is about what the server did — tool
  * traces, records that exist after a refresh, denied calls — not about the
  * wording of the scripted provider.
  *
  * Prerequisites: `npm run seed`, the fixture order (`RD-20260906-E2E1`, see
  * the report) at stage productionPlanning inside DEMO-FACTORY-1, and the
- * dev-preview accounts. Serial: later tests build on earlier state.
+ * E2E role sessions (global setup). Serial: later tests build on earlier state.
  */
 test.describe.configure({ mode: "serial" });
 

@@ -10,7 +10,7 @@ import { signInAs } from "./helpers";
  * Công nợ walk-through against a running dev server (see
  * playwright.admin.config.ts). Needs the migrated debt book — run
  * `npm run import:receivables -- "assets/Reddoor-congno-2026.xlsx" --apply`
- * first — and the dev-preview accounts.
+ * first — and the E2E role sessions (global setup).
  *
  * The flow records a payment, checks the balance moved by exactly that amount,
  * cancels it, checks the balance came back, and never leaves a posted entry

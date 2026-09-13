@@ -183,6 +183,50 @@ async function retireMergedRoles(): Promise<void> {
   }
 }
 
+/**
+ * The one-click role preview was removed on 2026-09-13: sign-in is Gmail only.
+ * Its accounts (`<role>@dev-preview.reddoor.local`) could still carry a live
+ * session cookie, and several held the Director role. They are locked and
+ * their grants revoked — kept rather than deleted, because tasks, reports and
+ * audit events still name them.
+ */
+async function retireRolePreviewAccounts(): Promise<void> {
+  const User = getUserModel();
+  const AccessGrant = getAccessGrantModel();
+
+  const accounts = await User.find({
+    normalizedEmail: /@dev-preview\.reddoor\.local$/,
+  })
+    .select("_id")
+    .exec();
+  if (accounts.length === 0) return;
+
+  const ids = accounts.map(({ _id }) => _id);
+  const revoked = await AccessGrant.updateMany(
+    { userId: { $in: ids }, status: "active" },
+    { $set: { status: "revoked" } },
+  );
+  const locked = await User.updateMany(
+    { _id: { $in: ids }, status: { $ne: "suspended" } },
+    {
+      $set: {
+        status: "suspended",
+        suspendedAt: new Date(),
+        suspensionReason:
+          "Role-preview sign-in removed; sign-in is Gmail only.",
+      },
+      $inc: { authzVersion: 1 },
+    },
+  );
+
+  if (revoked.modifiedCount > 0 || locked.modifiedCount > 0) {
+    console.info(
+      `Retired role-preview accounts: ${locked.modifiedCount} locked, ` +
+        `${revoked.modifiedCount} grants revoked.`,
+    );
+  }
+}
+
 async function seedDemoBusinessUnits(): Promise<void> {
   const model = getBusinessUnitModel();
 
@@ -217,6 +261,7 @@ async function main(): Promise<void> {
   await connectToDatabase();
   await seedRoleDefinitions();
   await retireMergedRoles();
+  await retireRolePreviewAccounts();
 
   if (options.withDemo) {
     await seedDemoBusinessUnits();

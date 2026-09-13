@@ -1,6 +1,4 @@
-import type { Route } from "next";
-import Link from "next/link";
-
+import { SignOutButton } from "@/components/admin/sign-out-button";
 import type { AccessDenialCode } from "@/lib/auth/authorization";
 import type { AdminLocale } from "@/lib/i18n/admin";
 import { getAdminDictionary } from "@/lib/i18n/admin";
@@ -13,9 +11,12 @@ type VisibleAccessState = Exclude<
 export function AdminAccessState({
   locale,
   code,
+  email = null,
 }: {
   locale: AdminLocale;
   code: VisibleAccessState | "USER_NOT_FOUND";
+  /** The Gmail this session signed in with, so a wrong account is obvious. */
+  email?: string | null;
 }) {
   const copy = getAdminDictionary(locale).auth;
   const content =
@@ -41,13 +42,18 @@ export function AdminAccessState({
       <p className="text-charcoal/65 mx-auto mt-5 max-w-xl text-base leading-7">
         {content.description}
       </p>
+      {email && (code === "USER_PENDING" || code === "USER_SUSPENDED") ? (
+        <p className="text-charcoal/55 mt-6 text-sm">
+          {copy.signedInAs}{" "}
+          <span className="text-charcoal font-semibold break-all">{email}</span>
+        </p>
+      ) : null}
       {code === "STALE_SESSION" || code === "USER_NOT_FOUND" ? (
-        <Link
-          href={`/${locale}/admin/sign-in` as Route}
-          className="bg-lacquer text-ivory hover:bg-burgundy mt-7 inline-flex min-h-11 items-center rounded-full px-6 text-sm font-semibold"
-        >
-          {copy.signInAgain}
-        </Link>
+        <SignOutButton
+          locale={locale}
+          variant="solid"
+          label={copy.signInAgain}
+        />
       ) : null}
     </section>
   );

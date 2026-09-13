@@ -1,7 +1,6 @@
 import "server-only";
 
 import type { NextAuthOptions } from "next-auth";
-import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import { z } from "zod";
 
@@ -10,10 +9,6 @@ import {
   parseBootstrapAdminEmails,
   tryBootstrapInitialDirector,
 } from "@/domains/identity/bootstrap";
-import {
-  findDevPreviewAccount,
-  provisionDevPreviewIdentity,
-} from "@/domains/identity/dev-login";
 import { mongoIdentityRepository } from "@/domains/identity/mongo-repository";
 import { inspectAuthEnv, inspectMongoEnv } from "@/lib/env/server";
 
@@ -24,6 +19,20 @@ const googleProfileSchema = z.object({
   name: z.string().trim().min(1).max(200).optional(),
   picture: z.url().max(2_048).optional(),
 });
+
+/**
+ * Where next-auth sends a browser for its own pages. The admin portal's
+ * default locale is Vietnamese, and a failed Google round trip must land back
+ * on the sign-in card with `?error=`, never on next-auth's unstyled page.
+ */
+const signInPath = "/vi/admin/sign-in";
+
+/**
+ * Where a sign-in that failed on the server goes (database down, identity
+ * conflict, bootstrap error). next-auth would call every refusal AccessDenied,
+ * which tells the person to fix a Gmail that is fine.
+ */
+const serverFailure = `${signInPath}?error=Unavailable`;
 
 function removePersonalTokenClaims(token: {
   name?: string | null;
@@ -48,52 +57,15 @@ function removeAuthorizationTokenClaims(token: {
 }
 
 /**
- * The role-preview provider, present only while `DEV_LOGIN_PASSWORD` is set
- * in the environment. The variable is a switch, not a checked secret: the
- * working group asked for one-click role switching, so knowing a role's
- * username is the whole ceremony. The gate against the outside world is that
- * the variable is never set in a deployed environment.
- *
- * It provisions a real user and access grant, then hands the email to the
- * ordinary JWT callback: from that point the session is indistinguishable
- * from one a Google account would produce, so what the portal shows is what
- * each role will really see.
+ * Google is the only way in (confirmed 2026-09-13). A first sign-in creates a
+ * pending account that the Director approves under "Danh sách nhân sự"; the
+ * Gmail named in `ADMIN_EMAILS` is promoted to Director on its first sign-in.
  */
-function createDevPreviewProvider() {
-  return CredentialsProvider({
-    id: "dev-preview",
-    name: "Role preview",
-    credentials: {
-      username: { label: "Username", type: "text" },
-    },
-    async authorize(credentials) {
-      if (!credentials?.username) {
-        return null;
-      }
-
-      const account = findDevPreviewAccount(credentials.username);
-      if (!account) {
-        return null;
-      }
-
-      try {
-        const identity = await provisionDevPreviewIdentity(account, new Date());
-        return { id: identity.userId, email: identity.email };
-      } catch {
-        // A provisioning failure (for example, MongoDB being unreachable)
-        // must read as a failed sign-in, never as a thrown page error.
-        return null;
-      }
-    },
-  });
-}
-
 function createAuthOptions(input: {
   secret: string;
-  googleClientId: string | undefined;
-  googleClientSecret: string | undefined;
+  googleClientId: string;
+  googleClientSecret: string;
   bootstrapAdminEmails: string | undefined;
-  devLoginPassword: string | undefined;
 }): NextAuthOptions {
   const allowedBootstrapEmails = parseBootstrapAdminEmails(
     input.bootstrapAdminEmails,
@@ -102,16 +74,15 @@ function createAuthOptions(input: {
   return {
     secret: input.secret,
     providers: [
-      ...(input.googleClientId && input.googleClientSecret
-        ? [
-            GoogleProvider({
-              clientId: input.googleClientId,
-              clientSecret: input.googleClientSecret,
-            }),
-          ]
-        : []),
-      ...(input.devLoginPassword ? [createDevPreviewProvider()] : []),
+      GoogleProvider({
+        clientId: input.googleClientId,
+        clientSecret: input.googleClientSecret,
+        // Staff often share a browser with a personal Google account; asking
+        // every time lets them pick the company Gmail.
+        authorization: { params: { prompt: "select_account" } },
+      }),
     ],
+    pages: { signIn: signInPath, error: signInPath },
     session: {
       strategy: "jwt",
       maxAge: 8 * 60 * 60,
@@ -119,26 +90,7 @@ function createAuthOptions(input: {
     },
     jwt: { maxAge: 8 * 60 * 60 },
     callbacks: {
-      async signIn({ account, profile, user }) {
-        if (account?.provider === "dev-preview") {
-          // authorize() already provisioned the identity; record the sign-in
-          // through the same audit trail Google sign-ins use.
-          try {
-            await mongoAuditRepository.append({
-              actor: { type: "user", userId: user.id },
-              action: "auth.signIn",
-              resourceType: "user",
-              resourceId: user.id,
-              requestId: globalThis.crypto.randomUUID(),
-              metadata: { devPreview: true },
-              occurredAt: new Date(),
-            });
-          } catch {
-            // The preview sign-in must not depend on audit storage.
-          }
-          return true;
-        }
-
+      async signIn({ account, profile }) {
         if (account?.provider !== "google") {
           return false;
         }
@@ -169,7 +121,7 @@ function createAuthOptions(input: {
           const currentSnapshot =
             await mongoIdentityRepository.findSnapshotByUserId(identity.id);
           if (!currentSnapshot) {
-            return false;
+            return serverFailure;
           }
 
           await mongoAuditRepository.append({
@@ -188,7 +140,7 @@ function createAuthOptions(input: {
           });
           return true;
         } catch {
-          return false;
+          return serverFailure;
         }
       },
       async jwt({ token, user }) {
@@ -306,7 +258,6 @@ export function getAuthConfiguration(): AuthConfiguration {
       googleClientId: authEnv.value.AUTH_GOOGLE_ID,
       googleClientSecret: authEnv.value.AUTH_GOOGLE_SECRET,
       bootstrapAdminEmails: authEnv.value.ADMIN_EMAILS,
-      devLoginPassword: authEnv.value.DEV_LOGIN_PASSWORD,
     }),
   };
 }

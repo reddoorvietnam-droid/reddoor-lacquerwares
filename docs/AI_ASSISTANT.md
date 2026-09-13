@@ -371,7 +371,9 @@ phong. Ở chế độ live các assertion phụ thuộc văn phong được n�
 
 ## 8. Hướng dẫn chạy thử (dữ liệu tổng hợp có nhãn)
 
-1. `.env` có `MONGODB_URI`, `AUTH_SECRET`, `DEV_LOGIN_PASSWORD`. Chạy
+1. `.env` có `MONGODB_URI`, `AUTH_SECRET`, `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET`
+   (đăng nhập chỉ bằng Gmail; E2E dùng phiên kiểm thử, xem
+   `docs/staff-directory.md`). Chạy
    `npm run seed`, `npm run migrate`.
 2. Khởi động: `AI_PROVIDER=mock NOTIFICATION_DELIVERY=off npm run dev`
    (hoặc đặt `ANTHROPIC_API_KEY` và bỏ `AI_PROVIDER` để dùng Claude, hoặc
@@ -379,12 +381,16 @@ phong. Ở chế độ live các assertion phụ thuộc văn phong được n�
 3. Tạo đơn thử: dùng `/admin/orders/new` hoặc script fixture (mã
    `RD-20260906-E2E1`, khách "E2E AI Khách Kế Hoạch"). Mọi bản ghi thử có
    tiền tố `E2E`.
-4. Đăng nhập `company_accountant` → Trợ lý AI → "Lập kế hoạch cho đơn RD-…"
+   Không còn nút đăng nhập theo vai trò: mở phiên kiểm thử bằng
+   `npx tsx --env-file-if-exists=.env --conditions=react-server tests/e2e-admin/role-sessions.ts open`
+   rồi đặt cookie `next-auth.session-token` của vai trò cần xem (hoặc chạy bộ
+   E2E admin, vốn tự làm việc này); xong thì chạy lại với `close`.
+4. Vào bằng vai trò Kế toán công ty → Trợ lý AI → "Lập kế hoạch cho đơn RD-…"
    → xem giả định → "Duyệt và tạo việc" → Việc cần làm.
-5. Đăng nhập `factory_manager` / `warehouse_manager` → Việc cần làm → "Xong".
-6. Đăng nhập `admin` → "Chạy nhắc việc ngay" → xem bảng intent (skipped
+5. Vào bằng Quản lý nhà máy / Thủ kho → Việc cần làm → "Xong".
+6. Vào bằng Giám đốc → "Chạy nhắc việc ngay" → xem bảng intent (skipped
    `DELIVERY_OFF`); `/admin/settings` xem trạng thái cấu hình.
-7. Đăng nhập `content_creator` → Trợ lý chỉ trả lời về nội dung; hỏi đơn
+7. Vào bằng Biên tập nội dung → Trợ lý chỉ trả lời về nội dung; hỏi đơn
    hàng → từ chối.
 8. Dọn: `E2E_AI_ORDER_CODE=RD-20260906-E2E1 npx tsx --env-file-if-exists=.env --conditions=react-server <scratch>/e2e-ai-fixture.ts --cleanup`
    (script nằm ngoài repo; có thể xóa tay theo mã đơn).
@@ -405,6 +411,7 @@ phong. Ở chế độ live các assertion phụ thuộc văn phong được n�
   định chuyển `NOTIFICATION_DELIVERY=live`; Resend đang dùng sender sandbox.
 - **Khóa AI**: cần `ANTHROPIC_API_KEY` của công ty để chạy eval live và dùng
   thật; chi phí theo usage (route ghi `usage` vào audit mỗi lượt).
-- Dev preview: mọi grant dev là global nên vai trò theo đơn vị nhìn thấy mọi
-  đơn trên máy dev; hành vi theo đơn vị được chứng minh bằng eval
+- Phiên kiểm thử theo vai trò (thay cho dev preview đã gỡ 2026-09-13): mọi
+  grant là global nên vai trò theo đơn vị nhìn thấy mọi đơn trên máy dev;
+  hành vi theo đơn vị được chứng minh bằng eval
   `wm-order-other-unit`, chưa bằng E2E (chưa có màn hình cấp grant theo đơn vị).

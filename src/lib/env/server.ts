@@ -25,51 +25,25 @@ const mongoSchema = baseSchema.extend({
 });
 
 /**
- * Google credentials are optional as a PAIR: the working group previews the
- * portal through the dev sign-in before the director's Google OAuth client
- * exists. Auth still requires at least one usable provider, so a secret with
- * neither Google nor a dev password remains unconfigured, and one Google key
- * without the other names the missing half instead of half-configuring.
+ * Sign-in is Google only (confirmed 2026-09-13: Gmail, no phone login, no
+ * passwords, no role preview). Without the full Google pair nobody can sign
+ * in, so auth stays unconfigured and the portal shows its setup screen.
+ * `ADMIN_EMAILS` names the Director's Gmail for the one-time bootstrap.
  */
-const authSchema = baseSchema
-  .extend({
-    AUTH_SECRET: z
-      .string()
-      .min(32, "AUTH_SECRET must contain at least 32 characters"),
-    AUTH_GOOGLE_ID: optionalText,
-    AUTH_GOOGLE_SECRET: optionalText,
-    ADMIN_EMAILS: optionalText,
-    /**
-     * Enables the local role-preview sign-in and sets its shared password.
-     * Development only: leave unset in any deployed environment, where Google
-     * sign-in is the sole way in.
-     */
-    DEV_LOGIN_PASSWORD: optionalText,
-  })
-  .check((ctx) => {
-    const { AUTH_GOOGLE_ID, AUTH_GOOGLE_SECRET, DEV_LOGIN_PASSWORD } =
-      ctx.value;
-
-    if (Boolean(AUTH_GOOGLE_ID) !== Boolean(AUTH_GOOGLE_SECRET)) {
-      const missing = AUTH_GOOGLE_ID ? "AUTH_GOOGLE_SECRET" : "AUTH_GOOGLE_ID";
-      ctx.issues.push({
-        code: "custom",
-        message: `${missing} is required when its counterpart is set`,
-        path: [missing],
-        input: ctx.value,
-      });
-    }
-
-    if (!AUTH_GOOGLE_ID && !AUTH_GOOGLE_SECRET && !DEV_LOGIN_PASSWORD) {
-      ctx.issues.push({
-        code: "custom",
-        message:
-          "Configure AUTH_GOOGLE_ID and AUTH_GOOGLE_SECRET, or DEV_LOGIN_PASSWORD for local development",
-        path: ["AUTH_GOOGLE_ID"],
-        input: ctx.value,
-      });
-    }
-  });
+const authSchema = baseSchema.extend({
+  AUTH_SECRET: z
+    .string()
+    .min(32, "AUTH_SECRET must contain at least 32 characters"),
+  AUTH_GOOGLE_ID: z
+    .string()
+    .trim()
+    .min(1, "AUTH_GOOGLE_ID is required for Google sign-in"),
+  AUTH_GOOGLE_SECRET: z
+    .string()
+    .trim()
+    .min(1, "AUTH_GOOGLE_SECRET is required for Google sign-in"),
+  ADMIN_EMAILS: optionalText,
+});
 
 const cloudinarySchema = baseSchema.extend({
   NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: z.string().trim().min(1),

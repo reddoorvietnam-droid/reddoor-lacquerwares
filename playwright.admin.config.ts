@@ -2,10 +2,12 @@ import { defineConfig, devices } from "@playwright/test";
 
 /**
  * Admin-portal end-to-end runs against an ALREADY RUNNING server (usually
- * `npm run dev` with `DEV_LOGIN_PASSWORD` set and, for the assistant flow,
- * `AI_PROVIDER=mock`). These tests sign in through the dev-preview role
- * buttons and need MongoDB, so they are not part of `npm run test:e2e` /
- * CI; run them with:
+ * `npm run dev`, with `AI_PROVIDER=mock` for the assistant flow) that shares
+ * this checkout's `.env`: sign-in is Gmail only, so the global setup opens one
+ * session per role with that `AUTH_SECRET` (see tests/e2e-admin/role-sessions.ts)
+ * and the teardown locks those accounts again. They need MongoDB and a seeded
+ * database (`npm run seed`), so they are not part of `npm run test:e2e` / CI;
+ * run them with:
  *
  *   E2E_ADMIN_BASE_URL=http://localhost:3000 npx playwright test -c playwright.admin.config.ts
  */
@@ -13,6 +15,8 @@ const baseURL = process.env.E2E_ADMIN_BASE_URL ?? "http://localhost:3000";
 
 export default defineConfig({
   testDir: "./tests/e2e-admin",
+  globalSetup: "./tests/e2e-admin/global-setup.ts",
+  globalTeardown: "./tests/e2e-admin/global-teardown.ts",
   fullyParallel: false,
   workers: 1,
   retries: 0,

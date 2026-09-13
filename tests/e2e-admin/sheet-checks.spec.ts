@@ -6,7 +6,7 @@ import { fixtureOrderCode, signInAs } from "./helpers";
 /**
  * End-to-end walk of "Kiểm tra bảng biểu, dư nợ" against a running dev
  * server with `AI_PROVIDER=mock`: upload → column mapping → run → result →
- * export → assistant, through the dev-preview roles. Assertions are about
+ * export → assistant, through the E2E role sessions. Assertions are about
  * what the server did (rows reconciled against real records, denials on
  * the server, no money for readers without the permission), never about
  * the scripted provider's wording.

@@ -15,6 +15,7 @@ import {
   getSecurityBootstrapClaimModel,
   getUserModel,
 } from "@/domains/identity/models";
+import { internalAccountEmailPattern } from "@/domains/identity/staff-policy";
 import { connectToDatabase } from "@/lib/db/mongoose";
 
 const bootstrapEmailSchema = z.email().max(320);
@@ -90,6 +91,10 @@ export async function tryBootstrapInitialDirector(input: {
     const existingDirector = await User.findOne({
       _id: { $in: activeDirectorGrants.map(({ userId }) => userId) },
       status: "active",
+      // Accounts the platform provisions for testing (reserved `.local`
+      // addresses no Google sign-in can carry) are never the company's
+      // Director, so they must not block the real Director's bootstrap.
+      normalizedEmail: { $not: internalAccountEmailPattern },
     })
       .select("_id")
       .session(session)
