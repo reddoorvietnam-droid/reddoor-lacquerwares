@@ -33,6 +33,7 @@ const expectedMenus: Record<string, string[]> = {
   ],
   "Quản lý nhà máy": [
     "Sổ đơn hàng",
+    "Hợp đồng cơ sở",
     "Quy trình đơn hàng",
     "Kiểm tra bảng biểu",
     "Chi phí đơn hàng",
@@ -40,6 +41,8 @@ const expectedMenus: Record<string, string[]> = {
   "Kế toán nhà máy & mua hàng": [
     "Sổ đơn hàng",
     "Nhà cung cấp",
+    "Hợp đồng cơ sở",
+    "Hóa đơn (INV)",
     "Kiểm tra bảng biểu",
     "Chi phí đơn hàng",
   ],
@@ -48,6 +51,8 @@ const expectedMenus: Record<string, string[]> = {
     "Công nợ bán sơn",
     "Sổ đơn hàng",
     "Khách hàng",
+    "Hợp đồng cơ sở",
+    "Hàng nhập khẩu",
     "Quy trình đơn hàng",
     "Đơn cửa hàng",
     "Thiết lập",
@@ -74,7 +79,10 @@ test("the director's menu is laid out by role", async ({ page }) => {
   await signInAs(page, "DIRECTOR");
   const nav = menu(page);
 
-  // The overview and the assistant stay on top, outside every role.
+  // The guide, the overview and the assistant stay on top, outside every role.
+  await expect(nav.getByRole("link").first()).toHaveText(
+    "Hướng dẫn sử dụng website",
+  );
   await expect(
     nav.getByRole("link", { name: "Tổng quan", exact: true }),
   ).toBeVisible();

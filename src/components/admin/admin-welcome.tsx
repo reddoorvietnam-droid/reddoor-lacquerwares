@@ -22,7 +22,7 @@ export type WelcomeShortcut = {
   badge: string | null;
 };
 
-const roleIcons: Record<SystemRoleKey, LucideIcon> = {
+export const roleIcons: Record<SystemRoleKey, LucideIcon> = {
   DIRECTOR: Crown,
   WAREHOUSE_MANAGER: Warehouse,
   FACTORY_MANAGER: Factory,

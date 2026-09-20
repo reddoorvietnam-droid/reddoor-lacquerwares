@@ -224,7 +224,17 @@ export const roleDefinitionSeeds = [
     // progress, material use, and QC evidence, and also develops products and
     // runs sample orders. That means the same person records progress and
     // approves QC — the Director approval gates remain the outside check.
+    // Per the task sheet confirmed 2026-09-14, this position also receives
+    // the customer's order (SOP step 01) and confirms the sample (step 02);
+    // it still never reads the selling price.
     permissions: grants({
+      // Purchase contracts with the production sites are company-wide books:
+      // this position signs them and proposes the payments against them.
+      all: [
+        "facilityContracts.read",
+        "facilityContracts.manage",
+        "facilityPayments.propose",
+      ],
       own: [
         "expenses.create",
         "expenses.updateDraft",
@@ -240,6 +250,9 @@ export const roleDefinitionSeeds = [
       assignedBusinessUnits: [
         ...sharedOperationalReads,
         "assistant.use",
+        "orders.create",
+        "orders.updateDraft",
+        "orders.submitForApproval",
         "products.readCost",
         "products.create",
         "products.update",
@@ -295,10 +308,23 @@ export const roleDefinitionSeeds = [
     // Absorbs the former Supplier Manager role: the same person controls
     // factory cost and coordinates suppliers and purchasing. Submits cost and
     // supplier financial changes; approval and posting belong to the Company
-    // Accountant or the Director. Never sees selling price or profit.
+    // Accountant or the Director. Per the task sheet confirmed 2026-09-14 the
+    // position writes the export documents — INV, PKL, labels — so it reads
+    // the selling price and manages invoices, but never what the customer
+    // paid (`payments.read`, `receivables.read`) and never the profit.
     permissions: grants({
+      // Tracks what is owed to each production site: checks every payment
+      // the Factory Manager proposes and records it paid once approved.
+      all: [
+        "facilityContracts.read",
+        "facilityPayments.check",
+        "facilityPayments.markPaid",
+      ],
       assignedBusinessUnits: [
         ...sharedOperationalReads,
+        "orders.readSellingPrice",
+        "invoices.read",
+        "invoices.manage",
         "products.readCost",
         "expenses.read",
         "expenses.create",
@@ -352,9 +378,9 @@ export const roleDefinitionSeeds = [
     // Absorbs the former Order Manager role: the same person keeps the books
     // and runs customer, quote, and order coordination. That means this role
     // both requests and approves a price adjustment — the Director approval
-    // gate on every price change remains the separation of duties. Confirmed
-    // rule: together with the Director, the only role that may read selling
-    // price and profit.
+    // gate on every price change remains the separation of duties. Reads the
+    // selling price and the customer's money; the profit per order is the
+    // Director's alone (confirmed 2026-09-14), so no `finance.readProfit`.
     permissions: grants({
       all: [
         ...sharedOperationalReads,
@@ -391,6 +417,14 @@ export const roleDefinitionSeeds = [
         "orders.requestCancel",
         // Export progress on the order file: expected ready date and booking.
         "orders.updateExportProgress",
+        // Approves a payment to a production site before the Director
+        // decides it (confirmed 2026-09-14).
+        "facilityContracts.read",
+        "facilityPayments.approve",
+        // Imports and their declarations are this position's desk; every
+        // document of an import is kept on file (confirmed 2026-09-14).
+        "importShipments.read",
+        "importShipments.manage",
         "deliveries.plan",
         "deliveries.update",
         "packing.create",
@@ -422,7 +456,6 @@ export const roleDefinitionSeeds = [
         "receivables.read",
         "payables.read",
         "finance.readCost",
-        "finance.readProfit",
         "finance.manageFxSnapshot",
         // Sales invoices: revenue is recognised per INV.
         "invoices.read",

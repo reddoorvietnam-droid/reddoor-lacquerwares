@@ -1,12 +1,18 @@
+import type { Route } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { decideApprovalAction } from "@/app/[locale]/admin/(portal)/approvals/actions";
+import { formatDate } from "@/app/[locale]/admin/(portal)/finance/shared";
 import {
   approvalDecisionPermission,
   approvalSubjects,
   type ApprovalRequest,
 } from "@/domains/approvals/contracts";
 import { approvalService } from "@/domains/approvals/runtime";
+import { labelStatus, type OrderDocument } from "@/domains/orders/contracts";
+import { orderCommandService } from "@/domains/orders/runtime";
+import { isTerminalStage } from "@/domains/orders/workflow";
 import {
   ContentAccessDeniedError,
   requireListAccess,
@@ -69,6 +75,14 @@ const subjectLabels: Record<
     en: "Collection publication",
   },
   "payroll.confirmation": { vi: "Xác nhận lương", en: "Payroll confirmation" },
+  "facilityContract.priceIncrease": {
+    vi: "Giá mua hợp đồng cơ sở cao hơn giá cũ",
+    en: "Production-site contract above the last price",
+  },
+  "facilityPayment.approval": {
+    vi: "Thanh toán cho cơ sở",
+    en: "Payment to a production site",
+  },
 };
 
 const queueCopy = {
@@ -94,6 +108,10 @@ const queueCopy = {
       UNAVAILABLE: "Hệ thống tạm thời không phản hồi.",
     } as Record<string, string>,
     referenceTitle: "Danh mục các loại phê duyệt",
+    labelsTitle: "Mẫu tem chờ duyệt",
+    labelsHint:
+      "Khách không gửi mẫu tem, shipping mark nên dùng mẫu công ty. Mở đơn để xem mẫu và bấm Duyệt mẫu tem này.",
+    labelsUploaded: "Tải lên",
   },
   en: {
     queueTitle: "Pending decisions",
@@ -117,6 +135,10 @@ const queueCopy = {
       UNAVAILABLE: "The system is temporarily unavailable.",
     } as Record<string, string>,
     referenceTitle: "Catalog of gated subjects",
+    labelsTitle: "Label proofs awaiting approval",
+    labelsHint:
+      "The customer sent no label or shipping-mark template, so the company proof is used. Open the order to review it and approve.",
+    labelsUploaded: "Uploaded",
   },
 } as const;
 
@@ -163,6 +185,35 @@ export default async function AdminApprovalsPage({
     ),
   ];
   const coverages = await resolvePermissionCoverages(decisionPermissions);
+
+  // Company label proofs the Director has yet to approve: a Director
+  // decision, so only a reader holding `approvals.decide` globally sees them.
+  const labelCoverage = await resolvePermissionCoverages([
+    "approvals.decide",
+  ] as const);
+  let pendingLabels: {
+    id: string;
+    orderCode: string;
+    customerName: string;
+    proof: OrderDocument;
+  }[] = [];
+  if (labelCoverage["approvals.decide"].global) {
+    const orders = await orderCommandService.list({ kind: "all" }, false);
+    pendingLabels = orders.flatMap((order) => {
+      if (isTerminalStage(order.stage)) return [];
+      const status = labelStatus(order);
+      return status.kind === "proofPending"
+        ? [
+            {
+              id: order.id,
+              orderCode: order.orderCode,
+              customerName: order.customerName,
+              proof: status.proof,
+            },
+          ]
+        : [];
+    });
+  }
 
   const fieldClass =
     "border-burgundy/20 focus:border-burgundy/50 w-full rounded-xl border bg-white px-4 py-2.5 text-sm outline-none";
@@ -291,6 +342,37 @@ export default async function AdminApprovalsPage({
               })}
             </ul>
           )}
+        </section>
+      ) : null}
+
+      {pendingLabels.length > 0 ? (
+        <section className="mt-10">
+          <h2 className="text-burgundy font-serif text-3xl">
+            {queueText.labelsTitle}
+          </h2>
+          <p className="text-charcoal/60 mt-2 max-w-3xl text-sm">
+            {queueText.labelsHint}
+          </p>
+          <ul className="mt-5 space-y-3">
+            {pendingLabels.map((row) => (
+              <li
+                key={row.id}
+                className="border-burgundy/15 rounded-2xl border bg-white p-5 shadow-[0_1rem_3rem_rgb(61_13_16/0.04)]"
+              >
+                <Link
+                  href={`/${locale}/admin/orders/${row.id}` as Route}
+                  className="text-burgundy font-semibold hover:underline"
+                >
+                  <span className="font-mono">{row.orderCode}</span> ·{" "}
+                  {row.customerName}
+                </Link>
+                <p className="text-charcoal/50 mt-1 text-xs">
+                  {queueText.labelsUploaded}{" "}
+                  {formatDate(row.proof.uploadedAt, locale)} · {row.proof.label}
+                </p>
+              </li>
+            ))}
+          </ul>
         </section>
       ) : null}
 

@@ -32,6 +32,11 @@ export const approvalSubjects = [
   "content.publication",
   "collection.publication",
   "payroll.confirmation",
+  // A purchase contract with a production site whose unit price exceeds the
+  // last price paid for the same item (confirmed 2026-09-14).
+  "facilityContract.priceIncrease",
+  // A payment to a production site, after the Company Accountant approved it.
+  "facilityPayment.approval",
 ] as const;
 
 export type ApprovalSubject = (typeof approvalSubjects)[number];
@@ -64,6 +69,10 @@ export const approvalDecisionPermission: Record<ApprovalSubject, Permission> = {
   "content.publication": "content.publish",
   "collection.publication": "collections.approve",
   "payroll.confirmation": "labor.confirmPayroll",
+  // Both are the Director's alone: `approvals.decide` is granted to no other
+  // position.
+  "facilityContract.priceIncrease": "approvals.decide",
+  "facilityPayment.approval": "approvals.decide",
 };
 
 export type ApprovalRequest = {

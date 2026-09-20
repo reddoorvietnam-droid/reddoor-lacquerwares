@@ -8,9 +8,10 @@ import type { SystemRoleKey } from "@/domains/identity/role-definitions";
  * A position is filled by granting its role to a user, so a handover is a grant
  * change and never a code change.
  *
- * Sources: the confirmed organisation chart, the fifteen-step order process
- * chart, and the working-group thread in which each position stated the data it
- * owns and the paper forms it needs rebuilt in the system.
+ * Sources: the task sheet "Phân công nhiệm vụ" and the production procedure
+ * SOP-SX-001 the Director confirmed on 2026-09-14, plus the working-group
+ * thread in which each position stated the data it owns and the paper forms
+ * it needs rebuilt in the system.
  */
 
 export type OrganizationPosition = {
@@ -37,19 +38,17 @@ export const organizationPositions = [
     roleKeys: ["DIRECTOR"],
     responsibilities: {
       vi: [
+        "Quản lý chung",
         "Quản trị hệ thống và người dùng",
-        "Phê duyệt toàn bộ nghiệp vụ trọng yếu trên hệ thống",
-        "Phê duyệt đơn hàng, giá bán và điều khoản thanh toán",
-        "Xác nhận ưu tiên sản xuất",
-        "Xem báo cáo hợp nhất và lợi nhuận",
+        "Xác nhận đơn hàng, duyệt mua vật tư và mọi việc liên quan đến bán hàng, chi trả",
+        "Đóng hồ sơ đơn hàng; người duy nhất xem lợi nhuận",
         "Quản lý và xuất bản nội dung website",
       ],
       en: [
+        "General management",
         "Platform and user administration",
-        "Approves every significant operation in the system",
-        "Approves orders, selling price, and payment terms",
-        "Confirms production priority",
-        "Reads consolidated and profit reporting",
+        "Confirms orders, approves material purchases and everything to do with selling and paying",
+        "Closes the order file; the only reader of profit",
         "Manages and publishes website content",
       ],
     },
@@ -74,22 +73,22 @@ export const organizationPositions = [
     roleKeys: ["COMPANY_ACCOUNTANT"],
     responsibilities: {
       vi: [
-        "Kế toán và tài chính",
-        "Tiếp nhận đơn hàng, khách hàng và báo giá",
-        "Điều phối giao hàng",
-        "Hồ sơ thanh toán",
-        "Hồ sơ nhập khẩu và xuất khẩu",
-        "Xác nhận lương",
-        "Báo cáo lãi lỗ hàng tháng",
+        "Quản lý trả lương công nhân",
+        "Quản lý các báo cáo thuế, bảo hiểm",
+        "Quản lý nhập khẩu hàng hóa, tờ khai nhập",
+        "Quản lý xuất khẩu hàng hóa, tờ khai xuất và bộ chứng từ sau khi hàng đi",
+        "Quản lý thanh toán cơ sở",
+        "Khách hàng, tiền khách trả và công nợ",
+        "Quản lý công việc hành chính",
       ],
       en: [
-        "Accounting and finance",
-        "Order intake, customers, and quotes",
-        "Delivery coordination",
-        "Payment records",
-        "Import and export files",
-        "Payroll confirmation",
-        "Monthly profit and loss reporting",
+        "Worker payroll",
+        "Tax and insurance reporting",
+        "Imports and import declarations",
+        "Exports, export declarations and the post-shipment document set",
+        "Payments to production sites",
+        "Customers, customer money and receivables",
+        "Administrative work",
       ],
     },
     ownedData: {
@@ -118,22 +117,18 @@ export const organizationPositions = [
     roleKeys: ["FACTORY_MANAGER"],
     responsibilities: {
       vi: [
-        "Tổ chức sản xuất",
-        "Chi phí nhà máy",
-        "Quản lý xưởng phụ",
-        "Ghi nhận tiến độ, vật tư và chất lượng thay xưởng phụ",
-        "Lập kế hoạch sản xuất",
-        "Theo dõi chất lượng",
-        "Phát triển sản phẩm và đơn hàng mẫu",
+        "Nhận đơn hàng, ký hợp đồng mua hàng từ cơ sở",
+        "Theo dõi tiến độ giao hàng: bao bì, mộc, hoàn thiện",
+        "Lập kế hoạch sản xuất và xác nhận mẫu",
+        "Quản lý chất lượng: kiểm mộc, kiểm hoàn thiện, kiểm đóng gói",
+        "Nhận giao hàng",
       ],
       en: [
-        "Production organisation",
-        "Factory cost",
-        "Sub-workshop management",
-        "Records progress, material use, and quality for the sub-workshops",
-        "Production planning",
-        "Quality tracking",
-        "Product development and sample orders",
+        "Receives orders and signs purchase contracts with production sites",
+        "Tracks delivery progress: packaging, woodwork, finishing",
+        "Production planning and sample confirmation",
+        "Quality: raw-body, finishing and packing inspections",
+        "Receives deliveries",
       ],
     },
     ownedData: {
@@ -159,16 +154,18 @@ export const organizationPositions = [
     roleKeys: ["FACTORY_ACCOUNTANT"],
     responsibilities: {
       vi: [
-        "Kiểm soát chi phí nhà máy",
-        "Báo cáo chi phí nhà máy và xưởng phụ",
-        "Báo cáo chi phí lao động",
-        "Báo cáo cho kế toán công ty",
+        "Quản lý công nợ các hợp đồng mua hàng cơ sở",
+        "Làm tem mác các hợp đồng mua hàng cơ sở",
+        "Làm PKL các hợp đồng xuất khẩu",
+        "Làm INV các hợp đồng xuất khẩu",
+        "Ghi chi phí thực tế theo đơn hàng",
       ],
       en: [
-        "Factory cost control",
-        "Factory and sub-workshop cost reporting",
-        "Labor cost reporting",
-        "Reporting to the Company Accountant",
+        "Payables on purchase contracts with production sites",
+        "Labels for purchase contracts with production sites",
+        "PKL for export contracts",
+        "INV for export contracts",
+        "Actual costs per order",
       ],
     },
     ownedData: {
@@ -195,18 +192,18 @@ export const organizationPositions = [
     roleKeys: ["WAREHOUSE_MANAGER"],
     responsibilities: {
       vi: [
-        "Quản lý tồn kho",
-        "Hồ sơ lao động",
-        "Bán hàng nội bộ",
-        "Nhận và xuất vật tư",
-        "Đối chiếu tồn kho",
+        "Quản lý kho: kho sơn, kho gỗ, kho phụ kiện",
+        "Quản lý công nhân: chấm công",
+        "Đặt mua nguyên liệu: sơn, gỗ, bao bì, vật liệu phụ",
+        "Bán hàng lẻ",
+        "Cấp vật tư, đóng gói và xuất hàng theo đơn",
       ],
       en: [
-        "Inventory management",
-        "Labor records",
-        "Internal sales",
-        "Material receipt and issue",
-        "Stock reconciliation",
+        "Warehouses: lacquer, wood, accessories",
+        "Workers: attendance",
+        "Purchases materials: lacquer, wood, packaging, consumables",
+        "Retail sales",
+        "Issues material, packs and dispatches per order",
       ],
     },
     ownedData: {
@@ -245,8 +242,8 @@ export const operationalForms: readonly OperationalForm[] = [
     key: "supplier-contract",
     labels: { vi: "Form hợp đồng", en: "Contract form" },
     ownerPositionKey: "factory-manager",
-    permission: "procurement.create",
-    status: "planned",
+    permission: "facilityContracts.manage",
+    status: "available",
   },
   {
     key: "goods-inspection",
@@ -296,8 +293,8 @@ export const operationalForms: readonly OperationalForm[] = [
     key: "site-payables",
     labels: { vi: "Công nợ các cơ sở", en: "Payables by production site" },
     ownerPositionKey: "factory-accountant",
-    permission: "payables.read",
-    status: "planned",
+    permission: "facilityContracts.read",
+    status: "available",
   },
   {
     key: "lacquer-purchase",

@@ -32,25 +32,39 @@ function rolesGranting(permission: Permission): readonly SystemRoleKey[] {
     .sort();
 }
 
-const restrictedCommercialPermissions = [
-  "orders.readSellingPrice",
+/**
+ * The customer's money — receipts, receivables, the customer file — stays
+ * with the Director and the Company Accountant.
+ */
+const customerMoneyPermissions = [
   "products.readSellingPrice",
   "quotes.readSellingPrice",
-  "finance.readProfit",
-  // Revenue is recognised per invoice, and a customer receipt or receivable
-  // reveals the price it settles, so these stay with the same two roles.
-  "invoices.read",
-  "invoices.manage",
   "payments.read",
   "payments.record",
   "receivables.read",
   "customers.read",
 ] as const satisfies readonly Permission[];
 
+/**
+ * The selling price and the invoices reach one more role: the Factory
+ * Accountant writes the INV and PKL (SOP step 8, confirmed 2026-09-14).
+ */
+const sellingPricePermissions = [
+  "orders.readSellingPrice",
+  "invoices.read",
+  "invoices.manage",
+] as const satisfies readonly Permission[];
+
+const restrictedCommercialPermissions = [
+  ...customerMoneyPermissions,
+  ...sellingPricePermissions,
+  "finance.readProfit",
+] as const satisfies readonly Permission[];
+
+/** Roles that read neither the price nor the customer's money. */
 const commerciallyBlindRoles = [
   "WAREHOUSE_MANAGER",
   "FACTORY_MANAGER",
-  "FACTORY_ACCOUNTANT",
 ] as const satisfies readonly SystemRoleKey[];
 
 const operationalStaffRoles = [
@@ -85,8 +99,8 @@ describe("role seed integrity", () => {
   );
 });
 
-describe("selling price and profit stay with the Director and the accountant", () => {
-  it.each(restrictedCommercialPermissions)(
+describe("selling price and profit stay with the Director and the accountants", () => {
+  it.each(customerMoneyPermissions)(
     "grants %s to no role beyond the Director and the Company Accountant",
     (permission) => {
       expect(rolesGranting(permission)).toEqual([
@@ -95,6 +109,21 @@ describe("selling price and profit stay with the Director and the accountant", (
       ]);
     },
   );
+
+  it.each(sellingPricePermissions)(
+    "grants %s to the Director and both accountants only",
+    (permission) => {
+      expect(rolesGranting(permission)).toEqual([
+        "COMPANY_ACCOUNTANT",
+        "DIRECTOR",
+        "FACTORY_ACCOUNTANT",
+      ]);
+    },
+  );
+
+  it("keeps the profit with the Director alone (confirmed 2026-09-14)", () => {
+    expect(rolesGranting("finance.readProfit")).toEqual(["DIRECTOR"]);
+  });
 
   it.each(commerciallyBlindRoles)(
     "withholds every price and profit read from %s",
@@ -140,19 +169,21 @@ describe("separation of duties", () => {
     expect(permissions.has("expenses.post")).toBe(false);
   });
 
-  it("lets the Factory Accountant record actual factory cost without seeing any customer money", () => {
+  it("lets the Factory Accountant record cost and write the INV without seeing any customer money", () => {
     const permissions = permissionsOf("FACTORY_ACCOUNTANT");
 
     expect(permissions.has("expenses.create")).toBe(true);
     expect(permissions.has("expenses.read")).toBe(true);
+    expect(permissions.has("orders.readSellingPrice")).toBe(true);
+    expect(permissions.has("invoices.manage")).toBe(true);
     for (const permission of [
       "payments.read",
       "payments.record",
       "payments.refund",
       "receivables.read",
-      "invoices.read",
       "customers.read",
       "orders.updateExportProgress",
+      "finance.readProfit",
     ] as const) {
       expect(permissions.has(permission)).toBe(false);
     }

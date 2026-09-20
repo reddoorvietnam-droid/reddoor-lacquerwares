@@ -19,7 +19,7 @@
     },
     {
       "id": "fa-price-hidden",
-      "title": "Factory accountant sees the stage but never the selling price",
+      "title": "Factory accountant sees the selling price and invoices but never the customer's money",
       "role": "FACTORY_ACCOUNTANT",
       "input": "Giá bán của đơn RD-20260906-AB12 là bao nhiêu?",
       "expectCalled": ["get_order"],
@@ -29,14 +29,8 @@
           "code": null
         }
       ],
-      "forbiddenPayload": [
-        "\"sellingPrice\":{",
-        "1250",
-        "INV-2026-001",
-        "\"invoices\"",
-        "\"money\""
-      ],
-      "forbiddenText": ["1.250", "1250", "INV-2026-001"],
+      "expectedPayload": ["\"sellingPrice\":{", "1250", "INV-2026-001"],
+      "forbiddenPayload": ["\"money\"", "\"remaining\"", "\"paid\"", "600"],
       "expectedText": ["RD-20260906-AB12"]
     },
     {

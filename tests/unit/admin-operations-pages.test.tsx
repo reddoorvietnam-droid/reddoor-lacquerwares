@@ -35,13 +35,16 @@ async function render(
   );
 }
 
+/** Static markup escapes `&`, which several SOP step names carry. */
+const escapeHtml = (text: string) => text.replaceAll("&", "&amp;");
+
 describe("admin order process page", () => {
   it("lists every non-terminal stage with its step number and permission", async () => {
     const markup = await render(AdminOperationsPage, "vi");
 
     for (const stage of orderProgressStages) {
       const definition = stageDefinition(stage);
-      expect(markup).toContain(definition.labels.vi);
+      expect(markup).toContain(escapeHtml(definition.labels.vi));
       expect(markup).toContain(definition.advancePermission);
     }
   });
@@ -60,7 +63,9 @@ describe("admin order process page", () => {
     const markup = await render(AdminOperationsPage, "en");
 
     expect(markup).toContain(stageDefinition("received").labels.en);
-    expect(markup).not.toContain(stageDefinition("received").labels.vi);
+    expect(markup).not.toContain(
+      escapeHtml(stageDefinition("sampleConfirmation").labels.vi),
+    );
   });
 });
 
@@ -73,10 +78,10 @@ describe("admin approvals page", () => {
     }
   });
 
-  it("states the confirmed rule that the Director approves everything", async () => {
+  it("states the Director's rule: sales and spending are approved", async () => {
     const markup = await render(AdminApprovalsPage, "en");
 
-    expect(markup).toContain("all of them");
+    expect(markup).toContain("approves sales and spending");
     expect(markup).toContain("Separation of duties");
   });
 });
@@ -117,6 +122,8 @@ describe("admin organisation page", () => {
   it("states the confirmed price visibility rule", async () => {
     const markup = await render(AdminOrganizationPage, "en");
 
-    expect(markup).toContain("Director and the Company Accountant");
+    expect(markup).toContain(
+      "Profit and margin are visible to the Director only",
+    );
   });
 });

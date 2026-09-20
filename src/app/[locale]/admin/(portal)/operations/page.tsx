@@ -48,10 +48,6 @@ export default async function AdminOperationsPage({
         {copy.description}
       </p>
 
-      <p className="border-gold/40 bg-gold/10 text-charcoal/75 mt-8 max-w-3xl rounded-2xl border px-5 py-4 text-sm leading-6">
-        {copy.notImplemented}
-      </p>
-
       <div className="border-burgundy/15 mt-10 overflow-x-auto rounded-2xl border bg-white shadow-[0_1rem_3rem_rgb(61_13_16/0.05)]">
         <table className="w-full min-w-[52rem] border-collapse text-left text-sm">
           <caption className="sr-only">{copy.title}</caption>
@@ -113,21 +109,28 @@ export default async function AdminOperationsPage({
           <p className="text-charcoal/60 mt-3 text-sm leading-6">
             {copy.branchesDescription}
           </p>
-          <dl className="text-charcoal/70 mt-5 space-y-3 font-mono text-xs">
+          <dl className="text-charcoal/70 mt-5 space-y-3 text-sm">
             <div>
-              <dt className="text-charcoal/45">
+              <dt className="text-charcoal/45 text-xs">
                 {orderStageDefinitions.inventoryCheck.labels[locale]}
               </dt>
               <dd>
-                inventoryCheck → materialProcurement → inventoryCheck →
-                materialIssued
+                {orderStageDefinitions.inventoryCheck.labels[locale]} →{" "}
+                {orderStageDefinitions.materialProcurement.labels[locale]} →{" "}
+                {orderStageDefinitions.inventoryCheck.labels[locale]} →{" "}
+                {orderStageDefinitions.inProduction.labels[locale]}
               </dd>
             </div>
             <div>
-              <dt className="text-charcoal/45">
+              <dt className="text-charcoal/45 text-xs">
                 {orderStageDefinitions.qualityControl.labels[locale]}
               </dt>
-              <dd>qualityControl → inProduction → qualityControl → packing</dd>
+              <dd>
+                {orderStageDefinitions.qualityControl.labels[locale]} →{" "}
+                {orderStageDefinitions.inProduction.labels[locale]} →{" "}
+                {orderStageDefinitions.qualityControl.labels[locale]} →{" "}
+                {orderStageDefinitions.packing.labels[locale]}
+              </dd>
             </div>
           </dl>
         </section>

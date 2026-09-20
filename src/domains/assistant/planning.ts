@@ -12,7 +12,7 @@ import { addBusinessDays, daysBetween } from "@/domains/tasks/policy";
  * Order planning, kept pure.
  *
  * A plan is nothing more than the stages the order still has to pass in the
- * confirmed fifteen-step process, one task per stage, owned by the position
+ * company's eleven-step procedure, one task per stage, owned by the position
  * the process names for that stage. The assistant does not invent steps or
  * owners; it may only adjust durations and notes, and everything it could
  * not know — a missing ready date, a default duration, an unstaffed role —
@@ -22,17 +22,18 @@ import { addBusinessDays, daysBetween } from "@/domains/tasks/policy";
 /** Calendar days each stage is assumed to take when nobody has said otherwise. */
 export const defaultStageDurations: Readonly<Record<OrderStage, number>> = {
   received: 1,
-  fileOpened: 2,
   awaitingDirectorApproval: 1,
+  sampleConfirmation: 5,
   productionPlanning: 2,
   inventoryCheck: 1,
   materialProcurement: 7,
-  materialIssued: 1,
   inProduction: 14,
   qualityControl: 2,
   packing: 2,
-  tradeDocumentation: 3,
-  loadingScheduled: 2,
+  // INV and PKL are due three weeks before loading, so the documents run
+  // alongside production; the stage itself is a short check.
+  exportDocuments: 2,
+  tradeDocumentation: 2,
   shipped: 1,
   invoiced: 7,
   settled: 3,
@@ -43,11 +44,10 @@ export const defaultStageDurations: Readonly<Record<OrderStage, number>> = {
 /** Stages that must be finished before the goods are ready to leave. */
 const readyByStages: ReadonlySet<OrderStage> = new Set([
   "received",
-  "fileOpened",
   "awaitingDirectorApproval",
+  "sampleConfirmation",
   "productionPlanning",
   "inventoryCheck",
-  "materialIssued",
   "inProduction",
   "qualityControl",
   "packing",

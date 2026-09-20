@@ -2,6 +2,10 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { invoiceCommandService } from "@/domains/finance/runtime";
+import {
+  orderDocumentKinds,
+  orderDocumentPermissions,
+} from "@/domains/orders/contracts";
 import { orderCommandService } from "@/domains/orders/runtime";
 import { CloudinaryMediaStorage } from "@/lib/media/cloudinary-storage";
 import { MediaStorageError } from "@/lib/media/storage-port";
@@ -46,7 +50,14 @@ const requestSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("product"), id: objectIdSchema }),
   z.object({ kind: z.literal("shopItem"), id: objectIdSchema }),
   z.object({ kind: z.literal("orderDocument"), id: objectIdSchema }),
+  z.object({
+    kind: z.literal("orderFile"),
+    id: objectIdSchema,
+    documentKind: z.enum(orderDocumentKinds),
+  }),
   z.object({ kind: z.literal("invoiceDocument"), id: objectIdSchema }),
+  z.object({ kind: z.literal("facilityContractDocument"), id: objectIdSchema }),
+  z.object({ kind: z.literal("importShipmentDocument"), id: objectIdSchema }),
 ]);
 
 const documentFormats = ["pdf", "jpg", "jpeg", "png", "webp"] as const;
@@ -75,20 +86,27 @@ export async function POST(request: Request) {
   try {
     // Uploading media is an administrative act. A shop item is governed by
     // `shop.manage`; a payment document on an order by `payments.record`
-    // against that order; an invoice file by `invoices.manage` against that
-    // invoice; every editorial entity by the same `content.update` that
-    // governs its drafts. The validated target decides which applies.
+    // against that order; a step output on an order by the permission of
+    // the position that produces that kind of file; an invoice file by
+    // `invoices.manage` against that invoice; every editorial entity by the
+    // same `content.update` that governs its drafts. The validated target
+    // decides which applies.
     const target = parsed.data;
     let context;
     if (target.kind === "shopItem") {
       context = await requirePermission("shop.manage");
-    } else if (target.kind === "orderDocument") {
+    } else if (target.kind === "orderDocument" || target.kind === "orderFile") {
       const order = await orderCommandService.findForAuthorization(target.id);
       if (!order) return errorResponse(404, "NOT_FOUND");
-      context = await requirePermission("payments.record", {
-        resourceId: order.id,
-        businessUnitIds: order.businessUnitIds,
-      });
+      context = await requirePermission(
+        target.kind === "orderDocument"
+          ? "payments.record"
+          : orderDocumentPermissions[target.documentKind],
+        {
+          resourceId: order.id,
+          businessUnitIds: order.businessUnitIds,
+        },
+      );
     } else if (target.kind === "invoiceDocument") {
       const invoice = await invoiceCommandService.findForAuthorization(
         target.id,
@@ -98,6 +116,12 @@ export async function POST(request: Request) {
         resourceId: invoice.id,
         businessUnitIds: invoice.businessUnitIds,
       });
+    } else if (target.kind === "facilityContractDocument") {
+      // Company-wide books with no business units; the attach action checks
+      // the record exists and is still open.
+      context = await requirePermission("facilityContracts.manage");
+    } else if (target.kind === "importShipmentDocument") {
+      context = await requirePermission("importShipments.manage");
     } else {
       context = await requireContentPermission("content.update");
     }
@@ -131,14 +155,24 @@ export async function POST(request: Request) {
           ? `${rootFolder}/shop-items/${target.id}`
           : target.kind === "orderDocument"
             ? `${rootFolder}/orders/${target.id}/payment-documents`
-            : target.kind === "invoiceDocument"
-              ? `${rootFolder}/invoices/${target.id}`
-              : `${rootFolder}/${target.kind}s/${target.id}`;
+            : target.kind === "orderFile"
+              ? `${rootFolder}/orders/${target.id}/${target.documentKind}`
+              : target.kind === "invoiceDocument"
+                ? `${rootFolder}/invoices/${target.id}`
+                : target.kind === "facilityContractDocument"
+                  ? `${rootFolder}/facility-contracts/${target.id}`
+                  : target.kind === "importShipmentDocument"
+                    ? `${rootFolder}/import-shipments/${target.id}`
+                    : `${rootFolder}/${target.kind}s/${target.id}`;
 
     const allowedFormats =
       target.kind === "collection"
         ? ["pdf"]
-        : target.kind === "orderDocument" || target.kind === "invoiceDocument"
+        : target.kind === "orderDocument" ||
+            target.kind === "orderFile" ||
+            target.kind === "invoiceDocument" ||
+            target.kind === "facilityContractDocument" ||
+            target.kind === "importShipmentDocument"
           ? [...documentFormats]
           : ["jpg", "jpeg", "png", "webp"];
 

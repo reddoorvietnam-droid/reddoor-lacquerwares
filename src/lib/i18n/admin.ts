@@ -9,6 +9,7 @@ type AdminCopy = {
   openPublicSite: string;
   navigationLabel: string;
   navigation: {
+    guide: string;
     overview: string;
     assistant: string;
     tasks: string;
@@ -52,7 +53,6 @@ type AdminCopy = {
     branchesDescription: string;
     guards: string;
     guardList: readonly string[];
-    notImplemented: string;
   };
   approvals: {
     eyebrow: string;
@@ -63,7 +63,6 @@ type AdminCopy = {
     deciderColumn: string;
     separationTitle: string;
     separationDescription: string;
-    notImplemented: string;
   };
   organization: {
     eyebrow: string;
@@ -261,6 +260,7 @@ const adminDictionaries = {
     openPublicSite: "Mở website",
     navigationLabel: "Điều hướng quản trị",
     navigation: {
+      guide: "Hướng dẫn sử dụng website",
       overview: "Tổng quan",
       assistant: "Trợ lý AI",
       tasks: "Giao việc",
@@ -291,9 +291,9 @@ const adminDictionaries = {
     },
     operations: {
       eyebrow: "Quy trình vận hành",
-      title: "Mười lăm bước của một đơn hàng",
+      title: "Mười một bước của một đơn hàng",
       description:
-        "Sơ đồ dưới đây là quy trình đã được chốt, đang được mã hóa thành máy trạng thái. Mỗi bước ghi rõ vị trí chịu trách nhiệm, quyền cần có để rời bước và điểm bắt buộc Giám đốc phê duyệt.",
+        "Quy trình vận hành sản xuất SOP-SX-001 (09/2026), từ khách đặt hàng đến theo dõi công nợ. Mỗi dòng ghi rõ vị trí chịu trách nhiệm, quyền cần có để rời bước và bước nào Giám đốc phải duyệt. Bước 1, 4 và 11 có hai dòng vì mỗi bước gồm hai trạng thái.",
       stageColumn: "Bước",
       stepColumn: "STT",
       ownerColumn: "Vị trí phụ trách",
@@ -303,31 +303,32 @@ const adminDictionaries = {
       approvalNone: "Không",
       branches: "Hai nhánh rẽ",
       branchesDescription:
-        "Thiếu nguyên liệu thì đơn hàng chuyển sang đặt mua rồi quay lại kiểm tra tồn kho. Kiểm tra chất lượng không đạt thì đơn hàng quay lại sản xuất để khắc phục, kèm lý do bắt buộc.",
+        "Thiếu vật tư thì Thủ kho đặt mua (Giám đốc duyệt chi) rồi cấp vật tư. Kiểm tra chất lượng không đạt thì đơn hàng quay lại sản xuất để xử lý lỗi, kèm lý do bắt buộc.",
       guards: "Ràng buộc bắt buộc",
       guardList: [
         "Không cho nhảy bước ngoài sơ đồ.",
         "Đơn đã đóng hoặc đã hủy không thể chuyển tiếp.",
         "Bước có cổng duyệt phải có quyết định phê duyệt còn hiệu lực.",
-        "Chưa đạt kiểm tra chất lượng thì không được đóng gói.",
-        "Hủy đơn và trả về khắc phục đều bắt buộc ghi lý do.",
+        "Chưa lưu kế hoạch sản xuất thì không rời được bước 3.",
+        "Kiểm mộc phải đạt mới sang Sơn; tới công đoạn Hoàn thiện mới sang kiểm tra chất lượng.",
+        "Kiểm hoàn thiện chưa đạt thì không được đóng gói.",
+        "Chưa có phiếu đóng gói và kiểm đóng gói đạt thì không rời được bước 7.",
+        "Chưa có mẫu tem, shipping mark của khách hoặc mẫu công ty chưa được Giám đốc duyệt thì không rời được bước 7.",
+        "Chưa tải INV và PKL thì không rời được bước 8; chưa tải tờ khai thì không rời được bước 9.",
+        "Hủy đơn và trả về xử lý lỗi đều bắt buộc ghi lý do.",
       ],
-      notImplemented:
-        "Trang này hiển thị quy trình đã được mã hóa. Việc lưu đơn hàng thật, gán đơn vị thực hiện và ghi audit thuộc bước triển khai tiếp theo và chưa hoạt động.",
     },
     approvals: {
       eyebrow: "Cổng phê duyệt",
-      title: "Giám đốc phê duyệt toàn bộ",
+      title: "Giám đốc duyệt bán hàng và chi trả",
       description:
-        "Theo yêu cầu đã chốt, mọi nghiệp vụ trọng yếu đều phải qua Giám đốc. Nắm quyền thực hiện một thao tác không đồng nghĩa được hoàn tất thao tác đó: hệ thống giữ yêu cầu ở trạng thái chờ cho đến khi có quyết định.",
-      rule: "Đơn hàng, giá bán, thay đổi giá, mua nguyên liệu, chi phí phát sinh, xuất hàng — tất cả.",
+        "Theo quyết định của Giám đốc (09/2026), mọi việc liên quan đến bán hàng và chi trả đều qua Giám đốc. Nắm quyền thực hiện một thao tác không đồng nghĩa được hoàn tất thao tác đó: hệ thống giữ yêu cầu ở trạng thái chờ cho đến khi có quyết định.",
+      rule: "Xác nhận đơn hàng, mua vật tư, thanh toán cơ sở, bán hàng tại xưởng, bán nguyên liệu.",
       subjectColumn: "Nội dung cần duyệt",
       deciderColumn: "Quyền quyết định",
       separationTitle: "Tách bạch trách nhiệm",
       separationDescription:
         "Người gửi yêu cầu không bao giờ là người duyệt, kể cả Giám đốc tự gửi. Từ chối bắt buộc ghi lý do, và nếu bản ghi gốc thay đổi sau khi duyệt thì phải trình duyệt lại.",
-      notImplemented:
-        "Danh sách dưới đây là các loại phê duyệt đã được mã hóa. Hàng đợi phê duyệt có dữ liệu thật chưa được triển khai.",
     },
     organization: {
       eyebrow: "Cơ cấu tổ chức",
@@ -348,7 +349,7 @@ const adminDictionaries = {
       statusPlanned: "Mới có định nghĩa",
       visibilityTitle: "Quy tắc xem giá",
       visibilityDescription:
-        "Giá bán, biên lợi nhuận và lợi nhuận chỉ Giám đốc và Kế toán công ty được xem. Giá mua và các phần dữ liệu vận hành còn lại thì mọi vị trí đều xem được; quyền chỉnh sửa phải được cấp riêng.",
+        "Lợi nhuận và biên lợi nhuận chỉ Giám đốc được xem. Giá bán chỉ Giám đốc, Kế toán công ty và Kế toán xưởng được xem; tiền khách trả và công nợ khách hàng chỉ Giám đốc và Kế toán công ty. Giá mua và các phần dữ liệu vận hành còn lại thì mọi vị trí đều xem được; quyền chỉnh sửa phải được cấp riêng.",
     },
     content: {
       eyebrow: "Content Studio",
@@ -592,6 +593,7 @@ const adminDictionaries = {
     openPublicSite: "Open public site",
     navigationLabel: "Administration navigation",
     navigation: {
+      guide: "User guide",
       overview: "Overview",
       assistant: "AI assistant",
       tasks: "Assign work",
@@ -622,9 +624,9 @@ const adminDictionaries = {
     },
     operations: {
       eyebrow: "Operating process",
-      title: "The fifteen steps of an order",
+      title: "The eleven steps of an order",
       description:
-        "The chart below is the agreed process, encoded as a state machine. Each step names the position accountable for it, the permission required to leave it, and whether the Director must approve before it advances.",
+        "The production procedure SOP-SX-001 (09/2026), from the customer's order to receivables. Each row names the position accountable, the permission required to leave the step, and whether the Director must approve. Steps 1, 4 and 11 have two rows because each holds two states.",
       stageColumn: "Stage",
       stepColumn: "No.",
       ownerColumn: "Accountable position",
@@ -634,31 +636,32 @@ const adminDictionaries = {
       approvalNone: "None",
       branches: "Two branches",
       branchesDescription:
-        "A material shortage moves the order to purchasing and back to the inventory check. A failed inspection returns the order to production for rework, with a mandatory reason.",
+        "A material shortage sends the Storekeeper to purchase (the Director approves the spend) before issuing. A failed inspection returns the order to production for rework, with a mandatory reason.",
       guards: "Enforced guards",
       guardList: [
         "A move outside the chart is refused.",
         "A closed or cancelled order cannot advance.",
         "A gated stage needs a valid approval decision.",
-        "Packing is blocked until quality control passes.",
+        "Step 3 cannot be left without a saved production plan.",
+        "Lacquer waits for the raw-body inspection; quality control waits for the finishing stage.",
+        "Packing is blocked until the finishing inspection passes.",
+        "Step 7 cannot be left without a packing slip and a passed packing inspection.",
+        "Step 7 cannot be left without the customer's label and shipping-mark spec, or a company proof the Director approved.",
+        "Step 8 needs the INV and PKL on file; step 9 needs the customs declaration.",
         "Cancellation and rework must both record a reason.",
       ],
-      notImplemented:
-        "This page shows the encoded process. Persisting real orders, assigning executing units, and writing audit records belong to the next implementation step and are not live.",
     },
     approvals: {
       eyebrow: "Approval gate",
-      title: "The Director approves everything",
+      title: "The Director approves sales and spending",
       description:
-        "As confirmed, every significant operation passes through the Director. Holding the permission to perform an action does not mean it can be completed: the system parks the request until a decision exists.",
-      rule: "Orders, selling price, price changes, material purchases, incurred expenses, dispatch — all of them.",
+        "By the Director's decision (09/2026), everything to do with selling and paying passes through the Director. Holding the permission to perform an action does not mean it can be completed: the system parks the request until a decision exists.",
+      rule: "Order confirmation, material purchases, payments to production sites, counter sales, material sales.",
       subjectColumn: "Subject",
       deciderColumn: "Permission to decide",
       separationTitle: "Separation of duties",
       separationDescription:
         "The person who raised a request is never the person who releases it, even when the Director raises it. A rejection must record a reason, and if the underlying record changes after approval it must be approved again.",
-      notImplemented:
-        "The list below shows the encoded approval subjects. A queue backed by real records is not implemented yet.",
     },
     organization: {
       eyebrow: "Organisation",
@@ -679,7 +682,7 @@ const adminDictionaries = {
       statusPlanned: "Definition only",
       visibilityTitle: "Price visibility rule",
       visibilityDescription:
-        "Selling price, margin, and profit are visible only to the Director and the Company Accountant. Purchase price and the remaining operational data are readable by every position; the right to edit is granted separately.",
+        "Profit and margin are visible to the Director only. The selling price is visible to the Director, the Company Accountant and the Factory Accountant; customer payments and receivables to the Director and the Company Accountant only. Purchase price and the remaining operational data are readable by every position; the right to edit is granted separately.",
     },
     content: {
       eyebrow: "Content Studio",

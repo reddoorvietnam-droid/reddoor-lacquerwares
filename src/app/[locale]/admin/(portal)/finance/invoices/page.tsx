@@ -17,7 +17,7 @@ import {
 } from "@/lib/auth";
 import { isLocale } from "@/lib/i18n/config";
 import { resolveAdminLocale } from "@/lib/i18n/admin";
-import { formatMoney, type Money } from "@/lib/money";
+import { formatMoney, money, sum, type Money } from "@/lib/money";
 
 import { voidInvoiceAction } from "../actions";
 import type { EntryFormOption } from "../entry-form";
@@ -83,6 +83,19 @@ function isPositive(value: Money): boolean {
   return !value.amount.startsWith("-") && Number(value.amount) !== 0;
 }
 
+/** Active invoice amounts added up per currency, for readers without the receivables report. */
+function sumByCurrency(amounts: readonly Money[]): Money[] {
+  const byCurrency = new Map<Money["currency"], Money[]>();
+  for (const amount of amounts) {
+    const list = byCurrency.get(amount.currency) ?? [];
+    list.push(money(amount.amount, amount.currency));
+    byCurrency.set(amount.currency, list);
+  }
+  return [...byCurrency.entries()].map(([currency, list]) =>
+    sum(list, currency),
+  );
+}
+
 export default async function FinanceInvoicesPage({
   params,
   searchParams,
@@ -106,17 +119,34 @@ export default async function FinanceInvoicesPage({
     throw cause;
   }
 
-  const coverages = await resolvePermissionCoverages(["invoices.manage"] as const);
+  const coverages = await resolvePermissionCoverages([
+    "invoices.manage",
+    "payments.read",
+  ] as const);
   const canManage =
     coverages["invoices.manage"].global ||
     coverages["invoices.manage"].businessUnitIds.length > 0;
+  // What the customer paid is `payments.read`: the Factory Accountant writes
+  // the INV (SOP step 8) but never sees the money behind it.
+  const canReadPayments =
+    coverages["payments.read"].global ||
+    coverages["payments.read"].businessUnitIds.length > 0;
 
   const [invoices, report, todayRate] = await Promise.all([
     invoiceCommandService.list({ scope }),
-    financeCommandService.receivables(scope),
+    canReadPayments ? financeCommandService.receivables(scope) : null,
     fxRateService.rateOn(new Date()),
   ]);
-  const rowById = new Map(report.invoices.map((row) => [row.invoice.id, row]));
+  const rowById = new Map(
+    (report?.invoices ?? []).map((row) => [row.invoice.id, row]),
+  );
+  const revenue = report
+    ? report.totals.revenue
+    : sumByCurrency(
+        invoices
+          .filter((invoice) => invoice.status === "active")
+          .map((invoice) => invoice.amount),
+      );
 
   let orders: EntryFormOption[] = [];
   if (canManage) {
@@ -154,11 +184,13 @@ export default async function FinanceInvoicesPage({
       <p className="text-charcoal/60 mt-8 text-sm">
         {text.revenue}:{" "}
         <span className="text-burgundy font-mono font-semibold">
-          {formatTotals(report.totals.revenue, locale)}
+          {formatTotals(revenue, locale)}
         </span>
-        <span className="text-charcoal/45 ml-3 font-mono text-xs">
-          {text.revenueVnd}: {formatMoney(report.totals.revenueVnd, locale)}
-        </span>
+        {report ? (
+          <span className="text-charcoal/45 ml-3 font-mono text-xs">
+            {text.revenueVnd}: {formatMoney(report.totals.revenueVnd, locale)}
+          </span>
+        ) : null}
       </p>
 
       {canManage ? (
@@ -184,15 +216,35 @@ export default async function FinanceInvoicesPage({
               <caption className="sr-only">{text.title}</caption>
               <thead>
                 <tr className="border-burgundy/12 text-charcoal/60 border-b text-xs tracking-[0.12em] uppercase">
-                  <th scope="col" className={thClass}>{text.numberColumn}</th>
-                  <th scope="col" className={thClass}>{text.orderColumn}</th>
-                  <th scope="col" className={thClass}>{text.customerColumn}</th>
-                  <th scope="col" className={thClass}>{text.issuedColumn}</th>
-                  <th scope="col" className={thClass}>{text.dueColumn}</th>
-                  <th scope="col" className={thClass}>{text.amountColumn}</th>
-                  <th scope="col" className={thClass}>{text.rateColumn}</th>
-                  <th scope="col" className={thClass}>{text.remainingColumn}</th>
-                  <th scope="col" className={thClass}>{text.actionColumn}</th>
+                  <th scope="col" className={thClass}>
+                    {text.numberColumn}
+                  </th>
+                  <th scope="col" className={thClass}>
+                    {text.orderColumn}
+                  </th>
+                  <th scope="col" className={thClass}>
+                    {text.customerColumn}
+                  </th>
+                  <th scope="col" className={thClass}>
+                    {text.issuedColumn}
+                  </th>
+                  <th scope="col" className={thClass}>
+                    {text.dueColumn}
+                  </th>
+                  <th scope="col" className={thClass}>
+                    {text.amountColumn}
+                  </th>
+                  <th scope="col" className={thClass}>
+                    {text.rateColumn}
+                  </th>
+                  {canReadPayments ? (
+                    <th scope="col" className={thClass}>
+                      {text.remainingColumn}
+                    </th>
+                  ) : null}
+                  <th scope="col" className={thClass}>
+                    {text.actionColumn}
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -218,7 +270,9 @@ export default async function FinanceInvoicesPage({
                     >
                       <th scope="row" className="px-5 py-4 text-left">
                         <Link
-                          href={`/${locale}/admin/finance/invoices/${invoice.id}` as Route}
+                          href={
+                            `/${locale}/admin/finance/invoices/${invoice.id}` as Route
+                          }
                           className="text-burgundy font-mono text-xs font-semibold hover:underline"
                         >
                           {invoice.invoiceNumber}
@@ -226,48 +280,77 @@ export default async function FinanceInvoicesPage({
                       </th>
                       <td className="px-5 py-4 font-mono text-xs">
                         <Link
-                          href={`/${locale}/admin/orders/${invoice.orderId}` as Route}
+                          href={
+                            `/${locale}/admin/orders/${invoice.orderId}` as Route
+                          }
                           className="hover:underline"
                         >
                           {invoice.orderCode}
                         </Link>
                       </td>
-                      <td className="text-charcoal/75 px-5 py-4">{invoice.customerName}</td>
-                      <td className="px-5 py-4 text-xs">{formatDate(invoice.issuedAt, locale)}</td>
-                      <td className="px-5 py-4 text-xs">{formatDate(invoice.dueAt, locale)}</td>
+                      <td className="text-charcoal/75 px-5 py-4">
+                        {invoice.customerName}
+                      </td>
+                      <td className="px-5 py-4 text-xs">
+                        {formatDate(invoice.issuedAt, locale)}
+                      </td>
+                      <td className="px-5 py-4 text-xs">
+                        {formatDate(invoice.dueAt, locale)}
+                      </td>
                       <td className="px-5 py-4 font-mono text-xs font-semibold">
                         {formatMoney(invoice.amount, locale)}
                       </td>
                       <td className="text-charcoal/60 px-5 py-4 font-mono text-xs">
                         {invoice.fxRateToVnd ?? "—"}
                       </td>
-                      <td className="px-5 py-4 font-mono text-xs font-semibold">
-                        {invoice.status === "voided" ? (
-                          <span className="text-charcoal/50">{text.voided}</span>
-                        ) : row ? (
-                          isPositive(row.remaining) ? (
-                            <span className="text-lacquer">
-                              {formatMoney(row.remaining, locale)}
-                              {row.overdue ? ` · ${text.overdue}` : ""}
+                      {canReadPayments ? (
+                        <td className="px-5 py-4 font-mono text-xs font-semibold">
+                          {invoice.status === "voided" ? (
+                            <span className="text-charcoal/50">
+                              {text.voided}
                             </span>
+                          ) : row ? (
+                            isPositive(row.remaining) ? (
+                              <span className="text-lacquer">
+                                {formatMoney(row.remaining, locale)}
+                                {row.overdue ? ` · ${text.overdue}` : ""}
+                              </span>
+                            ) : (
+                              <span className="text-emerald-700">
+                                {text.settled}
+                              </span>
+                            )
                           ) : (
-                            <span className="text-emerald-700">{text.settled}</span>
-                          )
-                        ) : (
-                          "—"
-                        )}
-                      </td>
+                            "—"
+                          )}
+                        </td>
+                      ) : null}
                       <td className="px-5 py-4">
                         {invoice.status === "voided" ? (
                           <span className="text-charcoal/50 text-xs">
                             {invoice.voidReason ?? ""}
                           </span>
                         ) : canVoid ? (
-                          <form action={voidInvoiceAction} className="flex items-center gap-2">
+                          <form
+                            action={voidInvoiceAction}
+                            className="flex items-center gap-2"
+                          >
                             <input type="hidden" name="locale" value={locale} />
-                            <input type="hidden" name="returnTo" value="invoices" />
-                            <input type="hidden" name="invoiceId" value={invoice.id} />
-                            <input type="hidden" name="expectedRevision" value={invoice.revision} />
+                            <input
+                              type="hidden"
+                              name="returnTo"
+                              value="invoices"
+                            />
+                            <input
+                              type="hidden"
+                              name="invoiceId"
+                              value={invoice.id}
+                            />
+                            <input
+                              type="hidden"
+                              name="expectedRevision"
+                              value={invoice.revision}
+                            />
                             <input
                               type="text"
                               name="reason"

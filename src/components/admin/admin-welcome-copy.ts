@@ -54,6 +54,10 @@ export const roleWelcome: Record<SystemRoleKey, Localized> = {
 
 /** What each menu entry is for, keyed by its path below `/[locale]/admin`. */
 const navDescriptions: Record<string, Localized> = {
+  "/guide": {
+    vi: "Vai trò của bạn và cách dùng từng mục trên website.",
+    en: "Your role and how to use each screen.",
+  },
   "/paint-warehouse": {
     vi: "Ghi và tra cứu các lần xuất kho sơn.",
     en: "Record and look up paint issues.",
@@ -94,9 +98,17 @@ const navDescriptions: Record<string, Localized> = {
     vi: "Danh bạ nhà cung cấp và thông tin liên hệ.",
     en: "Supplier directory and contacts.",
   },
+  "/facility-contracts": {
+    vi: "Hợp đồng với cơ sở, đề nghị thanh toán và công nợ cơ sở.",
+    en: "Production-site contracts, payment requests and what is owed.",
+  },
+  "/import-shipments": {
+    vi: "Lô hàng nhập khẩu và toàn bộ chứng từ nhập.",
+    en: "Import shipments and all their documents.",
+  },
   "/operations": {
-    vi: "Mười lăm bước của một đơn hàng.",
-    en: "The fifteen steps of an order.",
+    vi: "Mười một bước của một đơn hàng.",
+    en: "The eleven steps of an order.",
   },
   "/approvals": {
     vi: "Các nghiệp vụ đang chờ bạn quyết định.",

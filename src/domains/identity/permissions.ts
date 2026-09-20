@@ -262,6 +262,24 @@ export const permissionCatalog = [
   "customerDebt.export",
   "customerDebt.import",
 
+  // Purchase contracts with the production sites ("hợp đồng mua hàng cơ
+  // sở") and the payments made against them. The Factory Manager signs the
+  // contract and proposes a payment; the Factory Accountant checks it and
+  // records it paid; the Company Accountant approves it before the
+  // Director's decision (confirmed 2026-09-14). Purchase price is ordinary
+  // operational data (rule 2), so reading a contract is not a price read.
+  "facilityContracts.read",
+  "facilityContracts.manage",
+  "facilityPayments.propose",
+  "facilityPayments.check",
+  "facilityPayments.approve",
+  "facilityPayments.markPaid",
+
+  // Import shipments: every document of an import (declaration, invoice,
+  // packing list, B/L, C/O) kept on file by the Company Accountant.
+  "importShipments.read",
+  "importShipments.manage",
+
   // Packing, shipping, trade documents.
   "packing.read",
   "packing.create",

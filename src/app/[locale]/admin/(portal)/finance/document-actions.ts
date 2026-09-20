@@ -4,14 +4,19 @@ import { z } from "zod";
 
 import { FinanceCommandError } from "@/domains/finance/contracts";
 import { invoiceCommandService } from "@/domains/finance/runtime";
-import { OrderCommandError } from "@/domains/orders/contracts";
+import {
+  OrderCommandError,
+  orderDocumentKinds,
+  orderDocumentPermissions,
+} from "@/domains/orders/contracts";
 import { orderCommandService } from "@/domains/orders/runtime";
 import { ContentAccessDeniedError, requirePermission } from "@/lib/auth";
 
 /**
- * Records an uploaded document on an order (payment evidence) or an invoice
- * (the INV file). The bytes are already at the storage provider; this only
- * attaches the descriptor, after re-authorizing against the exact record.
+ * Records an uploaded document on an order (payment evidence or a step
+ * output such as the PKL) or an invoice (the INV file). The bytes are already
+ * at the storage provider; this only attaches the descriptor, after
+ * re-authorizing against the exact record.
  */
 
 const objectIdSchema = z.string().regex(/^[a-f0-9]{24}$/);
@@ -19,6 +24,11 @@ const objectIdSchema = z.string().regex(/^[a-f0-9]{24}$/);
 const payloadSchema = z.object({
   target: z.discriminatedUnion("kind", [
     z.object({ kind: z.literal("orderDocument"), id: objectIdSchema }),
+    z.object({
+      kind: z.literal("orderFile"),
+      id: objectIdSchema,
+      documentKind: z.enum(orderDocumentKinds),
+    }),
     z.object({ kind: z.literal("invoiceDocument"), id: objectIdSchema }),
   ]),
   expectedRevision: z.number().int().min(0),
@@ -76,6 +86,24 @@ export async function attachDocumentAction(
       });
       await orderCommandService.attachPaymentDocument(context, {
         orderId: order.id,
+        ...descriptor,
+      });
+      return { status: "success", message: "ATTACHED" };
+    }
+
+    if (payload.target.kind === "orderFile") {
+      const order = await orderCommandService.findForAuthorization(
+        payload.target.id,
+      );
+      if (!order) return { status: "error", message: "NOT_FOUND" };
+      const kind = payload.target.documentKind;
+      const context = await requirePermission(orderDocumentPermissions[kind], {
+        resourceId: order.id,
+        businessUnitIds: order.businessUnitIds,
+      });
+      await orderCommandService.attachDocument(context, {
+        orderId: order.id,
+        kind,
         ...descriptor,
       });
       return { status: "success", message: "ATTACHED" };

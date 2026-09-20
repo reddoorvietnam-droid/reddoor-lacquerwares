@@ -28,7 +28,7 @@ function plan(overrides: Partial<Parameters<typeof buildOrderPlan>[0]> = {}) {
 }
 
 describe("remainingStages", () => {
-  it("follows the fifteen-step main path from the current stage, skipping the purchase branch", () => {
+  it("follows the SOP main path from the current stage, skipping the purchase branch", () => {
     const stages = remainingStages("received");
     expect(stages[0]).toBe("received");
     expect(stages.at(-1)).toBe("settled");
@@ -37,8 +37,8 @@ describe("remainingStages", () => {
     expect(remainingStages("qualityControl")).toEqual([
       "qualityControl",
       "packing",
+      "exportDocuments",
       "tradeDocumentation",
-      "loadingScheduled",
       "shipped",
       "invoiced",
       "settled",
@@ -116,7 +116,7 @@ describe("buildOrderPlan", () => {
       ]),
     });
     expect(
-      built.items.find((i) => i.stage === "fileOpened")!.assigneeUserId,
+      built.items.find((i) => i.stage === "tradeDocumentation")!.assigneeUserId,
     ).toBe("ca1");
     expect(
       built.items.find((i) => i.stage === "productionPlanning")!.assigneeUserId,

@@ -121,33 +121,47 @@ export default async function InvoiceDetailPage({
 
   const coverages = await resolvePermissionCoverages([
     "invoices.manage",
+    "payments.read",
     "payments.record",
   ] as const);
   const canManage =
     invoice.status === "active" &&
     coverageReaches(coverages["invoices.manage"], invoice.businessUnitIds);
+  // What the customer paid is `payments.read`: the Factory Accountant files
+  // the INV but never sees the money behind it.
+  const canReadPayments = coverageReaches(
+    coverages["payments.read"],
+    invoice.businessUnitIds,
+  );
   const canRecordPayment =
     invoice.status === "active" &&
     coverageReaches(coverages["payments.record"], invoice.businessUnitIds);
 
-  const report = invoice.customerId
-    ? await financeCommandService.customerReceivables(invoice.customerId)
-    : await financeCommandService.receivables({ kind: "all" });
-  const row = report.invoices.find((candidate) => candidate.invoice.id === invoice.id);
+  const report = !canReadPayments
+    ? null
+    : invoice.customerId
+      ? await financeCommandService.customerReceivables(invoice.customerId)
+      : await financeCommandService.receivables({ kind: "all" });
+  const row = report?.invoices.find(
+    (candidate) => candidate.invoice.id === invoice.id,
+  );
 
   const receipts = (
-    await financeCommandService.listActive({
-      kind: "receipt",
-      category: "orderPayment",
-      ...(invoice.customerId ? { customerId: invoice.customerId } : {}),
-    })
+    canReadPayments
+      ? await financeCommandService.listActive({
+          kind: "receipt",
+          category: "orderPayment",
+          ...(invoice.customerId ? { customerId: invoice.customerId } : {}),
+        })
+      : []
   )
     .map((receipt) => ({
       receipt,
       applied: receipt.allocations
         .filter(
           (allocation) =>
-            allocation.target === "invoice" && allocation.invoiceId === invoice.id,
+            allocation.target === "invoice" &&
+            allocation.invoiceId === invoice.id,
         )
         .reduce(
           (total, allocation) =>
@@ -199,7 +213,9 @@ export default async function InvoiceDetailPage({
           <p className="text-charcoal/75 mt-3 text-lg">
             {invoice.customerId ? (
               <Link
-                href={`/${locale}/admin/customers/${invoice.customerId}` as Route}
+                href={
+                  `/${locale}/admin/customers/${invoice.customerId}` as Route
+                }
                 className="hover:underline"
               >
                 {invoice.customerName}
@@ -220,7 +236,9 @@ export default async function InvoiceDetailPage({
               <p className={dtClass}>{text.remaining}</p>
               <p
                 className={`mt-1 font-mono text-2xl font-semibold ${
-                  isPositive(row.remaining) ? "text-lacquer" : "text-emerald-700"
+                  isPositive(row.remaining)
+                    ? "text-lacquer"
+                    : "text-emerald-700"
                 }`}
               >
                 {isPositive(row.remaining)
@@ -297,14 +315,19 @@ export default async function InvoiceDetailPage({
 
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
         <section className={cardClass}>
-          <h2 className="text-burgundy font-serif text-2xl">{text.documentsTitle}</h2>
+          <h2 className="text-burgundy font-serif text-2xl">
+            {text.documentsTitle}
+          </h2>
           <p className="text-charcoal/55 mt-2 text-sm">{text.documentsHint}</p>
           {invoice.documents.length === 0 ? (
             <p className="text-charcoal/55 mt-4 text-sm">{text.noDocuments}</p>
           ) : (
             <ul className="mt-4 space-y-2 text-sm">
               {invoice.documents.map((document) => (
-                <li key={document.id} className="flex flex-wrap items-center gap-3">
+                <li
+                  key={document.id}
+                  className="flex flex-wrap items-center gap-3"
+                >
                   <a
                     href={storedDocumentUrl(document)}
                     target="_blank"
@@ -314,15 +337,28 @@ export default async function InvoiceDetailPage({
                     {document.label}
                   </a>
                   <span className="text-charcoal/45 text-xs">
-                    {document.format.toUpperCase()} · {formatBytes(document.bytes)} ·{" "}
+                    {document.format.toUpperCase()} ·{" "}
+                    {formatBytes(document.bytes)} ·{" "}
                     {formatDate(document.uploadedAt, locale)}
                   </span>
                   {canManage ? (
                     <form action={removeInvoiceDocumentAction}>
                       <input type="hidden" name="locale" value={locale} />
-                      <input type="hidden" name="invoiceId" value={invoice.id} />
-                      <input type="hidden" name="expectedRevision" value={invoice.revision} />
-                      <input type="hidden" name="documentId" value={document.id} />
+                      <input
+                        type="hidden"
+                        name="invoiceId"
+                        value={invoice.id}
+                      />
+                      <input
+                        type="hidden"
+                        name="expectedRevision"
+                        value={invoice.revision}
+                      />
+                      <input
+                        type="hidden"
+                        name="documentId"
+                        value={document.id}
+                      />
                       <button
                         type="submit"
                         className="text-lacquer border-lacquer/30 hover:bg-lacquer/5 rounded-full border px-3 py-1 text-xs font-semibold"
@@ -347,39 +383,49 @@ export default async function InvoiceDetailPage({
           ) : null}
         </section>
 
-        <section className={cardClass}>
-          <h2 className="text-burgundy font-serif text-2xl">{text.paymentsTitle}</h2>
-          {receipts.length === 0 && !(row && isPositive(row.depositApplied)) ? (
-            <p className="text-charcoal/55 mt-4 text-sm">{text.noPayments}</p>
-          ) : (
-            <ul className="mt-4 space-y-2 text-sm">
-              {receipts.map(({ receipt, applied }) => (
-                <li key={receipt.id} className="flex flex-wrap items-center gap-x-4">
-                  <span className="text-charcoal/60 text-xs">
-                    {formatDate(receipt.occurredAt, locale)}
-                  </span>
-                  <span className="font-mono text-xs font-semibold text-emerald-700">
-                    {formatMoney(applied, locale)}
-                  </span>
-                  <Link
-                    href={`/${locale}/admin/finance/payments/${receipt.id}` as Route}
-                    className="text-burgundy text-xs hover:underline"
+        {canReadPayments ? (
+          <section className={cardClass}>
+            <h2 className="text-burgundy font-serif text-2xl">
+              {text.paymentsTitle}
+            </h2>
+            {receipts.length === 0 &&
+            !(row && isPositive(row.depositApplied)) ? (
+              <p className="text-charcoal/55 mt-4 text-sm">{text.noPayments}</p>
+            ) : (
+              <ul className="mt-4 space-y-2 text-sm">
+                {receipts.map(({ receipt, applied }) => (
+                  <li
+                    key={receipt.id}
+                    className="flex flex-wrap items-center gap-x-4"
                   >
-                    {text.open}
-                  </Link>
-                </li>
-              ))}
-              {row && isPositive(row.depositApplied) ? (
-                <li className="text-charcoal/70 text-xs">
-                  {text.depositApplied}:{" "}
-                  <span className="font-mono font-semibold text-emerald-700">
-                    {formatMoney(row.depositApplied, locale)}
-                  </span>
-                </li>
-              ) : null}
-            </ul>
-          )}
-        </section>
+                    <span className="text-charcoal/60 text-xs">
+                      {formatDate(receipt.occurredAt, locale)}
+                    </span>
+                    <span className="font-mono text-xs font-semibold text-emerald-700">
+                      {formatMoney(applied, locale)}
+                    </span>
+                    <Link
+                      href={
+                        `/${locale}/admin/finance/payments/${receipt.id}` as Route
+                      }
+                      className="text-burgundy text-xs hover:underline"
+                    >
+                      {text.open}
+                    </Link>
+                  </li>
+                ))}
+                {row && isPositive(row.depositApplied) ? (
+                  <li className="text-charcoal/70 text-xs">
+                    {text.depositApplied}:{" "}
+                    <span className="font-mono font-semibold text-emerald-700">
+                      {formatMoney(row.depositApplied, locale)}
+                    </span>
+                  </li>
+                ) : null}
+              </ul>
+            )}
+          </section>
+        ) : null}
       </div>
 
       {canRecordPayment && row && isPositive(row.remaining) ? (
@@ -399,12 +445,21 @@ export default async function InvoiceDetailPage({
 
       {canManage ? (
         <section className={`${cardClass} mt-6`}>
-          <h2 className="text-burgundy font-serif text-2xl">{text.voidTitle}</h2>
-          <form action={voidInvoiceAction} className="mt-4 flex flex-wrap items-end gap-3">
+          <h2 className="text-burgundy font-serif text-2xl">
+            {text.voidTitle}
+          </h2>
+          <form
+            action={voidInvoiceAction}
+            className="mt-4 flex flex-wrap items-end gap-3"
+          >
             <input type="hidden" name="locale" value={locale} />
             <input type="hidden" name="returnTo" value="invoices" />
             <input type="hidden" name="invoiceId" value={invoice.id} />
-            <input type="hidden" name="expectedRevision" value={invoice.revision} />
+            <input
+              type="hidden"
+              name="expectedRevision"
+              value={invoice.revision}
+            />
             <div>
               <label
                 htmlFor="invoice-void-reason"

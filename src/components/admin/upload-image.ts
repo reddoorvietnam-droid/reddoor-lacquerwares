@@ -22,7 +22,13 @@ export type UploadTarget =
   | { kind: "product"; id: string }
   | { kind: "shopItem"; id: string }
   | { kind: "orderDocument"; id: string }
-  | { kind: "invoiceDocument"; id: string };
+  /** A file one of the order's SOP steps produces; `documentKind` names the step's output. */
+  | { kind: "orderFile"; id: string; documentKind: string }
+  | { kind: "invoiceDocument"; id: string }
+  /** A file on a purchase contract with a production site. */
+  | { kind: "facilityContractDocument"; id: string }
+  /** A document of an import shipment (declaration, invoice, B/L…). */
+  | { kind: "importShipmentDocument"; id: string };
 
 export class UploadFailure extends Error {
   constructor(readonly stage: "sign" | "store") {

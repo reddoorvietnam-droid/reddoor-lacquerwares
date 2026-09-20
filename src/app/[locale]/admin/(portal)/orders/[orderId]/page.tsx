@@ -3,7 +3,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import {
-  recordQcPassAction,
   removePaymentDocumentAction,
   requestStageApprovalAction,
   setExportProgressAction,
@@ -26,6 +25,7 @@ import type {
   FinanceEntryRecordDto,
   InvoiceRecordDto,
 } from "@/domains/finance/contracts";
+import { orderProfit, type OrderProfit } from "@/domains/finance/profit";
 import {
   financeCommandService,
   fxRateService,
@@ -37,6 +37,15 @@ import type {
   ReceivablesReport,
 } from "@/domains/finance/receivables";
 import { customerKeyOf, customerCredit } from "@/domains/finance/receivables";
+import { readLookups } from "@/domains/materials/service";
+import {
+  deliveryLateness,
+  orderDocumentKinds,
+  orderDocumentPermissions,
+  orderReadiness,
+  stageEnteredAt,
+  type OrderDocumentKind,
+} from "@/domains/orders/contracts";
 import { orderCommandService } from "@/domains/orders/runtime";
 import {
   isTerminalStage,
@@ -44,6 +53,7 @@ import {
   orderStageDefinitions,
   stageDefinition,
   transitionNeedsReason,
+  type OrderStage,
 } from "@/domains/orders/workflow";
 import { setTaskStatusAction } from "@/app/[locale]/admin/(portal)/tasks/actions";
 import type { TaskRecordDto } from "@/domains/tasks/contracts";
@@ -68,6 +78,21 @@ import {
   type Money,
 } from "@/lib/money";
 
+import { DocumentsSection } from "./sections/documents";
+import { LabelsSection } from "./sections/labels";
+import { OrderInfoSection } from "./sections/order-info";
+import { PackingSection } from "./sections/packing";
+import { ProductionSection } from "./sections/production";
+import { ProfitSection } from "./sections/profit";
+import {
+  buttonClass,
+  cardClass,
+  fieldClass,
+  labelClass,
+  okBadgeClass,
+  warnBadgeClass,
+} from "./sections/styles";
+
 export const dynamic = "force-dynamic";
 
 const copy = {
@@ -75,10 +100,16 @@ const copy = {
     back: "← Sổ đơn hàng",
     eyebrow: "Đơn hàng",
     currentStage: "Bước hiện tại",
+    sinceDays: (date: string, days: number) => `Từ ${date} · ${days} ngày`,
+    deliveryDue: (date: string) => `Hạn giao ${date}`,
+    deliveryDueIn: (days: number) => `còn ${days} ngày`,
+    deliveryDuePast: (days: number) => `quá ${days} ngày`,
+    deliveredOnTime: "Giao đúng hạn",
+    deliveredLate: (days: number) => `Giao trễ ${days} ngày`,
     priceTitle: "Giá bán",
     priceHidden: "Bạn không có quyền xem giá bán của đơn này.",
     priceUnset: "Chưa nhập giá bán.",
-    priceFormTitle: "Cập nhật giá bán (khi hồ sơ còn mở)",
+    priceFormTitle: "Cập nhật giá bán (trước khi Giám đốc xác nhận)",
     priceAmount: "Số tiền",
     priceCurrency: "Tiền tệ",
     priceSubmit: "Lưu giá bán",
@@ -94,11 +125,6 @@ const copy = {
     approvalMissing: "Chưa có yêu cầu phê duyệt nào cho bước này.",
     approvalRequest: "Trình Giám đốc phê duyệt",
     approvalQueue: "Mở hàng đợi phê duyệt →",
-    qcTitle: "Kiểm soát chất lượng",
-    qcPassed: "Đã đạt kiểm tra chất lượng.",
-    qcNotPassed:
-      "Chưa đạt kiểm tra. Ghi nhận đạt để mở đường sang đóng gói, hoặc trả về sản xuất kèm lý do.",
-    qcPassButton: "Ghi nhận QC đạt",
     exportTitle: "Tiến độ xuất hàng",
     expectedReadyAt: "Ngày dự kiến sẵn hàng",
     bookingNumber: "Số booking",
@@ -145,6 +171,17 @@ const copy = {
     moveTitle: "Chuyển bước",
     moveHint:
       "Chỉ các bước quy trình cho phép mới hiện ở đây. Quyền của bạn được kiểm tra lại trên máy chủ khi bấm.",
+    blockedLead: "Chưa rời được bước này:",
+    blockers: {
+      planned: "chưa lưu kế hoạch sản xuất",
+      productionComplete: "chưa tới công đoạn Hoàn thiện",
+      qcPassed: "chưa ghi kiểm hoàn thiện đạt",
+      packingReady: "chưa có phiếu đóng gói hoặc kiểm đóng gói chưa đạt",
+      labelsReady:
+        "chưa có mẫu tem của khách hoặc mẫu tem công ty chưa được Giám đốc duyệt",
+      exportDocumentsReady: "chưa tải INV và PKL",
+      customsDeclared: "chưa tải tờ khai hải quan",
+    },
     reasonLabel: "Lý do (bắt buộc)",
     moveTo: "Chuyển sang",
     noMoves: "Đơn hàng đã ở trạng thái kết thúc.",
@@ -152,15 +189,22 @@ const copy = {
       "Bước hiện tại thuộc vị trí khác — bạn không giữ quyền chuyển bước này.",
     historyTitle: "Nhật ký chuyển bước",
     historyEmpty: "Chưa có lần chuyển bước nào.",
-    progressTitle: "Tiến trình mười lăm bước",
+    progressTitle: "Tiến trình mười một bước",
     unitsTitle: "Đơn vị thực hiện",
     notices: {
       created: "Đã ghi nhận đơn hàng.",
       moved: "Đã chuyển bước.",
-      qcPassed: "Đã ghi nhận QC đạt.",
+      qcChecked: "Đã ghi kết quả kiểm.",
+      productionStageSet: "Đã chuyển công đoạn.",
+      planSaved: "Đã lưu kế hoạch sản xuất.",
+      packingSaved: "Đã lưu phiếu đóng gói.",
+      linesSaved: "Đã lưu hàng đặt.",
+      detailsSaved: "Đã lưu shipping mark, ngày giao và chỉ tiêu.",
       priceSet: "Đã lưu giá bán.",
       approvalRequested: "Đã trình Giám đốc.",
       exportSaved: "Đã lưu tiến độ xuất hàng.",
+      documentRemoved: "Đã gỡ tệp.",
+      labelApproved: "Đã duyệt mẫu tem.",
     } as Record<string, string>,
     errorLead: "Thao tác không thành công:",
     errors: {
@@ -173,7 +217,19 @@ const copy = {
       TERMINAL_STAGE: "Đơn đã đóng hoặc đã hủy.",
       APPROVAL_REQUIRED: "Bước này cần quyết định phê duyệt của Giám đốc.",
       APPROVAL_MISSING: "Chưa có phê duyệt hợp lệ của Giám đốc.",
-      QC_NOT_PASSED: "Chưa đạt kiểm tra chất lượng thì không được đóng gói.",
+      QC_NOT_PASSED: "Chưa ghi kiểm hoàn thiện đạt thì không được đóng gói.",
+      PLAN_MISSING: "Phải lưu kế hoạch sản xuất trước khi rời bước 3.",
+      PRODUCTION_INCOMPLETE:
+        "Đơn phải ở công đoạn Hoàn thiện mới sang kiểm tra chất lượng.",
+      PACKING_NOT_READY:
+        "Cần phiếu đóng gói của Thủ kho và kiểm đóng gói đạt trước khi rời bước 7.",
+      LABELS_NOT_APPROVED:
+        "Cần mẫu tem, shipping mark của khách, hoặc mẫu công ty đã được Giám đốc duyệt, trước khi rời bước 7.",
+      SELF_APPROVAL: "Người tải mẫu tem lên không tự duyệt được mẫu đó.",
+      EXPORT_DOCUMENTS_MISSING: "Phải tải INV và PKL lên trước khi rời bước 8.",
+      CUSTOMS_DECLARATION_MISSING:
+        "Phải tải tờ khai hải quan lên trước khi rời bước 9.",
+      WOODWORK_NOT_PASSED: "Kiểm mộc phải đạt thì mới chuyển sang Sơn.",
       REASON_REQUIRED: "Thao tác này bắt buộc ghi lý do.",
       ALREADY_PENDING: "Đã có một yêu cầu phê duyệt đang chờ.",
       INVALID_PRICE: "Giá bán không hợp lệ.",
@@ -185,10 +241,16 @@ const copy = {
     back: "← Order book",
     eyebrow: "Order",
     currentStage: "Current stage",
+    sinceDays: (date: string, days: number) => `Since ${date} · ${days} days`,
+    deliveryDue: (date: string) => `Due ${date}`,
+    deliveryDueIn: (days: number) => `${days} days left`,
+    deliveryDuePast: (days: number) => `${days} days past`,
+    deliveredOnTime: "Delivered on time",
+    deliveredLate: (days: number) => `Delivered ${days} days late`,
     priceTitle: "Selling price",
     priceHidden: "You do not hold the permission to read this order's price.",
     priceUnset: "No selling price recorded yet.",
-    priceFormTitle: "Update the selling price (while the file is open)",
+    priceFormTitle: "Update the selling price (before the Director confirms)",
     priceAmount: "Amount",
     priceCurrency: "Currency",
     priceSubmit: "Save price",
@@ -204,11 +266,6 @@ const copy = {
     approvalMissing: "No approval request exists for this stage yet.",
     approvalRequest: "Submit for Director approval",
     approvalQueue: "Open the approval queue →",
-    qcTitle: "Quality control",
-    qcPassed: "The quality check has passed.",
-    qcNotPassed:
-      "Not passed yet. Record a pass to unlock packing, or return to production with a reason.",
-    qcPassButton: "Record QC pass",
     exportTitle: "Export progress",
     expectedReadyAt: "Expected ready date",
     bookingNumber: "Booking number",
@@ -256,6 +313,17 @@ const copy = {
     moveTitle: "Advance the order",
     moveHint:
       "Only moves the process allows appear here. Your permission is re-checked on the server.",
+    blockedLead: "This stage cannot be left yet:",
+    blockers: {
+      planned: "the production plan is not saved",
+      productionComplete: "the finishing stage has not been reached",
+      qcPassed: "the finishing inspection has not passed",
+      packingReady: "no packing slip, or the packing inspection has not passed",
+      labelsReady:
+        "no customer label spec, or the company label proof is not approved by the Director",
+      exportDocumentsReady: "INV and PKL are not on file",
+      customsDeclared: "the customs declaration is not on file",
+    },
     reasonLabel: "Reason (required)",
     moveTo: "Move to",
     noMoves: "The order is in a terminal stage.",
@@ -263,15 +331,22 @@ const copy = {
       "The current stage belongs to another position — you do not hold its advance permission.",
     historyTitle: "Stage history",
     historyEmpty: "No transitions yet.",
-    progressTitle: "The fifteen-step progress",
+    progressTitle: "The eleven-step progress",
     unitsTitle: "Executing units",
     notices: {
       created: "The order has been recorded.",
       moved: "The order moved on.",
-      qcPassed: "QC pass recorded.",
+      qcChecked: "Inspection recorded.",
+      productionStageSet: "Workshop stage changed.",
+      planSaved: "Production plan saved.",
+      packingSaved: "Packing slip saved.",
+      linesSaved: "Items saved.",
+      detailsSaved: "Shipping mark, delivery date and targets saved.",
       priceSet: "Selling price saved.",
       approvalRequested: "Submitted to the Director.",
       exportSaved: "Export progress saved.",
+      documentRemoved: "File removed.",
+      labelApproved: "Label proof approved.",
     } as Record<string, string>,
     errorLead: "The action failed:",
     errors: {
@@ -284,7 +359,20 @@ const copy = {
       TERMINAL_STAGE: "The order is closed or cancelled.",
       APPROVAL_REQUIRED: "This stage needs a Director decision.",
       APPROVAL_MISSING: "No valid Director approval exists.",
-      QC_NOT_PASSED: "Packing is blocked until the quality check passes.",
+      QC_NOT_PASSED:
+        "Packing is blocked until the finishing inspection passes.",
+      PLAN_MISSING: "Save the production plan before leaving step 3.",
+      PRODUCTION_INCOMPLETE:
+        "The order must be at the finishing stage before quality control.",
+      PACKING_NOT_READY:
+        "The Storekeeper's packing slip and a passed packing inspection are needed before leaving step 7.",
+      LABELS_NOT_APPROVED:
+        "The customer's label and shipping-mark spec, or a company proof the Director approved, is needed before leaving step 7.",
+      SELF_APPROVAL: "Whoever uploaded the label proof cannot approve it.",
+      EXPORT_DOCUMENTS_MISSING: "Upload the INV and PKL before leaving step 8.",
+      CUSTOMS_DECLARATION_MISSING:
+        "Upload the customs declaration before leaving step 9.",
+      WOODWORK_NOT_PASSED: "The raw-body inspection must pass before lacquer.",
       REASON_REQUIRED: "This move must record a reason.",
       ALREADY_PENDING: "An approval request is already pending.",
       INVALID_PRICE: "The price is not valid.",
@@ -296,6 +384,39 @@ const copy = {
 
 function isPositive(value: Money): boolean {
   return !value.amount.startsWith("-") && Number(value.amount) !== 0;
+}
+
+/** One rail pill per SOP step; the first stage of a step names it. */
+const sopSteps = orderProgressStages.reduce<
+  { step: number; stage: OrderStage }[]
+>((steps, stage) => {
+  const step = orderStageDefinitions[stage].step;
+  if (step !== null && !steps.some((entry) => entry.step === step)) {
+    steps.push({ step, stage });
+  }
+  return steps;
+}, []);
+
+/** Stages of the production story, where the plan / workshop / QC card shows. */
+const productionStory: readonly OrderStage[] = [
+  "productionPlanning",
+  "inventoryCheck",
+  "materialProcurement",
+  "inProduction",
+  "qualityControl",
+  "packing",
+];
+
+async function facilityNames(): Promise<string[]> {
+  try {
+    const { facilities } = await readLookups();
+    return facilities
+      .filter((facility) => facility.active)
+      .map((facility) => facility.name)
+      .filter((name) => name.length > 0);
+  } catch {
+    return [];
+  }
 }
 
 export default async function AdminOrderDetailPage({
@@ -316,11 +437,12 @@ export default async function AdminOrderDetailPage({
   const raw = await orderCommandService.findForAuthorization(orderId);
   if (!raw) notFound();
 
+  let currentUserId: string;
   try {
-    await requirePermission("orders.read", {
+    ({ userId: currentUserId } = await requirePermission("orders.read", {
       resourceId: raw.id,
       businessUnitIds: raw.businessUnitIds,
-    });
+    }));
   } catch (cause) {
     if (cause instanceof ContentAccessDeniedError) notFound();
     throw cause;
@@ -331,8 +453,15 @@ export default async function AdminOrderDetailPage({
     "orders.readSellingPrice",
     "orders.updateDraft",
     "orders.updateExportProgress",
+    "production.createPlan",
+    "production.updateProgress",
     "production.approveQc",
+    "packing.update",
+    "tradeDocuments.manage",
+    "samples.update",
+    "inventory.issue",
     "approvals.request",
+    "approvals.decide",
     "customers.read",
     "invoices.read",
     "invoices.manage",
@@ -341,6 +470,7 @@ export default async function AdminOrderDetailPage({
     "payments.reverse",
     "payments.refund",
     "expenses.read",
+    "finance.readProfit",
     "tasks.read",
     "tasks.create",
     "assistant.use",
@@ -352,19 +482,41 @@ export default async function AdminOrderDetailPage({
   const priceVisible = reaches("orders.readSellingPrice");
   const order = (await orderCommandService.findById(orderId, priceVisible))!;
   const terminal = isTerminalStage(order.stage);
+  const now = new Date();
 
   const canAdvance = reaches(definition.advancePermission);
   const canRequestApproval = reaches("approvals.request");
-  const canRecordQc = reaches("production.approveQc");
+  const canEditOrder = reaches("orders.updateDraft") && !terminal;
   const canEditPrice =
     reaches("orders.updateDraft") &&
-    (order.stage === "received" || order.stage === "fileOpened");
+    priceVisible &&
+    (order.stage === "received" || order.stage === "awaitingDirectorApproval");
+  const canPlan = reaches("production.createPlan") && !terminal;
+  const canProgress = reaches("production.updateProgress");
+  const canInspect = reaches("production.approveQc");
+  const canPack = reaches("packing.update") && order.stage === "packing";
   const canEditExport = reaches("orders.updateExportProgress") && !terminal;
   const canReadPayments = reaches("payments.read");
   const canRecordPayment = reaches("payments.record");
   const canReadInvoices = reaches("invoices.read");
   const canManageInvoices = reaches("invoices.manage") && !terminal;
   const canReadCosts = reaches("expenses.read");
+  const canReadProfit = reaches("finance.readProfit");
+
+  // Per document kind, whether the reader files and removes it. The
+  // permission map is the same one the upload signature and the action use.
+  const canAttach = Object.fromEntries(
+    orderDocumentKinds.map((kind) => [
+      kind,
+      coverageReaches(
+        coverages[orderDocumentPermissions[kind] as keyof typeof coverages] ?? {
+          global: false,
+          businessUnitIds: [],
+        },
+        raw.businessUnitIds,
+      ),
+    ]),
+  ) as Record<OrderDocumentKind, boolean>;
 
   const approval = definition.approvalSubject
     ? await approvalService.findForResource(
@@ -380,32 +532,32 @@ export default async function AdminOrderDetailPage({
     approval?.pending != null &&
     approval.pending.expectedRevision !== order.revision;
 
-  // Money and invoices, only for readers entitled to them.
-  let report: ReceivablesReport | null = null;
+  // Invoices for whoever reads them (the Factory Accountant writes the INV);
+  // what the customer paid only for `payments.read`.
   let invoices: InvoiceRecordDto[] = [];
-  let invoiceRows = new Map<string, InvoiceReceivableRow>();
-  let orderRows: OrderReceivableRow[] = [];
   let todayRate: string | null = null;
   if (canReadInvoices) {
-    [report, invoices] = await Promise.all([
-      order.customerId
-        ? financeCommandService.customerReceivables(order.customerId)
-        : financeCommandService.receivables({ kind: "all" }),
-      invoiceCommandService.list({ orderId: order.id }),
-    ]);
+    invoices = await invoiceCommandService.list({ orderId: order.id });
+    if (canManageInvoices) {
+      todayRate = (await fxRateService.rateOn(now))?.rate ?? null;
+    }
+  }
+
+  let report: ReceivablesReport | null = null;
+  let invoiceRows = new Map<string, InvoiceReceivableRow>();
+  let orderRows: OrderReceivableRow[] = [];
+  let receipts: FinanceEntryRecordDto[] = [];
+  if (canReadPayments) {
+    report = order.customerId
+      ? await financeCommandService.customerReceivables(order.customerId)
+      : await financeCommandService.receivables({ kind: "all" });
     invoiceRows = new Map(
       report.invoices
         .filter((row) => row.invoice.orderId === order.id)
         .map((row) => [row.invoice.id, row]),
     );
     orderRows = report.orders.filter((row) => row.orderId === order.id);
-    if (canManageInvoices) {
-      todayRate = (await fxRateService.rateOn(new Date()))?.rate ?? null;
-    }
-  }
 
-  let receipts: FinanceEntryRecordDto[] = [];
-  if (canReadPayments) {
     const { scope } = await requireListAccess("payments.read");
     receipts = (
       await financeCommandService.list({
@@ -426,17 +578,23 @@ export default async function AdminOrderDetailPage({
     costTotals = totals.get(order.id) ?? [];
   }
 
+  // The Director's profit line: invoices minus the costs on the order.
+  let profit: OrderProfit | null = null;
+  if (canReadProfit) {
+    const expenses = await financeCommandService.list({
+      scope: { kind: "all" },
+      entryKind: "expense",
+      orderId: order.id,
+      limit: 500,
+    });
+    profit = orderProfit(invoices, expenses);
+  }
+
   // Work items on this order, narrowed like the task list.
   let orderTasks: TaskRecordDto[] = [];
   const canReadTasks = reaches("tasks.read");
-  const canPlan =
+  const canPlanWithAssistant =
     !terminal && reaches("assistant.use") && reaches("tasks.create");
-  const currentUserId = (
-    await requirePermission("orders.read", {
-      resourceId: raw.id,
-      businessUnitIds: raw.businessUnitIds,
-    })
-  ).userId;
   if (canReadTasks) {
     const { scope: taskScope } = await requireListAccess("tasks.read");
     orderTasks = await taskCommandService.list({
@@ -455,7 +613,6 @@ export default async function AdminOrderDetailPage({
     });
   }
   const timeZone = getNotificationEnv().BUSINESS_TIMEZONE;
-  const now = new Date();
 
   const refundCredits: Money[] =
     order.stage === "cancelled" &&
@@ -480,22 +637,67 @@ export default async function AdminOrderDetailPage({
     maxBytes = null;
   }
 
+  const facilities = canEditOrder ? await facilityNames() : [];
+
   const orderCurrency: Currency =
     order.sellingPrice?.currency ??
     invoices.find((invoice) => invoice.status === "active")?.amount.currency ??
     "USD";
 
-  const currentIndex = orderProgressStages.indexOf(order.stage);
-  const cardClass =
-    "border-burgundy/15 rounded-2xl border bg-white p-6 shadow-[0_1rem_3rem_rgb(61_13_16/0.04)]";
-  const buttonClass =
-    "bg-lacquer text-ivory hover:bg-burgundy inline-flex min-h-11 items-center rounded-full px-6 text-sm font-semibold";
-  const fieldClass =
-    "border-burgundy/20 focus:border-burgundy/50 w-full rounded-xl border bg-white px-4 py-3 text-sm outline-none";
-  const labelClass = "text-charcoal/60 mb-1 block text-xs";
+  // Header facts: how long the order has sat in its stage, and the promise.
+  const enteredAt = stageEnteredAt(order);
+  const daysInStage = Math.max(
+    0,
+    Math.floor((now.getTime() - enteredAt.getTime()) / 86_400_000),
+  );
+  const lateness = deliveryLateness(order);
+  const daysToDue = order.deliveryDueAt
+    ? Math.ceil((order.deliveryDueAt.getTime() - now.getTime()) / 86_400_000)
+    : null;
+
+  // Why the forward move is refused, for the position that would make it.
+  const readiness = orderReadiness(order);
+  const blockers: string[] = [];
+  if (order.stage === "productionPlanning" && !readiness.planned)
+    blockers.push(text.blockers.planned);
+  if (order.stage === "inProduction" && !readiness.productionComplete)
+    blockers.push(text.blockers.productionComplete);
+  if (order.stage === "qualityControl" && !order.qcPassed)
+    blockers.push(text.blockers.qcPassed);
+  if (order.stage === "packing" && !readiness.packingReady)
+    blockers.push(text.blockers.packingReady);
+  if (order.stage === "packing" && !readiness.labelsReady)
+    blockers.push(text.blockers.labelsReady);
+  if (order.stage === "exportDocuments" && !readiness.exportDocumentsReady)
+    blockers.push(text.blockers.exportDocumentsReady);
+  if (order.stage === "tradeDocumentation" && !readiness.customsDeclared)
+    blockers.push(text.blockers.customsDeclared);
+
+  const currentStep = definition.step;
+  const showProduction =
+    productionStory.includes(order.stage) ||
+    order.productionPlan !== null ||
+    order.qcChecks.length > 0;
+  const showPacking = order.stage === "packing" || order.packingRecord !== null;
+  // Labels matter from planning on (they print before packing ends); an
+  // earlier order shows the card only once such a file exists.
+  const canAttachLabels =
+    canAttach.customerLabelSpec && canAttach.labelProof && !terminal;
+  // A Director decision: global `approvals.decide` only, never unit-narrowed.
+  const canApproveLabels = coverages["approvals.decide"].global && !terminal;
+  const showLabels =
+    order.documents.some(
+      (document) =>
+        document.kind === "customerLabelSpec" || document.kind === "labelProof",
+    ) ||
+    (currentStep !== null && currentStep >= 3);
 
   const financeNotice = notice && !text.notices[notice] ? notice : undefined;
   const financeError = error && !text.errors[error] ? error : undefined;
+  const dateTime = new Intl.DateTimeFormat(locale, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
 
   return (
     <div>
@@ -524,15 +726,49 @@ export default async function AdminOrderDetailPage({
               order.customerName
             )}
           </p>
+          {order.deliveryDueAt ? (
+            <p className="mt-2">
+              <span
+                className={
+                  lateness !== null
+                    ? lateness <= 0
+                      ? okBadgeClass
+                      : warnBadgeClass
+                    : daysToDue !== null && daysToDue < 0 && !terminal
+                      ? warnBadgeClass
+                      : okBadgeClass
+                }
+              >
+                {lateness !== null
+                  ? lateness <= 0
+                    ? text.deliveredOnTime
+                    : text.deliveredLate(lateness)
+                  : `${text.deliveryDue(formatDate(order.deliveryDueAt, locale))}${
+                      daysToDue !== null && !terminal
+                        ? ` · ${
+                            daysToDue >= 0
+                              ? text.deliveryDueIn(daysToDue)
+                              : text.deliveryDuePast(-daysToDue)
+                          }`
+                        : ""
+                    }`}
+              </span>
+            </p>
+          ) : null}
         </div>
         <div className="text-right">
           <p className="text-charcoal/50 text-xs tracking-[0.12em] uppercase">
             {text.currentStage}
           </p>
           <p className="text-gold-ink mt-1 text-lg font-semibold">
-            {definition.step !== null ? `${definition.step} · ` : ""}
+            {currentStep !== null ? `${currentStep} · ` : ""}
             {definition.labels[locale]}
           </p>
+          {!terminal ? (
+            <p className="text-charcoal/50 mt-1 text-xs">
+              {text.sinceDays(dateTime.format(enteredAt), daysInStage)}
+            </p>
+          ) : null}
         </div>
       </div>
 
@@ -560,18 +796,17 @@ export default async function AdminOrderDetailPage({
           {text.progressTitle}
         </h2>
         <ol className="mt-4 flex flex-wrap gap-2">
-          {orderProgressStages.map((stage, index) => {
-            const stageDef = orderStageDefinitions[stage];
+          {sopSteps.map(({ step, stage }) => {
             const state = terminal
               ? "past"
-              : index < currentIndex
+              : currentStep !== null && step < currentStep
                 ? "past"
-                : index === currentIndex
+                : step === currentStep
                   ? "current"
                   : "future";
             return (
               <li
-                key={stage}
+                key={step}
                 className={`rounded-full border px-3 py-1.5 text-xs ${
                   state === "current"
                     ? "border-lacquer bg-lacquer text-ivory font-semibold"
@@ -580,8 +815,7 @@ export default async function AdminOrderDetailPage({
                       : "border-burgundy/15 text-charcoal/40"
                 }`}
               >
-                {stageDef.step !== null ? `${stageDef.step} · ` : ""}
-                {stageDef.labels[locale]}
+                {step} · {orderStageDefinitions[stage].labels[locale]}
               </li>
             );
           })}
@@ -596,6 +830,16 @@ export default async function AdminOrderDetailPage({
           <span className="font-mono">{order.businessUnitIds.length}</span>
         </p>
       </section>
+
+      {/* Step 01 on file */}
+      <div className="mt-6">
+        <OrderInfoSection
+          locale={locale}
+          order={order}
+          canEdit={canEditOrder}
+          facilityNames={facilities}
+        />
+      </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
         {/* Selling price */}
@@ -803,38 +1047,47 @@ export default async function AdminOrderDetailPage({
             </div>
           </section>
         ) : null}
+      </div>
 
-        {/* Quality control */}
-        {order.stage === "qualityControl" ? (
-          <section className={cardClass}>
-            <h2 className="text-burgundy font-serif text-2xl">
-              {text.qcTitle}
-            </h2>
-            <p
-              className={`mt-4 rounded-xl px-4 py-3 text-sm font-semibold ${
-                order.qcPassed
-                  ? "bg-gold/15 text-gold-ink"
-                  : "bg-lacquer/5 text-lacquer"
-              }`}
-            >
-              {order.qcPassed ? text.qcPassed : text.qcNotPassed}
-            </p>
-            {!order.qcPassed && canRecordQc ? (
-              <form action={recordQcPassAction} className="mt-5">
-                <input type="hidden" name="locale" value={locale} />
-                <input type="hidden" name="orderId" value={order.id} />
-                <input
-                  type="hidden"
-                  name="expectedRevision"
-                  value={order.revision}
-                />
-                <button type="submit" className={buttonClass}>
-                  {text.qcPassButton}
-                </button>
-              </form>
-            ) : null}
-          </section>
-        ) : null}
+      {/* Steps 03–07 */}
+      {showProduction ? (
+        <div className="mt-6">
+          <ProductionSection
+            locale={locale}
+            order={order}
+            canPlan={canPlan}
+            canProgress={canProgress}
+            canInspect={canInspect}
+          />
+        </div>
+      ) : null}
+      {showPacking ? (
+        <div className="mt-6">
+          <PackingSection locale={locale} order={order} canPack={canPack} />
+        </div>
+      ) : null}
+      {showLabels ? (
+        <div className="mt-6">
+          <LabelsSection
+            locale={locale}
+            order={order}
+            currentUserId={currentUserId}
+            canAttach={canAttachLabels}
+            canApprove={canApproveLabels}
+            maxBytes={maxBytes}
+          />
+        </div>
+      ) : null}
+
+      {/* Files of every step */}
+      <div className="mt-6">
+        <DocumentsSection
+          locale={locale}
+          order={order}
+          now={now}
+          canAttach={canAttach}
+          maxBytes={maxBytes}
+        />
       </div>
 
       {/* Invoices */}
@@ -858,9 +1111,11 @@ export default async function AdminOrderDetailPage({
                   <th scope="col" className="px-3 py-2 font-semibold">
                     {text.invoiceAmount}
                   </th>
-                  <th scope="col" className="px-3 py-2 font-semibold">
-                    {text.invoiceRemaining}
-                  </th>
+                  {canReadPayments ? (
+                    <th scope="col" className="px-3 py-2 font-semibold">
+                      {text.invoiceRemaining}
+                    </th>
+                  ) : null}
                   <th scope="col" className="px-3 py-2 font-semibold"></th>
                 </tr>
               </thead>
@@ -892,22 +1147,24 @@ export default async function AdminOrderDetailPage({
                       <td className="px-3 py-2 font-mono text-xs">
                         {formatMoney(invoice.amount, locale)}
                       </td>
-                      <td className="px-3 py-2 font-mono text-xs font-semibold">
-                        {invoice.status === "voided" ? (
-                          <span className="text-charcoal/50">
-                            {text.invoiceVoided}
-                          </span>
-                        ) : row && isPositive(row.remaining) ? (
-                          <span className="text-lacquer">
-                            {formatMoney(row.remaining, locale)}
-                            {row.overdue ? ` · ${text.invoiceOverdue}` : ""}
-                          </span>
-                        ) : (
-                          <span className="text-emerald-700">
-                            {text.invoiceSettled}
-                          </span>
-                        )}
-                      </td>
+                      {canReadPayments ? (
+                        <td className="px-3 py-2 font-mono text-xs font-semibold">
+                          {invoice.status === "voided" ? (
+                            <span className="text-charcoal/50">
+                              {text.invoiceVoided}
+                            </span>
+                          ) : row && isPositive(row.remaining) ? (
+                            <span className="text-lacquer">
+                              {formatMoney(row.remaining, locale)}
+                              {row.overdue ? ` · ${text.invoiceOverdue}` : ""}
+                            </span>
+                          ) : (
+                            <span className="text-emerald-700">
+                              {text.invoiceSettled}
+                            </span>
+                          )}
+                        </td>
+                      ) : null}
                       <td className="px-3 py-2">
                         {invoice.status === "active" && canManageInvoices ? (
                           <form
@@ -944,6 +1201,10 @@ export default async function AdminOrderDetailPage({
                               {text.voidButton}
                             </button>
                           </form>
+                        ) : invoice.status === "voided" && !canReadPayments ? (
+                          <span className="text-charcoal/50 text-xs">
+                            {text.invoiceVoided}
+                          </span>
                         ) : null}
                       </td>
                     </tr>
@@ -1063,32 +1324,37 @@ export default async function AdminOrderDetailPage({
         </section>
       ) : null}
 
-      {/* Costs */}
-      {canReadCosts ? (
-        <section className={`${cardClass} mt-6`}>
-          <h2 className="text-burgundy font-serif text-2xl">
-            {text.costsTitle}
-          </h2>
-          <p className="mt-3 text-sm">
-            {costTotals.length > 0 ? (
-              <span className="text-lacquer font-mono font-semibold">
-                {formatTotals(costTotals, locale)}
-              </span>
-            ) : (
-              <span className="text-charcoal/55">{text.noCosts}</span>
-            )}
-          </p>
-          <Link
-            href={`/${locale}/admin/finance/expenses` as Route}
-            className="text-burgundy mt-3 inline-block text-sm font-semibold hover:underline"
-          >
-            {text.viewCosts}
-          </Link>
-        </section>
+      {/* Costs and the Director's profit */}
+      {canReadCosts || profit ? (
+        <div className="mt-6 grid gap-6 lg:grid-cols-2">
+          {canReadCosts ? (
+            <section className={cardClass}>
+              <h2 className="text-burgundy font-serif text-2xl">
+                {text.costsTitle}
+              </h2>
+              <p className="mt-3 text-sm">
+                {costTotals.length > 0 ? (
+                  <span className="text-lacquer font-mono font-semibold">
+                    {formatTotals(costTotals, locale)}
+                  </span>
+                ) : (
+                  <span className="text-charcoal/55">{text.noCosts}</span>
+                )}
+              </p>
+              <Link
+                href={`/${locale}/admin/finance/expenses` as Route}
+                className="text-burgundy mt-3 inline-block text-sm font-semibold hover:underline"
+              >
+                {text.viewCosts}
+              </Link>
+            </section>
+          ) : null}
+          {profit ? <ProfitSection locale={locale} profit={profit} /> : null}
+        </div>
       ) : null}
 
       {/* Tasks */}
-      {canReadTasks || canPlan ? (
+      {canReadTasks || canPlanWithAssistant ? (
         <section className={`${cardClass} mt-6`}>
           <h2 className="text-burgundy font-serif text-2xl">
             {text.tasksTitle}
@@ -1162,7 +1428,7 @@ export default async function AdminOrderDetailPage({
                 {text.allTasks}
               </Link>
             ) : null}
-            {canPlan ? (
+            {canPlanWithAssistant ? (
               <Link
                 href={
                   `/${locale}/admin/assistant?q=${encodeURIComponent(locale === "vi" ? `Lập kế hoạch cho đơn ${order.orderCode}` : `Plan order ${order.orderCode}`)}` as Route
@@ -1256,61 +1522,68 @@ export default async function AdminOrderDetailPage({
             {text.notYourMove}
           </p>
         ) : (
-          <div className="mt-5 grid gap-4 md:grid-cols-2">
-            {definition.next.map((target) => {
-              const targetDef = orderStageDefinitions[target];
-              const needsReason = transitionNeedsReason(order.stage, target);
-              return (
-                <form
-                  key={target}
-                  action={transitionOrderAction}
-                  className="border-burgundy/10 rounded-xl border p-4"
-                >
-                  <input type="hidden" name="locale" value={locale} />
-                  <input type="hidden" name="orderId" value={order.id} />
-                  <input type="hidden" name="to" value={target} />
-                  <input
-                    type="hidden"
-                    name="expectedRevision"
-                    value={order.revision}
-                  />
-                  <p className="text-charcoal/80 text-sm font-semibold">
-                    {text.moveTo}:{" "}
-                    {targetDef.step !== null ? `${targetDef.step} · ` : ""}
-                    {targetDef.labels[locale]}
-                  </p>
-                  {needsReason ? (
-                    <div className="mt-3">
-                      <label
-                        htmlFor={`reason-${target}`}
-                        className={labelClass}
-                      >
-                        {text.reasonLabel}
-                      </label>
-                      <textarea
-                        id={`reason-${target}`}
-                        name="reason"
-                        required
-                        rows={2}
-                        maxLength={2000}
-                        className={fieldClass}
-                      />
-                    </div>
-                  ) : null}
-                  <button
-                    type="submit"
-                    className={`${buttonClass} mt-4 ${
-                      target === "cancelled"
-                        ? "text-lacquer border-lacquer/40 hover:bg-lacquer/5 border bg-transparent"
-                        : ""
-                    }`}
+          <>
+            {blockers.length > 0 ? (
+              <p className="border-lacquer/30 bg-lacquer/5 text-lacquer mt-5 rounded-xl border px-4 py-3 text-sm">
+                {text.blockedLead} {blockers.join("; ")}.
+              </p>
+            ) : null}
+            <div className="mt-5 grid gap-4 md:grid-cols-2">
+              {definition.next.map((target) => {
+                const targetDef = orderStageDefinitions[target];
+                const needsReason = transitionNeedsReason(order.stage, target);
+                return (
+                  <form
+                    key={target}
+                    action={transitionOrderAction}
+                    className="border-burgundy/10 rounded-xl border p-4"
                   >
-                    {targetDef.labels[locale]}
-                  </button>
-                </form>
-              );
-            })}
-          </div>
+                    <input type="hidden" name="locale" value={locale} />
+                    <input type="hidden" name="orderId" value={order.id} />
+                    <input type="hidden" name="to" value={target} />
+                    <input
+                      type="hidden"
+                      name="expectedRevision"
+                      value={order.revision}
+                    />
+                    <p className="text-charcoal/80 text-sm font-semibold">
+                      {text.moveTo}:{" "}
+                      {targetDef.step !== null ? `${targetDef.step} · ` : ""}
+                      {targetDef.labels[locale]}
+                    </p>
+                    {needsReason ? (
+                      <div className="mt-3">
+                        <label
+                          htmlFor={`reason-${target}`}
+                          className={labelClass}
+                        >
+                          {text.reasonLabel}
+                        </label>
+                        <textarea
+                          id={`reason-${target}`}
+                          name="reason"
+                          required
+                          rows={2}
+                          maxLength={2000}
+                          className={fieldClass}
+                        />
+                      </div>
+                    ) : null}
+                    <button
+                      type="submit"
+                      className={`${buttonClass} mt-4 ${
+                        target === "cancelled"
+                          ? "text-lacquer border-lacquer/40 hover:bg-lacquer/5 border bg-transparent"
+                          : ""
+                      }`}
+                    >
+                      {targetDef.labels[locale]}
+                    </button>
+                  </form>
+                );
+              })}
+            </div>
+          </>
         )}
       </section>
 
@@ -1326,10 +1599,7 @@ export default async function AdminOrderDetailPage({
             {[...order.stageHistory].reverse().map((entry, index) => (
               <li key={index} className="flex flex-wrap gap-x-6 gap-y-1 py-3">
                 <span className="text-charcoal/45 w-40 shrink-0 text-xs">
-                  {new Intl.DateTimeFormat(locale, {
-                    dateStyle: "medium",
-                    timeStyle: "short",
-                  }).format(entry.at)}
+                  {dateTime.format(entry.at)}
                 </span>
                 <span className="text-charcoal/80 text-sm">
                   {orderStageDefinitions[entry.from].labels[locale]}

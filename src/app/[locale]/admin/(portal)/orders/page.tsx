@@ -2,6 +2,7 @@ import type { Route } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { formatDate } from "@/app/[locale]/admin/(portal)/finance/shared";
 import { orderCommandService } from "@/domains/orders/runtime";
 import {
   orderStageDefinitions,
@@ -23,12 +24,13 @@ const copy = {
     eyebrow: "Đơn hàng",
     title: "Sổ đơn hàng",
     description:
-      "Mỗi đơn hàng chạy qua mười lăm bước đã chốt. Danh sách dưới đây chỉ hiển thị các đơn thuộc phạm vi đơn vị bạn được cấp quyền; giá bán chỉ hiện với người giữ quyền đọc giá bán.",
+      "Mỗi đơn hàng chạy qua mười một bước của quy trình vận hành sản xuất. Danh sách dưới đây chỉ hiển thị các đơn thuộc phạm vi đơn vị bạn được cấp quyền; giá bán chỉ hiện với người giữ quyền đọc giá bán.",
     create: "Tạo đơn hàng",
     empty: "Chưa có đơn hàng nào trong phạm vi của bạn.",
     codeColumn: "Mã đơn",
     customerColumn: "Khách hàng",
     stageColumn: "Bước hiện tại",
+    deliveryColumn: "Ngày giao",
     priceColumn: "Giá bán",
     updatedColumn: "Cập nhật",
     terminal: "Kết thúc",
@@ -39,12 +41,13 @@ const copy = {
     eyebrow: "Orders",
     title: "Order book",
     description:
-      "Every order runs the confirmed fifteen steps. The list shows only orders inside your granted business units; the selling price appears only to holders of the selling-price read permission.",
+      "Every order runs the eleven steps of the production procedure. The list shows only orders inside your granted business units; the selling price appears only to holders of the selling-price read permission.",
     create: "Create order",
     empty: "No orders inside your scope yet.",
     codeColumn: "Code",
     customerColumn: "Customer",
     stageColumn: "Current stage",
+    deliveryColumn: "Delivery",
     priceColumn: "Selling price",
     updatedColumn: "Updated",
     terminal: "Terminal",
@@ -77,8 +80,7 @@ export default async function AdminOrdersPage({
   }
 
   // Price visibility is conservative on the list: only a global grant shows
-  // the column, matching the rule that price belongs to the Director and the
-  // Company Accountant. Per-record refinement happens on the detail page.
+  // the column. Per-record refinement happens on the detail page.
   const coverages = await resolvePermissionCoverages([
     "orders.readSellingPrice",
   ] as const);
@@ -129,7 +131,7 @@ export default async function AdminOrdersPage({
           </p>
         ) : (
           <div className="border-burgundy/15 overflow-x-auto rounded-2xl border bg-white shadow-[0_1rem_3rem_rgb(61_13_16/0.04)]">
-            <table className="w-full min-w-[48rem] border-collapse text-left text-sm">
+            <table className="w-full min-w-[52rem] border-collapse text-left text-sm">
               <caption className="sr-only">{text.title}</caption>
               <thead>
                 <tr className="border-burgundy/12 text-charcoal/60 border-b text-xs tracking-[0.12em] uppercase">
@@ -141,6 +143,9 @@ export default async function AdminOrdersPage({
                   </th>
                   <th scope="col" className="px-5 py-4 font-semibold">
                     {text.stageColumn}
+                  </th>
+                  <th scope="col" className="px-5 py-4 font-semibold">
+                    {text.deliveryColumn}
                   </th>
                   {priceVisible ? (
                     <th scope="col" className="px-5 py-4 font-semibold">
@@ -181,6 +186,11 @@ export default async function AdminOrdersPage({
                             : ""}
                           {definition.labels[locale]}
                         </span>
+                      </td>
+                      <td className="text-charcoal/75 px-5 py-4 text-xs">
+                        {order.deliveryDueAt
+                          ? formatDate(order.deliveryDueAt, locale)
+                          : "—"}
                       </td>
                       {priceVisible ? (
                         <td className="text-charcoal/75 px-5 py-4 font-mono text-xs">

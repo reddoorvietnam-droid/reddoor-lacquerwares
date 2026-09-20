@@ -81,7 +81,7 @@ describe("AssistantProposalService.proposeOrderPlan", () => {
     expect(proposal.orderRevision).toBe(2);
     expect(proposal.items.length).toBeGreaterThan(5);
     expect(
-      proposal.items.find((i) => i.stage === "fileOpened")?.assigneeUserId,
+      proposal.items.find((i) => i.stage === "invoiced")?.assigneeUserId,
     ).toBe(roleUsers.COMPANY_ACCOUNTANT.id);
     expect(tasks.tasks.size).toBe(0);
     expect(audit.events.map((e) => e.action)).toContain(
@@ -192,11 +192,11 @@ describe("AssistantProposalService.decide", () => {
     await orders.applyTransition({
       orderId: order.id,
       expectedRevision: 0,
-      to: "fileOpened",
+      to: "awaitingDirectorApproval",
       qcPassed: false,
       historyEntry: {
         from: "received",
-        to: "fileOpened",
+        to: "awaitingDirectorApproval",
         byUserId: proposer.userId,
         reason: null,
         at: occurredAt,

@@ -43,6 +43,14 @@ export function adminNavSeeds(
       label: null,
       items: [
         {
+          // Every role's own guide sits first in every menu (confirmed
+          // 2026-09-14); the page shows only the reader's role.
+          href: `${basePath}/guide` as Route,
+          label: copy.navigation.guide,
+          anyOf: null,
+          standalone: true,
+        },
+        {
           href: basePath,
           label: copy.navigation.overview,
           anyOf: null,
@@ -118,6 +126,21 @@ export function adminNavSeeds(
           href: `${basePath}/suppliers` as Route,
           label: copy.navigation.suppliers,
           anyOf: ["suppliers.update"],
+        },
+        {
+          // Contracts with the production sites, the payments against them
+          // and what is still owed: signed by the Factory Manager, checked
+          // and paid by the Factory Accountant, approved by the Company
+          // Accountant and the Director (confirmed 2026-09-14).
+          href: `${basePath}/facility-contracts` as Route,
+          label: locale === "vi" ? "Hợp đồng cơ sở" : "Site contracts",
+          anyOf: ["facilityContracts.read"],
+        },
+        {
+          // Import documents: the Company Accountant's desk.
+          href: `${basePath}/import-shipments` as Route,
+          label: locale === "vi" ? "Hàng nhập khẩu" : "Imports",
+          anyOf: ["importShipments.read"],
         },
         {
           // The workflow reference is for the people who move orders through

@@ -34,15 +34,23 @@ import {
 import type { Permission } from "@/domains/identity/permissions";
 import {
   OrderCommandError,
+  type NewOrderDocument,
+  type NewOrderLineItem,
   type NewOrderPaymentDocument,
+  type NewOrderQcCheck,
   type NewOrderRecord,
+  type OrderDetailsWrite,
   type OrderExportProgressWrite,
+  type OrderLabelApproval,
   type OrderListFilter,
+  type OrderPackingRecord,
+  type OrderProductionPlan,
   type OrderRecordDto,
   type OrderSellingPrice,
   type OrderStore,
   type OrderTransitionWrite,
 } from "@/domains/orders/contracts";
+import type { ProductionStage } from "@/domains/orders/workflow";
 import {
   SupplierCommandError,
   type SupplierListFilter,
@@ -323,6 +331,16 @@ export class FakeOrderStore implements OrderStore {
       stage: partial.stage ?? "received",
       qcPassed: partial.qcPassed ?? false,
       sellingPrice: partial.sellingPrice ?? null,
+      lineItems: partial.lineItems ?? [],
+      shippingMark: partial.shippingMark ?? null,
+      deliveryDueAt: partial.deliveryDueAt ?? null,
+      targets: partial.targets ?? null,
+      productionPlan: partial.productionPlan ?? null,
+      productionStage: partial.productionStage ?? null,
+      qcChecks: partial.qcChecks ?? [],
+      packingRecord: partial.packingRecord ?? null,
+      documents: partial.documents ?? [],
+      labelApproval: partial.labelApproval ?? null,
       expectedReadyAt: partial.expectedReadyAt ?? null,
       bookingNumber: partial.bookingNumber ?? null,
       bookingDate: partial.bookingDate ?? null,
@@ -367,6 +385,10 @@ export class FakeOrderStore implements OrderStore {
       customerName: record.customerName,
       businessUnitIds: record.businessUnitIds,
       sellingPrice: record.sellingPrice,
+      lineItems: record.lineItems.map((line) => ({ id: nextId("l"), ...line })),
+      shippingMark: record.shippingMark,
+      deliveryDueAt: record.deliveryDueAt,
+      targets: record.targets,
       notes: record.notes,
       createdBy: record.createdBy,
       updatedBy: record.createdBy,
@@ -411,20 +433,10 @@ export class FakeOrderStore implements OrderStore {
     return this.bump(input.orderId, input.expectedRevision, {
       stage: input.to,
       qcPassed: input.qcPassed,
+      ...(input.productionStage !== undefined
+        ? { productionStage: input.productionStage }
+        : {}),
       stageHistory: [...order.stageHistory, input.historyEntry],
-      updatedBy: input.updatedBy,
-    });
-  }
-
-  async setQcPassed(input: {
-    orderId: string;
-    expectedRevision: number;
-    updatedBy: string;
-  }): Promise<OrderRecordDto | null> {
-    const order = this.orders.get(input.orderId);
-    if (!order || order.stage !== "qualityControl") return null;
-    return this.bump(input.orderId, input.expectedRevision, {
-      qcPassed: true,
       updatedBy: input.updatedBy,
     });
   }
@@ -438,12 +450,141 @@ export class FakeOrderStore implements OrderStore {
     const order = this.orders.get(input.orderId);
     if (
       !order ||
-      (order.stage !== "received" && order.stage !== "fileOpened")
+      (order.stage !== "received" && order.stage !== "awaitingDirectorApproval")
     ) {
       return null;
     }
     return this.bump(input.orderId, input.expectedRevision, {
       sellingPrice: input.sellingPrice,
+      updatedBy: input.updatedBy,
+    });
+  }
+
+  async setLineItems(input: {
+    orderId: string;
+    expectedRevision: number;
+    lineItems: readonly NewOrderLineItem[];
+    updatedBy: string;
+  }): Promise<OrderRecordDto | null> {
+    return this.bump(input.orderId, input.expectedRevision, {
+      lineItems: input.lineItems.map((line) => ({ id: nextId("l"), ...line })),
+      updatedBy: input.updatedBy,
+    });
+  }
+
+  async setDetails(input: OrderDetailsWrite): Promise<OrderRecordDto | null> {
+    return this.bump(input.orderId, input.expectedRevision, {
+      shippingMark: input.shippingMark,
+      deliveryDueAt: input.deliveryDueAt,
+      targets: input.targets,
+      updatedBy: input.updatedBy,
+    });
+  }
+
+  async setProductionPlan(input: {
+    orderId: string;
+    expectedRevision: number;
+    plan: OrderProductionPlan;
+    updatedBy: string;
+  }): Promise<OrderRecordDto | null> {
+    return this.bump(input.orderId, input.expectedRevision, {
+      productionPlan: input.plan,
+      updatedBy: input.updatedBy,
+    });
+  }
+
+  async setProductionStage(input: {
+    orderId: string;
+    expectedRevision: number;
+    productionStage: ProductionStage;
+    updatedBy: string;
+  }): Promise<OrderRecordDto | null> {
+    const order = this.orders.get(input.orderId);
+    if (!order || order.stage !== "inProduction") return null;
+    return this.bump(input.orderId, input.expectedRevision, {
+      productionStage: input.productionStage,
+      updatedBy: input.updatedBy,
+    });
+  }
+
+  async addQcCheck(input: {
+    orderId: string;
+    expectedRevision: number;
+    check: NewOrderQcCheck;
+    qcPassed: boolean;
+    updatedBy: string;
+  }): Promise<OrderRecordDto | null> {
+    const order = this.orders.get(input.orderId);
+    if (!order) return null;
+    return this.bump(input.orderId, input.expectedRevision, {
+      qcPassed: input.qcPassed,
+      qcChecks: [...order.qcChecks, { id: nextId("q"), ...input.check }],
+      updatedBy: input.updatedBy,
+    });
+  }
+
+  async setPackingRecord(input: {
+    orderId: string;
+    expectedRevision: number;
+    record: OrderPackingRecord;
+    updatedBy: string;
+  }): Promise<OrderRecordDto | null> {
+    return this.bump(input.orderId, input.expectedRevision, {
+      packingRecord: input.record,
+      updatedBy: input.updatedBy,
+    });
+  }
+
+  async addDocument(input: {
+    orderId: string;
+    expectedRevision: number;
+    document: NewOrderDocument;
+    updatedBy: string;
+  }): Promise<OrderRecordDto | null> {
+    const order = this.orders.get(input.orderId);
+    if (!order) return null;
+    return this.bump(input.orderId, input.expectedRevision, {
+      // A hex prefix, so the id passes the ObjectId check of a later command.
+      documents: [...order.documents, { id: nextId("e"), ...input.document }],
+      updatedBy: input.updatedBy,
+    });
+  }
+
+  async removeDocument(input: {
+    orderId: string;
+    expectedRevision: number;
+    documentId: string;
+    updatedBy: string;
+  }): Promise<OrderRecordDto | null> {
+    const order = this.orders.get(input.orderId);
+    if (!order) return null;
+    if (!order.documents.some((item) => item.id === input.documentId)) {
+      return null;
+    }
+    return this.bump(input.orderId, input.expectedRevision, {
+      documents: order.documents.filter((item) => item.id !== input.documentId),
+      ...(order.labelApproval?.documentId === input.documentId
+        ? { labelApproval: null }
+        : {}),
+      updatedBy: input.updatedBy,
+    });
+  }
+
+  async setLabelApproval(input: {
+    orderId: string;
+    expectedRevision: number;
+    approval: OrderLabelApproval;
+    updatedBy: string;
+  }): Promise<OrderRecordDto | null> {
+    const order = this.orders.get(input.orderId);
+    if (!order) return null;
+    const proofOnFile = order.documents.some(
+      (item) =>
+        item.id === input.approval.documentId && item.kind === "labelProof",
+    );
+    if (!proofOnFile) return null;
+    return this.bump(input.orderId, input.expectedRevision, {
+      labelApproval: input.approval,
       updatedBy: input.updatedBy,
     });
   }

@@ -3,44 +3,43 @@ import type { Permission } from "@/domains/identity/permissions";
 import type { SystemRoleKey } from "@/domains/identity/role-definitions";
 
 /**
- * The sales-order lifecycle, encoding the company's confirmed fifteen-step
- * process:
+ * The sales-order lifecycle, encoding the company's operating procedure
+ * SOP-SX-001 Rev.1 (09/2026) as the Director answered it on 2026-09-14:
  *
- *   1  customer order received
- *   2  Company Accountant opens the order file
- *   3  Director approval
- *   4  Factory Manager production planning
- *   5  Storekeeper inventory check
- *   6  material available? -> issue to production, or purchase first
- *   7  production / sub-workshop / printing / moulding
- *   8  Factory Accountant tracks cost
- *   9  inspection and quality control
- *   10 packing
- *   11 import/export documentation
- *   12 loading schedule
- *   13 delivery / shipment
- *   14 invoice and incoming cash
- *   15 final cost and profit report, then the order closes
+ *   01 customer order — the Factory Manager records it, the Director confirms
+ *   02 sample and technical confirmation (design + Factory Manager)
+ *   03 production plan (Factory Manager)
+ *   04 material supply (Storekeeper); short → purchase, Director approves the spend
+ *   05 production, three workshop stages: woodwork → lacquer → finishing,
+ *      with the raw-body inspection before lacquer
+ *   06 quality control — the finishing inspection; fail → back to 05
+ *   07 packing — the Storekeeper's packing slip and photos, then the packing
+ *      inspection; the goods go straight onto pallets or into the container;
+ *      labels follow the customer's template or a Director-approved proof
+ *   08 export documents — INV, PKL, labels by the Factory Accountant
+ *   09 customs — declaration by the Company Accountant
+ *   10 dispatch — goods leave for the port
+ *   11 receivables and the Director's closing report
  *
  * Each stage names the role that owns it, the permission required to leave it,
  * and whether leaving it needs a Director decision. Holding the permission is
  * never sufficient on its own: `assertTransition` also refuses any move the
- * process does not allow.
+ * process does not allow, and refuses to leave a stage whose SOP output has
+ * not been recorded (plan, inspections, packing slip, documents).
  */
 
 export const orderStages = [
   "received",
-  "fileOpened",
   "awaitingDirectorApproval",
+  "sampleConfirmation",
   "productionPlanning",
   "inventoryCheck",
   "materialProcurement",
-  "materialIssued",
   "inProduction",
   "qualityControl",
   "packing",
+  "exportDocuments",
   "tradeDocumentation",
-  "loadingScheduled",
   "shipped",
   "invoiced",
   "settled",
@@ -50,9 +49,68 @@ export const orderStages = [
 
 export type OrderStage = (typeof orderStages)[number];
 
+/**
+ * Stage keys retired when the fifteen-step chart was replaced by the SOP.
+ * Records written under the old chart are read forward to the stage that now
+ * covers the same work; nothing is rewritten in the database.
+ */
+export const retiredOrderStages = {
+  fileOpened: "received",
+  materialIssued: "inventoryCheck",
+  loadingScheduled: "shipped",
+} as const satisfies Record<string, OrderStage>;
+
+const stageSet: ReadonlySet<string> = new Set(orderStages);
+
+export function normalizeOrderStage(value: string): OrderStage {
+  if (stageSet.has(value)) return value as OrderStage;
+  const retired = (retiredOrderStages as Record<string, OrderStage>)[value];
+  if (retired) return retired;
+  throw new Error(`Unknown order stage: ${value}`);
+}
+
+/** The three workshop stages of step 05, in order. Packing is step 07. */
+export const productionStages = ["woodwork", "lacquer", "finishing"] as const;
+
+export type ProductionStage = (typeof productionStages)[number];
+
+export const productionStageLabels: Record<
+  ProductionStage,
+  { vi: string; en: string }
+> = {
+  woodwork: { vi: "Mộc", en: "Woodwork" },
+  lacquer: { vi: "Sơn", en: "Lacquer" },
+  finishing: { vi: "Hoàn thiện", en: "Finishing" },
+};
+
+/**
+ * The three inspections the Factory Manager runs (confirmed 2026-09-14):
+ * the raw body before lacquer, the finished piece before packing, and the
+ * packed goods before dispatch. Each is recorded in the stage it belongs to.
+ */
+export const qcCheckpoints = ["woodwork", "finishing", "packing"] as const;
+
+export type QcCheckpoint = (typeof qcCheckpoints)[number];
+
+export const qcCheckpointLabels: Record<
+  QcCheckpoint,
+  { vi: string; en: string }
+> = {
+  woodwork: { vi: "Kiểm mộc", en: "Raw-body inspection" },
+  finishing: { vi: "Kiểm hoàn thiện", en: "Finishing inspection" },
+  packing: { vi: "Kiểm đóng gói", en: "Packing inspection" },
+};
+
+/** The stage in which each inspection is recorded. */
+export const qcCheckpointStage: Record<QcCheckpoint, OrderStage> = {
+  woodwork: "inProduction",
+  finishing: "qualityControl",
+  packing: "packing",
+};
+
 export type OrderStageDefinition = {
   readonly stage: OrderStage;
-  /** Position in the printed process chart; null for terminal states. */
+  /** Position in the SOP chart; null for terminal states. */
   readonly step: number | null;
   readonly labels: { readonly vi: string; readonly en: string };
   /** The position accountable for moving the order out of this stage. */
@@ -69,105 +127,95 @@ export const orderStageDefinitions = {
     stage: "received",
     step: 1,
     labels: {
-      vi: "Nhận đơn hàng từ khách hàng",
-      en: "Customer order received",
+      vi: "Khách hàng đặt hàng",
+      en: "Customer order",
     },
-    // Order intake belongs to the Company Accountant since the former Order
-    // Manager role merged into it.
-    ownerRole: "COMPANY_ACCOUNTANT",
-    advancePermission: "orders.updateDraft",
-    approvalSubject: null,
-    next: ["fileOpened", "cancelled"],
-  },
-  fileOpened: {
-    stage: "fileOpened",
-    step: 2,
-    labels: {
-      vi: "Kế toán công ty mở hồ sơ đơn hàng",
-      en: "Company Accountant opens the order file",
-    },
-    // Order number, customer record, proforma, payment terms and the
-    // import/export document checklist are created here.
-    ownerRole: "COMPANY_ACCOUNTANT",
+    // The Factory Manager receives the order (task sheet, 2026-09-14); the
+    // Company Accountant may also record one. Leaving the stage submits it
+    // to the Director.
+    ownerRole: "FACTORY_MANAGER",
     advancePermission: "orders.submitForApproval",
     approvalSubject: null,
     next: ["awaitingDirectorApproval", "cancelled"],
   },
   awaitingDirectorApproval: {
     stage: "awaitingDirectorApproval",
-    step: 3,
+    step: 1,
     labels: {
-      vi: "Giám đốc phê duyệt đơn hàng, giá và điều khoản",
-      en: "Director approves the order, price, and terms",
+      vi: "Giám đốc xác nhận đơn hàng",
+      en: "Director confirms the order",
     },
     ownerRole: "DIRECTOR",
     advancePermission: "orders.confirm",
     approvalSubject: "order.confirm",
+    next: ["sampleConfirmation", "cancelled"],
+  },
+  sampleConfirmation: {
+    stage: "sampleConfirmation",
+    step: 2,
+    labels: {
+      vi: "Xác nhận mẫu & kỹ thuật",
+      en: "Sample and technical confirmation",
+    },
+    // Design develops the sample in the weekly sample report; the Factory
+    // Manager confirms it can be produced and moves the order on.
+    ownerRole: "FACTORY_MANAGER",
+    advancePermission: "samples.recordInternalReview",
+    approvalSubject: null,
     next: ["productionPlanning", "cancelled"],
   },
   productionPlanning: {
     stage: "productionPlanning",
-    step: 4,
+    step: 3,
     labels: {
-      vi: "Quản đốc nhà máy lập kế hoạch sản xuất",
-      en: "Factory Manager plans production",
+      vi: "Lập kế hoạch sản xuất",
+      en: "Production plan",
     },
+    // No Director gate: the Director approves sales and spending, not the
+    // plan (confirmed 2026-09-14). Leaving requires the plan to be saved.
     ownerRole: "FACTORY_MANAGER",
     advancePermission: "production.createPlan",
-    approvalSubject: "production.plan",
+    approvalSubject: null,
     next: ["inventoryCheck", "cancelled"],
   },
   inventoryCheck: {
     stage: "inventoryCheck",
-    step: 5,
+    step: 4,
     labels: {
-      vi: "Thủ kho kiểm tra tồn kho",
-      en: "Storekeeper checks inventory",
-    },
-    ownerRole: "WAREHOUSE_MANAGER",
-    advancePermission: "inventory.read",
-    approvalSubject: null,
-    // Step 6 is the decision point: enough material issues it to production,
-    // otherwise the order waits on a purchase.
-    next: ["materialIssued", "materialProcurement", "cancelled"],
-  },
-  materialProcurement: {
-    stage: "materialProcurement",
-    step: 6,
-    labels: {
-      vi: "Đặt mua nguyên liệu",
-      en: "Purchase material",
-    },
-    // The Supplier Manager raises the purchase, but what releases the order is
-    // the goods arriving. Receipt stays with the storekeeper so the person who
-    // buys is never the person who confirms delivery.
-    ownerRole: "WAREHOUSE_MANAGER",
-    advancePermission: "procurement.receive",
-    approvalSubject: "procurement.purchase",
-    next: ["inventoryCheck", "materialIssued", "cancelled"],
-  },
-  materialIssued: {
-    stage: "materialIssued",
-    step: 6,
-    labels: {
-      vi: "Xuất nguyên liệu cho sản xuất",
-      en: "Material issued to production",
+      vi: "Kho cấp vật tư",
+      en: "Material supply",
     },
     ownerRole: "WAREHOUSE_MANAGER",
     advancePermission: "inventory.issue",
     approvalSubject: null,
-    next: ["inProduction", "cancelled"],
+    // Enough material issues it to production; otherwise the order waits on
+    // a purchase, which the Storekeeper raises.
+    next: ["inProduction", "materialProcurement", "cancelled"],
+  },
+  materialProcurement: {
+    stage: "materialProcurement",
+    step: 4,
+    labels: {
+      vi: "Đặt mua vật tư",
+      en: "Purchase material",
+    },
+    // Buying is spending, so the Director approves it; the goods arriving is
+    // what releases the order, and receipt stays with the Storekeeper.
+    ownerRole: "WAREHOUSE_MANAGER",
+    advancePermission: "procurement.receive",
+    approvalSubject: "procurement.purchase",
+    next: ["inventoryCheck", "inProduction", "cancelled"],
   },
   inProduction: {
     stage: "inProduction",
-    step: 7,
+    step: 5,
     labels: {
-      vi: "Sản xuất, in ấn, ép khuôn và xưởng phụ",
-      en: "Production, printing, moulding, and sub-workshops",
+      vi: "Sản xuất",
+      en: "Production",
     },
-    // Step 8, the Factory Accountant's cost tracking, runs alongside production
-    // rather than blocking it, so it is recorded against the order instead of
-    // occupying a stage of its own.
+    // Woodwork → lacquer → finishing, tracked on the order; the raw-body
+    // inspection must pass before lacquer starts, and finishing must be
+    // reached before the order goes to quality control.
     ownerRole: "FACTORY_MANAGER",
     advancePermission: "production.completeWork",
     approvalSubject: null,
@@ -175,10 +223,10 @@ export const orderStageDefinitions = {
   },
   qualityControl: {
     stage: "qualityControl",
-    step: 9,
+    step: 6,
     labels: {
-      vi: "Kiểm tra và kiểm soát chất lượng",
-      en: "Inspection and quality control",
+      vi: "Kiểm tra chất lượng (QC)",
+      en: "Quality control",
     },
     ownerRole: "FACTORY_MANAGER",
     advancePermission: "production.approveQc",
@@ -188,67 +236,83 @@ export const orderStageDefinitions = {
   },
   packing: {
     stage: "packing",
-    step: 10,
-    labels: { vi: "Đóng gói", en: "Packing" },
+    step: 7,
+    labels: {
+      vi: "Đóng gói & nhập thành phẩm",
+      en: "Packing",
+    },
+    // The Storekeeper records the packing slip and photographs the goods; the
+    // Factory Manager's packing inspection must pass before the stage is left.
     ownerRole: "WAREHOUSE_MANAGER",
     advancePermission: "packing.complete",
+    approvalSubject: null,
+    next: ["exportDocuments", "cancelled"],
+  },
+  exportDocuments: {
+    stage: "exportDocuments",
+    step: 8,
+    labels: {
+      vi: "Lập chứng từ xuất hàng",
+      en: "Export documents",
+    },
+    // INV and PKL by the Factory Accountant; both must be on file to leave.
+    ownerRole: "FACTORY_ACCOUNTANT",
+    advancePermission: "tradeDocuments.manage",
     approvalSubject: null,
     next: ["tradeDocumentation", "cancelled"],
   },
   tradeDocumentation: {
     stage: "tradeDocumentation",
-    step: 11,
+    step: 9,
     labels: {
-      vi: "Hồ sơ xuất nhập khẩu",
-      en: "Import and export documentation",
+      vi: "Thủ tục xuất nhập khẩu",
+      en: "Customs clearance",
     },
+    // The customs declaration by the Company Accountant must be on file.
     ownerRole: "COMPANY_ACCOUNTANT",
     advancePermission: "tradeDocuments.manage",
     approvalSubject: null,
-    next: ["loadingScheduled", "cancelled"],
-  },
-  loadingScheduled: {
-    stage: "loadingScheduled",
-    step: 12,
-    labels: { vi: "Lịch đóng hàng", en: "Loading schedule" },
-    // Order management agrees the schedule; the warehouse confirms the vehicle
-    // or container and releases the shipment.
-    ownerRole: "WAREHOUSE_MANAGER",
-    advancePermission: "shipments.dispatch",
-    approvalSubject: "order.dispatch",
     next: ["shipped", "cancelled"],
   },
   shipped: {
     stage: "shipped",
-    step: 13,
-    labels: { vi: "Giao hàng và xuất lô", en: "Delivery and shipment" },
+    step: 10,
+    labels: {
+      vi: "Xuất hàng – Giao khách",
+      en: "Dispatch",
+    },
+    // No Director gate on dispatch (SOP step 10 names none). The Storekeeper
+    // records the goods leaving; B/L, C/O and the certificates follow within
+    // the week and are tracked on the document checklist.
     ownerRole: "WAREHOUSE_MANAGER",
-    advancePermission: "documents.generate",
+    advancePermission: "shipments.dispatch",
     approvalSubject: null,
     next: ["invoiced"],
   },
   invoiced: {
     stage: "invoiced",
-    step: 14,
+    step: 11,
     labels: {
-      vi: "Hóa đơn và tiền thu về",
-      en: "Invoice and incoming cash",
+      vi: "Theo dõi công nợ & báo cáo",
+      en: "Receivables and report",
     },
+    // Customer money stays with the Company Accountant (the Factory
+    // Accountant reads the selling price but never what the customer paid,
+    // confirmed 2026-09-14). A partially paid order stays here.
     ownerRole: "COMPANY_ACCOUNTANT",
     advancePermission: "payments.record",
     approvalSubject: null,
-    // A partially paid order stays here until the receivable clears.
     next: ["settled"],
   },
   settled: {
     stage: "settled",
-    step: 15,
+    step: 11,
     labels: {
-      vi: "Báo cáo chi phí và lợi nhuận cuối cùng",
-      en: "Final cost and profit report",
+      vi: "Đã thu đủ – Giám đốc đóng hồ sơ",
+      en: "Paid in full – Director closes the file",
     },
-    // The Company Accountant produces the final cost and profit report; closing
-    // the order file against it is the Director's decision.
+    // The profit report is the Director's alone; closing the file against it
+    // is the Director's decision.
     ownerRole: "DIRECTOR",
     advancePermission: "orders.close",
     approvalSubject: null,
@@ -286,6 +350,12 @@ export const orderTransitionErrorCodes = [
   "APPROVAL_REQUIRED",
   "QC_NOT_PASSED",
   "REASON_REQUIRED",
+  "PLAN_MISSING",
+  "PRODUCTION_INCOMPLETE",
+  "PACKING_NOT_READY",
+  "LABELS_NOT_APPROVED",
+  "EXPORT_DOCUMENTS_MISSING",
+  "CUSTOMS_DECLARATION_MISSING",
 ] as const;
 
 export type OrderTransitionErrorCode =
@@ -301,15 +371,47 @@ export class OrderTransitionError extends Error {
   }
 }
 
+/**
+ * What the order has on file, as the SOP outputs the stages demand. Computed
+ * once per record by `orderReadiness` in the contracts module and judged here.
+ */
+export type OrderReadiness = {
+  /** The production plan has been saved (step 03 output). */
+  readonly planned: boolean;
+  /** The finishing stage has been reached (step 05 complete). */
+  readonly productionComplete: boolean;
+  /** Packing slip recorded and the packing inspection passed (step 07). */
+  readonly packingReady: boolean;
+  /**
+   * The customer's label and shipping-mark spec is on file, or the company's
+   * own proof has been approved by the Director (2026-09-14). Step 07.
+   */
+  readonly labelsReady: boolean;
+  /** INV and PKL on file (step 08). */
+  readonly exportDocumentsReady: boolean;
+  /** Customs declaration on file (step 09). */
+  readonly customsDeclared: boolean;
+};
+
+export const emptyReadiness: OrderReadiness = {
+  planned: false,
+  productionComplete: false,
+  packingReady: false,
+  labelsReady: false,
+  exportDocumentsReady: false,
+  customsDeclared: false,
+};
+
 export type OrderTransitionContext = {
   readonly from: OrderStage;
   readonly to: OrderStage;
   /** True once a Director decision for the stage's subject is approved. */
   readonly hasApproval: boolean;
-  /** Mandatory inspection result; packing is refused until it passes. */
+  /** Mandatory finishing inspection; packing is refused until it passes. */
   readonly qcPassed: boolean;
   /** Cancellation and rework must always record why. */
   readonly reason: string | null;
+  readonly readiness: OrderReadiness;
 };
 
 /**
@@ -318,7 +420,7 @@ export type OrderTransitionContext = {
  * permits the move.
  */
 export function assertTransition(context: OrderTransitionContext): void {
-  const { from, to, hasApproval, qcPassed, reason } = context;
+  const { from, to, hasApproval, qcPassed, reason, readiness } = context;
   const definition = orderStageDefinitions[from];
 
   if (isTerminalStage(from)) {
@@ -342,15 +444,6 @@ export function assertTransition(context: OrderTransitionContext): void {
     );
   }
 
-  // Mandatory inspection: packing and everything downstream is blocked until
-  // quality control passes.
-  if (from === "qualityControl" && to === "packing" && !qcPassed) {
-    throw new OrderTransitionError(
-      "QC_NOT_PASSED",
-      "Packing is blocked until the required quality check passes.",
-    );
-  }
-
   const needsReason =
     to === "cancelled" || (from === "qualityControl" && to === "inProduction");
 
@@ -358,6 +451,63 @@ export function assertTransition(context: OrderTransitionContext): void {
     throw new OrderTransitionError(
       "REASON_REQUIRED",
       "Cancelling an order or returning it for rework must record a reason.",
+    );
+  }
+
+  // Cancelling never waits on an output; the guards below only apply to the
+  // forward moves.
+  if (to === "cancelled") return;
+
+  if (from === "productionPlanning" && !readiness.planned) {
+    throw new OrderTransitionError(
+      "PLAN_MISSING",
+      "Save the production plan before the order leaves planning.",
+    );
+  }
+
+  if (from === "inProduction" && !readiness.productionComplete) {
+    throw new OrderTransitionError(
+      "PRODUCTION_INCOMPLETE",
+      "The order reaches quality control only once finishing is under way.",
+    );
+  }
+
+  // Mandatory inspection: packing and everything downstream is blocked until
+  // the finishing inspection passes.
+  if (from === "qualityControl" && to === "packing" && !qcPassed) {
+    throw new OrderTransitionError(
+      "QC_NOT_PASSED",
+      "Packing is blocked until the required quality check passes.",
+    );
+  }
+
+  if (from === "packing" && !readiness.packingReady) {
+    throw new OrderTransitionError(
+      "PACKING_NOT_READY",
+      "Record the packing slip and pass the packing inspection first.",
+    );
+  }
+
+  // Labels and shipping marks print from the customer's template, or from
+  // the company's own proof once the Director has approved it.
+  if (from === "packing" && !readiness.labelsReady) {
+    throw new OrderTransitionError(
+      "LABELS_NOT_APPROVED",
+      "File the customer's label spec, or have the Director approve the company proof.",
+    );
+  }
+
+  if (from === "exportDocuments" && !readiness.exportDocumentsReady) {
+    throw new OrderTransitionError(
+      "EXPORT_DOCUMENTS_MISSING",
+      "The invoice (INV) and packing list (PKL) must be on file.",
+    );
+  }
+
+  if (from === "tradeDocumentation" && !readiness.customsDeclared) {
+    throw new OrderTransitionError(
+      "CUSTOMS_DECLARATION_MISSING",
+      "The customs declaration must be on file.",
     );
   }
 }

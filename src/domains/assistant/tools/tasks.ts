@@ -153,7 +153,7 @@ export const proposeOrderPlanTool: AssistantTool<
 > = {
   name: "propose_order_plan",
   description:
-    "Draft a task plan for an order from the stages it still has to pass in the company's fifteen-step process: one task per remaining stage, owned by the position the process names, with due dates derived from the expected ready date (or default durations when none is set). The result is a PROPOSAL that a person must approve in the portal; no task exists until then. Report the proposal id, the item count, and every assumption verbatim.",
+    "Draft a task plan for an order from the stages it still has to pass in the company's eleven-step production procedure: one task per remaining stage, owned by the position the process names, with due dates derived from the expected ready date (or default durations when none is set). The result is a PROPOSAL that a person must approve in the portal; no task exists until then. Report the proposal id, the item count, and every assumption verbatim.",
   inputSchema: proposeOrderPlanInput,
   requires: ["orders.read", "tasks.create"],
   async run(input, context) {

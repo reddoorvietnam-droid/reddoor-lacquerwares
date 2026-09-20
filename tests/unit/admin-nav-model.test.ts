@@ -32,6 +32,8 @@ const labelsIn = (groups: readonly AdminNavRoleGroup[]) =>
 describe("the Director's menu, laid out by role", () => {
   it("keeps the overview and the assistant on top, in no role group", () => {
     expect(standalone.items.map((item) => item.label)).toEqual([
+      // Every role's own guide opens the menu.
+      "Hướng dẫn sử dụng website",
       "Tổng quan",
       "Trợ lý AI",
       // Personal like the assistant: everyone's own inbox of assigned work.
@@ -78,16 +80,23 @@ describe("the Director's menu, laid out by role", () => {
       },
       { label: "Tài chính", items: ["Kiểm tra bảng biểu"] },
     ]);
+    // Site contracts and their payments (confirmed 2026-09-14) sit with the
+    // Factory Manager, both accountants and the Director.
     expect(menuOf(roleGroups, "FACTORY_MANAGER")).toEqual([
       {
         label: null,
-        items: ["Sổ đơn hàng", "Quy trình đơn hàng"],
+        items: ["Sổ đơn hàng", "Hợp đồng cơ sở", "Quy trình đơn hàng"],
       },
       { label: "Tài chính", items: ["Kiểm tra bảng biểu", "Chi phí đơn hàng"] },
     ]);
+    // The Factory Accountant writes the INV and PKL (SOP step 8, confirmed
+    // 2026-09-14), so the invoice book joins their finance group.
     expect(menuOf(roleGroups, "FACTORY_ACCOUNTANT")).toEqual([
-      { label: null, items: ["Sổ đơn hàng", "Nhà cung cấp"] },
-      { label: "Tài chính", items: ["Kiểm tra bảng biểu", "Chi phí đơn hàng"] },
+      { label: null, items: ["Sổ đơn hàng", "Nhà cung cấp", "Hợp đồng cơ sở"] },
+      {
+        label: "Tài chính",
+        items: ["Hóa đơn (INV)", "Kiểm tra bảng biểu", "Chi phí đơn hàng"],
+      },
     ]);
     expect(menuOf(roleGroups, "COMPANY_ACCOUNTANT")).toEqual([
       {
@@ -97,6 +106,8 @@ describe("the Director's menu, laid out by role", () => {
           "Công nợ bán sơn",
           "Sổ đơn hàng",
           "Khách hàng",
+          "Hợp đồng cơ sở",
+          "Hàng nhập khẩu",
           "Quy trình đơn hàng",
           "Đơn cửa hàng",
           "Thiết lập",

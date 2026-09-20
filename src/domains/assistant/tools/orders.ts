@@ -234,21 +234,28 @@ export const getOrderTool: AssistantTool<z.infer<typeof getOrderInput>> = {
         }));
       }
 
+      // The invoice itself (number, due date, amount) follows `invoices.read`;
+      // what the customer paid against it — remaining, overdue, the money
+      // card — follows `payments.read`. The Factory Accountant holds the
+      // first and never the second (confirmed 2026-09-14).
       if (reaches("invoices.read")) {
+        const paymentsVisible = reaches("payments.read");
         const [report, invoices] = await Promise.all([
-          order.customerId
-            ? context.services.finance.customerReceivables(
-                order.customerId,
-                context.now,
-              )
-            : context.services.finance.receivables(
-                { kind: "all" },
-                context.now,
-              ),
+          !paymentsVisible
+            ? null
+            : order.customerId
+              ? context.services.finance.customerReceivables(
+                  order.customerId,
+                  context.now,
+                )
+              : context.services.finance.receivables(
+                  { kind: "all" },
+                  context.now,
+                ),
           context.services.invoices.list({ orderId: order.id }),
         ]);
         const rows = new Map(
-          report.invoices
+          (report?.invoices ?? [])
             .filter((row) => row.invoice.orderId === order.id)
             .map((row) => [row.invoice.id, row]),
         );
@@ -259,19 +266,27 @@ export const getOrderTool: AssistantTool<z.infer<typeof getOrderInput>> = {
             status: invoice.status,
             dueDate: isoDay(invoice.dueAt),
             amount: moneyView(invoice.amount, context.locale),
-            remaining: row ? moneyView(row.remaining, context.locale) : null,
-            overdue: row?.overdue ?? false,
+            ...(paymentsVisible
+              ? {
+                  remaining: row
+                    ? moneyView(row.remaining, context.locale)
+                    : null,
+                  overdue: row?.overdue ?? false,
+                }
+              : {}),
           };
         });
-        data.money = report.orders
-          .filter((row) => row.orderId === order.id)
-          .map((row) => ({
-            currency: row.currency,
-            invoiced: moneyView(row.invoiced, context.locale),
-            paid: moneyView(row.paid, context.locale),
-            deposits: moneyView(row.deposits, context.locale),
-            remaining: moneyView(row.remaining, context.locale),
-          }));
+        if (report) {
+          data.money = report.orders
+            .filter((row) => row.orderId === order.id)
+            .map((row) => ({
+              currency: row.currency,
+              invoiced: moneyView(row.invoiced, context.locale),
+              paid: moneyView(row.paid, context.locale),
+              deposits: moneyView(row.deposits, context.locale),
+              remaining: moneyView(row.remaining, context.locale),
+            }));
+        }
       }
 
       if (reaches("expenses.read")) {

@@ -3,20 +3,46 @@
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 
-import { attachDocumentAction } from "@/app/[locale]/admin/(portal)/finance/document-actions";
-import { uploadImage, type UploadTarget } from "@/components/admin/upload-image";
+import {
+  attachDocumentAction,
+  type DocumentActionState,
+} from "@/app/[locale]/admin/(portal)/finance/document-actions";
+import {
+  uploadImage,
+  type UploadTarget,
+} from "@/components/admin/upload-image";
 
 /**
  * One button that uploads a PDF or photo straight to storage and then records
- * it on the order or invoice. Used for payment documents on an order and for
- * the invoice file itself, so the accountant attaches the INV instead of
- * retyping its lines.
+ * it on the order or invoice. Used for payment documents on an order, for the
+ * files each SOP step produces (PKL, customs declaration, packing photos…),
+ * and for the invoice file itself, so the accountant attaches the INV instead
+ * of retyping its lines. A module whose records live elsewhere (site
+ * contracts, import shipments) passes its own `attachAction`.
  */
 
 type DocumentTarget = Extract<
   UploadTarget,
-  { kind: "orderDocument" | "invoiceDocument" }
+  {
+    kind:
+      | "orderDocument"
+      | "orderFile"
+      | "invoiceDocument"
+      | "facilityContractDocument"
+      | "importShipmentDocument";
+  }
 >;
+
+/** What the button hands the server once the bytes are stored. */
+export type AttachDocumentInput = {
+  target: DocumentTarget;
+  expectedRevision: number;
+  publicId: string;
+  assetVersion: number;
+  format: string;
+  bytes: number;
+  label: string;
+};
 
 const copy = {
   vi: {
@@ -41,12 +67,21 @@ export function DocumentUpload({
   expectedRevision,
   maxBytes,
   label,
+  compact = false,
+  attachAction = attachDocumentAction,
 }: {
   locale: "vi" | "en";
   target: DocumentTarget;
   expectedRevision: number;
   maxBytes: number;
   label?: string;
+  /** A smaller button for checklist rows. */
+  compact?: boolean;
+  /**
+   * The server action that records the stored file on its record. Defaults
+   * to the order and invoice action.
+   */
+  attachAction?: (input: AttachDocumentInput) => Promise<DocumentActionState>;
 }) {
   const router = useRouter();
   const text = copy[locale];
@@ -66,7 +101,7 @@ export function DocumentUpload({
     try {
       const asset = await uploadImage(target, file, setPercent);
       setBusy("save");
-      const result = await attachDocumentAction({
+      const result = await attachAction({
         target,
         expectedRevision,
         publicId: asset.publicId,
@@ -104,7 +139,11 @@ export function DocumentUpload({
         type="button"
         disabled={busy !== null}
         onClick={() => fileInputRef.current?.click()}
-        className="border-burgundy/25 text-burgundy hover:border-burgundy/50 inline-flex min-h-10 items-center rounded-full border px-4 text-sm font-semibold disabled:pointer-events-none disabled:opacity-45"
+        className={
+          compact
+            ? "border-burgundy/25 text-burgundy hover:border-burgundy/50 inline-flex min-h-8 items-center rounded-full border px-3 text-xs font-semibold disabled:pointer-events-none disabled:opacity-45"
+            : "border-burgundy/25 text-burgundy hover:border-burgundy/50 inline-flex min-h-10 items-center rounded-full border px-4 text-sm font-semibold disabled:pointer-events-none disabled:opacity-45"
+        }
       >
         {busy === "upload"
           ? `${text.uploading} ${percent}%`

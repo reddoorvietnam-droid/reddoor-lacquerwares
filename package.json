@@ -28,7 +28,8 @@
     "import:receivables": "tsx --env-file-if-exists=.env --conditions=react-server scripts/import-receivables.ts",
     "eval:assistant": "vitest run tests/unit/assistant-eval.test.ts",
     "test:e2e:admin": "playwright test -c playwright.admin.config.ts",
-    "test:e2e:admin:cleanup": "tsx --env-file-if-exists=.env --conditions=react-server tests/e2e-admin/sample-progress-cleanup.ts"
+    "test:e2e:admin:cleanup": "tsx --env-file-if-exists=.env --conditions=react-server tests/e2e-admin/sample-progress-cleanup.ts",
+    "test:e2e:admin:cleanup:sop": "tsx --env-file-if-exists=.env --conditions=react-server tests/e2e-admin/order-sop-cleanup.ts"
   },
   "engines": {
     "node": ">=20.19.0"
