@@ -3,14 +3,35 @@ import type { PublicDictionary } from "../dictionary";
 const dictionary = {
   meta: {
     siteName: "Red Door",
-    siteTitle: "Red Door — ハタイ村の漆、ベトナム",
+    siteTitle: "Red Door — ベトナム漆器｜ハノイ・ハタイ村の手仕事",
     siteDescription:
-      "Red Door はハノイ近郊の漆器の里ハタイ村で手仕事の漆器を制作しています。トレイ、箱、コースター、装飾品を幾層にも塗り重ね、水研ぎし、手で磨き上げます。SGS による欧州基準の検査に合格し、アメリカとヨーロッパへ輸出しています。",
+      "Red Door はハノイ近郊の漆器の里ハタイ村で、手仕事のベトナム漆器を制作しています。トレイ、箱、コースター、装飾品を幾層にも塗り重ね、水研ぎし、手で磨き上げます。SGS による欧州基準の検査に合格し、アメリカとヨーロッパへ輸出しています。",
+    pageDescriptions: {
+      home: "Red Door はハノイ近郊の漆器の里ハタイ村で、手仕事のベトナム漆器を制作しています。トレイ、箱、コースター、椀、花器、漆絵。SGS による欧州基準の検査に合格し、アメリカとヨーロッパへ輸出しています。",
+      about:
+        "Red Door は、ハノイ近郊の漆器の里ハタイ村に工房を構えるベトナム漆器の工房です。伝統の技法と現代のデザインを組み合わせ、SGS による欧州基準の検査に合格した漆器を世界へ届けています。",
+      products:
+        "Red Door の手仕事のベトナム漆器：トレイ、箱、コースター、椀、花器、装飾品。幾層にも塗り重ね、水研ぎし、手で磨き上げた製品をご覧いただけます。お見積もりも承ります。",
+      collections:
+        "Red Door のベトナム漆器コレクションとカタログ。毎年発表するトレイ、箱、椀、花器、装飾品の全作品を、カタログを開いてご覧ください。",
+      process:
+        "ベトナム漆器ができるまで — Red Door の工房での木地づくり、下地、塗り、水研ぎ、磨き。数十の工程を、どれも急がずに重ねていきます。",
+      news: "ベトナム漆器のニュースと Red Door 工房の物語。新しいコレクション、国際見本市、そして一つひとつの漆の表面に宿る物語をお届けします。",
+      contact:
+        "カタログのご請求、ベトナム漆器のお見積もり、特注や輸出のご相談は Red Door まで。トレイ、箱、椀、花器など、ハノイ近郊ハタイ村の工房から直接お応えします。",
+      shop: "Red Door のベトナム漆器ショップ。工房に在庫のあるトレイ、箱、コースター、椀を、VND と USD の価格で直接ご注文いただけます。",
+      privacy:
+        "Red Door のプライバシーポリシー。お問い合わせや見積もり依頼の際に収集する情報と、その使い方、ご連絡先について説明します。",
+      terms:
+        "RED DOOR Co., Ltd. が運営する Red Door ウェブサイトの利用規約：知的財産、漆器の製品情報、見積もりとご注文について。",
+      accessibility:
+        "Red Door ウェブサイトのアクセシビリティ方針：WCAG 2.1 AA への取り組み、現在の制限事項、ご意見の送り方について。",
+    },
   },
   common: {
     updatingLabel: "更新準備中",
     skipToContent: "メインコンテンツへ移動",
-    learnMore: "詳しく見る",
+    learnMore: "漆器ができるまでを見る",
     explore: "探る",
     viewAll: "すべて見る",
     close: "閉じる",
@@ -25,6 +46,7 @@ const dictionary = {
     featured: "注目",
     playVideo: "動画を再生",
     updatingNotice: "この項目は工房が内容を仕上げているところです。",
+    breadcrumbs: "パンくずリスト",
   },
   nav: {
     home: "ホーム",
@@ -37,9 +59,9 @@ const dictionary = {
     contact: "お問い合わせ",
   },
   home: {
-    eyebrow: "RED DOOR — ハタイ村の漆",
-    title: "手から生まれる、",
-    titleAccent: "息づく表情",
+    eyebrow: "RED DOOR — ベトナム漆器",
+    title: "手仕事のベトナム漆器、",
+    titleAccent: "息づく表情を一層ずつ",
     heroDescription:
       "ベトナム漆の真髄は一層一層に宿ります。すべての製品は、自然と職人の手の調和から生まれます。",
     craftTitle: "層が紡ぐ素材の物語",
@@ -54,27 +76,39 @@ const dictionary = {
     contactTitleAccent: "始める",
     contactBody:
       "お探しのものをお聞かせください — 既存のコレクション、特注のデザイン、輸出のご注文など。Red Door のチームができるだけ早くお返事します。",
+    heroImageAlt:
+      "Red Door の漆器セット：トレイ、花器、箱、コースター、椀と、赤と金の蓮の漆パネル",
+    craftImageAlt:
+      "金箔の横で、金の花模様をあしらった赤い漆のトレイを手で磨く職人",
+    closingImageAlt: "ベトナムにある Red Door Co., Ltd 工房の赤い扉",
   },
   pages: {
     aboutTitle: "私たちについて",
+    aboutHeading: "私たちについて — ハタイ村の漆器工房",
     aboutIntro:
       "Red Door は、何世代にもわたり漆の技が受け継がれてきたハノイ近郊の漆器の里、ハタイ村に工房を構えています。伝統の技法と現代のデザインを組み合わせ、ベトナムの漆を世界の暮らしの空間へ届けます。",
     productsTitle: "製品",
+    productsHeading: "ベトナム漆器の製品：トレイ・箱・椀・花器",
     productsIntro:
       "トレイ、箱、コースター、花器、装飾品 — どの品もハタイ村の工房で手作りされ、幾層にも塗り重ね、水研ぎし、手で磨き上げています。",
     collectionsTitle: "コレクション",
+    collectionsHeading: "ベトナム漆器のコレクションとカタログ",
     collectionsIntro:
       "Red Door は毎年、新しいコレクションを発表しています。素材、色、表面の研究を重ねた工房の成果です。カタログを開いて全作品をご覧ください。",
     processTitle: "漆の工程",
+    processHeading: "ベトナム漆器の作り方 — 漆の工程",
     processIntro:
       "一つの漆器が完成するまでには、木地づくり、下地、塗り、水研ぎ、磨きと、数十の工程があります。どの工程も急ぐことはできません。",
     newsTitle: "ニュースと物語",
+    newsHeading: "漆器のニュースと工房の物語",
     newsIntro:
       "ハタイ村の工房からの便り。新しいコレクション、国際見本市、そして漆の表面に宿る物語をお届けします。",
     contactTitle: "お問い合わせ・見積もり依頼",
+    contactHeading: "お問い合わせ・漆器の見積もり依頼",
     contactIntro:
       "カタログのご請求、お見積もり、特注のご相談は Red Door まで。世界中の小売店、デザイナー、ブランドと直接お取引しています。",
     shopTitle: "ショップ",
+    shopHeading: "ベトナム漆器ショップ — 工房から直接お届け",
     shopIntro:
       "工房に在庫のある漆器を直接ご注文いただけます。ご注文を確認し、発送前に送料をご案内します。",
     searchTitle: "検索",
@@ -102,6 +136,7 @@ const dictionary = {
       "フランス国営テレビ：世界を魅了するベトナム漆工芸の精緻な美",
     mediaFranceDescription:
       "フランスのテレビ局が取材したドキュメンタリー。厳しい国際基準と高い美意識を備えたRed Doorの漆器がヨーロッパで注目される理由を伝えます。",
+    videoUnsupported: "お使いのブラウザは動画の再生に対応していません。",
     pillarKicker: "大切にしていること",
     pillarsDescription:
       "Red Door の工房を出るすべての品に共通する、変わらない三つのこと。",
@@ -291,7 +326,7 @@ const dictionary = {
   legal: {
     lastUpdated: "更新：2026年8月",
     privacyIntro:
-      "Red Door は訪問者のプライバシーを尊重します。本ポリシーでは、lacquerware.vn のご利用にあたり当社が収集する情報と、その使い方を説明します。",
+      "Red Door は訪問者のプライバシーを尊重します。本ポリシーでは、reddoor.vn のご利用にあたり当社が収集する情報と、その使い方を説明します。",
     privacySections: [
       {
         title: "収集する情報",
@@ -307,7 +342,7 @@ const dictionary = {
       },
     ],
     termsIntro:
-      "以下の条件は、RED DOOR Co., Ltd. が運営する lacquerware.vn へのアクセスと利用に適用されます。",
+      "以下の条件は、RED DOOR Co., Ltd. が運営する reddoor.vn へのアクセスと利用に適用されます。",
     termsSections: [
       {
         title: "知的財産",

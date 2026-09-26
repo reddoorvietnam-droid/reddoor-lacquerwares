@@ -12,6 +12,11 @@ jobs:
   quality:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    env:
+      # `next typegen` and `next build` refuse a loopback site URL in
+      # production mode; CI output is never deployed, so the escape hatch is
+      # safe here. Never set it on Vercel.
+      ALLOW_LOOPBACK_SITE_URL: "1"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -24,4 +29,6 @@ jobs:
       - run: npm run test:run
       - run: npm run build
         env:
-          NEXT_PUBLIC_SITE_URL: http://localhost:3000
+          # The real public origin, so CI exercises the same host-redirect and
+          # canonical output as production instead of the localhost branch.
+          NEXT_PUBLIC_SITE_URL: https://reddoor.vn

@@ -18,25 +18,33 @@ import { buildPublicMetadata } from "@/lib/seo/metadata";
  * stacks a Vietnamese tone mark straight onto the circumflex below it, so
  * `ề` and `ố` fused into a single blob at display size. Playfair positions
  * the second mark clear of the first, keeps the same wide high-contrast
- * character that lets the headings carry their tight negative tracking, and
- * adds an optical-size axis. Be Vietnam Pro is drawn for Vietnamese, which is
- * the same concern one level down.
+ * character that lets the headings carry their tight negative tracking. Be
+ * Vietnam Pro is drawn for Vietnamese, which is the same concern one level
+ * down.
  *
  * Neither has CJK glyphs, so the Japanese and Chinese fallbacks stay in the
  * stacks in `globals.css` and must not be removed.
+ *
+ * `subsets` only controls which files get a `<link rel="preload">`: every
+ * subset's @font-face rule (latin-ext included) is still self-hosted and
+ * fetched on demand through its unicode-range, so a rare Ÿ or Ỹ still renders
+ * in the web font after one late swap. Preloading latin + vietnamese covers
+ * every string in the six dictionaries.
  */
 const displayFont = Playfair({
-  subsets: ["latin", "latin-ext", "vietnamese"],
+  subsets: ["latin", "vietnamese"],
+  // Static 400 normal + italic, no variable axes: this cuts the preloaded
+  // Playfair bytes from ~513 KB (ital + opsz + wght) to ~150 KB, which was
+  // the biggest LCP cost on mobile. No public component sets a serif weight
+  // other than 400, and Playfair then renders at its default optical size.
+  weight: "400",
   style: ["normal", "italic"],
-  // Kept so the browser can pick the display cut by itself at heading sizes;
-  // without the axis, font-optical-sizing has nothing to act on.
-  axes: ["opsz"],
   display: "swap",
   variable: "--font-display-loaded",
 });
 
 const bodyFont = Be_Vietnam_Pro({
-  subsets: ["latin", "latin-ext", "vietnamese"],
+  subsets: ["latin", "vietnamese"],
   weight: ["400", "500", "600", "700"],
   display: "swap",
   variable: "--font-body-loaded",
@@ -64,7 +72,9 @@ export async function generateMetadata({
   const metadata = buildPublicMetadata({
     locale,
     title: dictionary.meta.siteTitle,
-    description: dictionary.meta.siteDescription,
+    // The home page's own meta description (≤160 code points); the longer
+    // `meta.siteDescription` stays on the OG card, JSON-LD and the manifest.
+    description: dictionary.meta.pageDescriptions.home,
     siteName: dictionary.meta.siteName,
     // The public copy is approved; marking it DEMO here forced `noindex` on
     // every localized route.
@@ -81,13 +91,23 @@ export async function generateMetadata({
       template: `%s | ${dictionary.meta.siteName}`,
     },
     applicationName: "Red Door Lacquerwares",
-    ...(process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
-      ? {
-          verification: {
-            google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
-          },
-        }
-      : {}),
+    verification: siteVerification(),
+  };
+}
+
+/**
+ * Ownership tokens for Google Search Console and Bing Webmaster Tools, set
+ * from the environment so a token can change without a code release.
+ */
+function siteVerification(): Metadata["verification"] {
+  const google = process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION?.trim();
+  const bing = process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION?.trim();
+
+  if (!google && !bing) return undefined;
+
+  return {
+    ...(google ? { google } : {}),
+    ...(bing ? { other: { "msvalidate.01": bing } } : {}),
   };
 }
 

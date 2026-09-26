@@ -3,7 +3,9 @@ import { notFound } from "next/navigation";
 import { HomePage } from "@/components/public/home-page";
 import { isLocale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
+import { JsonLdScripts } from "@/lib/seo/json-ld";
 import { getDemoStaticPageMetadata } from "@/lib/seo/route-metadata";
+import { homeStructuredData } from "@/lib/seo/structured-data";
 import {
   getPublicCollectionRepository,
   getPublicContentRepository,
@@ -41,13 +43,19 @@ export default async function HomeRoute({ params }: HomeRouteProps) {
   ]);
 
   return (
-    <HomePage
-      locale={locale}
-      dictionary={dictionary}
-      content={content}
-      products={products}
-      collections={collections}
-      news={news}
-    />
+    <>
+      <JsonLdScripts
+        documents={homeStructuredData(locale, dictionary, content)}
+        enabled={!content.isDemo}
+      />
+      <HomePage
+        locale={locale}
+        dictionary={dictionary}
+        content={content}
+        products={products}
+        collections={collections}
+        news={news}
+      />
+    </>
   );
 }

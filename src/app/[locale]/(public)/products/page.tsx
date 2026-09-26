@@ -4,7 +4,9 @@ import { ProductListingPage } from "@/components/public/pages";
 import { isLocale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { getDemoProductListingPageData } from "@/lib/public/demo-page-data";
+import { JsonLdScripts } from "@/lib/seo/json-ld";
 import { getDemoStaticPageMetadata } from "@/lib/seo/route-metadata";
+import { sectionStructuredData } from "@/lib/seo/structured-data";
 
 type ProductsRouteProps = {
   params: Promise<{ locale: string }>;
@@ -34,7 +36,11 @@ export async function generateMetadata({
       : Boolean(value?.trim()),
   );
 
-  return getDemoStaticPageMetadata(locale, "products", !hasFilters);
+  // A filtered listing is a view of the same catalogue: crawlable, but
+  // neither indexed nor offered as a canonical or hreflang target.
+  return getDemoStaticPageMetadata(locale, "products", {
+    filteredView: hasFilters,
+  });
 }
 
 export default async function ProductsRoute({
@@ -59,10 +65,18 @@ export default async function ProductsRoute({
   });
 
   return (
-    <ProductListingPage
-      data={data}
-      dictionary={dictionary}
-      isDemo={data.contentIsDemo}
-    />
+    <>
+      <JsonLdScripts
+        documents={sectionStructuredData(locale, dictionary, {
+          name: dictionary.nav.products,
+          path: "/products",
+        })}
+      />
+      <ProductListingPage
+        data={data}
+        dictionary={dictionary}
+        isDemo={data.contentIsDemo}
+      />
+    </>
   );
 }

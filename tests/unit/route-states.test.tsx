@@ -8,23 +8,11 @@ vi.mock("next/navigation", () => ({
 }));
 
 import LocaleError from "@/app/[locale]/error";
-import LocaleLoading from "@/app/[locale]/loading";
 import LocaleNotFound from "@/app/[locale]/not-found";
 
 describe("localized route states", () => {
   beforeEach(() => {
     navigation.pathname = "/vi";
-  });
-
-  it("announces loading in the active locale without exposing the skeleton", () => {
-    navigation.pathname = "/ja/products";
-
-    const markup = renderToStaticMarkup(<LocaleLoading />);
-
-    expect(markup).toContain("コンテンツを読み込んでいます");
-    expect(markup).toContain('role="status"');
-    expect(markup).toContain('aria-hidden="true"');
-    expect(markup).toContain('aria-busy="true"');
   });
 
   it("renders a localized 404 and returns to the active locale home", () => {

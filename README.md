@@ -4,14 +4,14 @@ Brand website and internal operations portal for Công ty TNHH Cửa Đỏ Việ
 
 Two experiences share one data platform:
 
-- **Public site** — a multilingual brand site at `lacquerwares.vn`, with product
+- **Public site** — a multilingual brand site at `reddoor.vn`, with product
   and collection storytelling and a request-a-quote flow. No online payment.
 - **Operations portal** — `/admin`, for content, products, catalogues, customers,
   quotes, orders, production, inventory, suppliers, finance, documents, and
   reporting, all scoped by role.
 
 The portal lives under a path today but is not coupled to one, so it can move to
-`portal.lacquerwares.vn` later without a rewrite.
+`portal.reddoor.vn` later without a rewrite.
 
 ## Requirements
 

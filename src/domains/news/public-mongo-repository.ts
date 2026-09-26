@@ -14,16 +14,22 @@ import type {
   PublicNewsRepository,
 } from "@/domains/news/public-contract";
 import { connectToDatabase } from "@/lib/db/mongoose";
-import { CloudinaryMediaStorage } from "@/lib/media/cloudinary-storage";
+import {
+  CloudinaryMediaStorage,
+  type CroppedImageAspect,
+} from "@/lib/media/cloudinary-storage";
 import {
   findImagesForEntities,
   type StoredImageDescriptor,
 } from "@/lib/media/entity-images";
 import type { Locale } from "@/lib/i18n/config";
 import {
+  hasTranslationSlug,
   pendingImage,
   pickTranslation,
+  preferExactSlug,
   stripHtml,
+  translationSlugs,
 } from "@/lib/public/published-mapping";
 import { extractYouTubeId } from "@/lib/utils/youtube";
 
@@ -44,6 +50,7 @@ type LeanArticle = {
   authorLabel?: string;
   currentPublishedRevisionId?: Types.ObjectId;
   publishedAt?: Date;
+  updatedAt?: Date;
 };
 
 type LeanTranslation = {
@@ -55,6 +62,16 @@ type LeanTranslation = {
   summary: string;
   body?: unknown[];
 };
+
+/** The fixed frames search engines ask for on article results. */
+const COVER_VARIANT_ASPECTS: readonly CroppedImageAspect[] = [
+  "16:9",
+  "4:3",
+  "1:1",
+];
+
+/** 1200 px wide, so the 16:9 crop also meets Discover's minimum width. */
+const COVER_VARIANT_WIDTH = 1200;
 
 function coverImage(
   stored: StoredImageDescriptor | undefined,
@@ -72,12 +89,43 @@ function coverImage(
         height: stored.height,
         assetPending: false,
         replacementHint: "",
+        variants: COVER_VARIANT_ASPECTS.map((aspect) =>
+          storage.buildCroppedImageUrl(
+            stored.publicId,
+            stored.assetVersion,
+            COVER_VARIANT_WIDTH,
+            aspect,
+          ),
+        ),
       };
     } catch {
       // Storage unconfigured on this machine; fall through to the slot.
     }
   }
   return pendingImage(`news-${slug}-01`, title, 1600, 1000);
+}
+
+/**
+ * The publish click as an ISO 8601 timestamp in the newsroom's own timezone.
+ * A bare UTC value can name the wrong calendar day for an evening publish in
+ * Hà Nội; Vietnam has no daylight saving, so `+07:00` is always right.
+ */
+function toHanoiIso(date: Date): string {
+  const parts = Object.fromEntries(
+    new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Asia/Ho_Chi_Minh",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hourCycle: "h23",
+    })
+      .formatToParts(date)
+      .map((part) => [part.type, part.value]),
+  );
+  return `${parts.year}-${parts.month}-${parts.day}T${parts.hour}:${parts.minute}:${parts.second}+07:00`;
 }
 
 type StoredBlock = {
@@ -196,6 +244,7 @@ function mapBodyBlocks(
 function mapArticle(
   article: LeanArticle,
   translation: LeanTranslation,
+  published: readonly LeanTranslation[],
   cover: StoredImageDescriptor | undefined,
   locale: Locale,
   sortOrder: number,
@@ -207,6 +256,9 @@ function mapArticle(
     isDemo: false,
     locale,
     slug: translation.slug,
+    contentLocale: translation.locale,
+    translations: translationSlugs(published),
+    updatedAt: article.updatedAt ? article.updatedAt.toISOString() : null,
     title: translation.title,
     excerpt: translation.summary,
     content: mapBodyBlocks(translation.body as StoredBlock[] | undefined),
@@ -214,9 +266,7 @@ function mapArticle(
     categoryLabel: category?.labels[locale] ?? "",
     tags,
     author: article.authorLabel ?? null,
-    publishedAt: article.publishedAt
-      ? article.publishedAt.toISOString().slice(0, 10)
-      : null,
+    publishedAt: article.publishedAt ? toHanoiIso(article.publishedAt) : null,
     image: coverImage(cover, translation.slug, translation.title),
     featured: false,
     sortOrder,
@@ -244,7 +294,9 @@ async function loadPublished(
 
   const articles = await getArticleModel()
     .find(filter)
-    .select("_id tagKeys authorLabel currentPublishedRevisionId publishedAt")
+    .select(
+      "_id tagKeys authorLabel currentPublishedRevisionId publishedAt updatedAt",
+    )
     .sort({ publishedAt: -1 })
     .lean<LeanArticle[]>()
     .exec();
@@ -277,16 +329,15 @@ async function loadPublished(
   for (const article of articles) {
     const key = article.currentPublishedRevisionId?.toHexString();
     if (!key) continue;
-    const translation = pickTranslation(
-      translationsByRevision.get(key) ?? [],
-      locale,
-    );
+    const published = translationsByRevision.get(key) ?? [];
+    const translation = pickTranslation(published, locale);
     if (!translation) continue;
-    if (options.slug && translation.slug !== options.slug) continue;
+    if (options.slug && !hasTranslationSlug(published, options.slug)) continue;
     mapped.push(
       mapArticle(
         article,
         translation,
+        published,
         covers.get(article._id.toHexString())?.[0],
         locale,
         mapped.length,
@@ -296,13 +347,13 @@ async function loadPublished(
 
   const offset = options.offset ?? 0;
   const end = options.limit !== undefined ? offset + options.limit : undefined;
-  return mapped.slice(offset, end);
+  return preferExactSlug(mapped, options.slug).slice(offset, end);
 }
 
 const cachedLoad = unstable_cache(
   async (locale: Locale, options: Record<string, unknown>) =>
     loadPublished(locale, options),
-  ["public-news-v1"],
+  ["public-news-v2"],
   { revalidate: 300, tags: ["articles:public"] },
 );
 

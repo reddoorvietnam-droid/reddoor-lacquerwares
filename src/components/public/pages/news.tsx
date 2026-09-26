@@ -3,6 +3,7 @@ import type { PublicDictionary } from "@/lib/i18n/dictionary";
 import { NewsShareActions } from "./news-share-actions";
 
 import {
+  Breadcrumbs,
   MediaFrame,
   PageFrame,
   PageHero,
@@ -118,7 +119,7 @@ export function NewsListingPage({
       <PageNotices dictionary={dictionary} isDemo={isDemo} notices={notices} />
       <PageHero
         eyebrow={data.heroEyebrow}
-        title={dictionary.pages.newsTitle}
+        title={dictionary.pages.newsHeading}
         intro={dictionary.pages.newsIntro}
         media={data.heroMedia}
       />
@@ -229,8 +230,9 @@ export interface NewsArticlePageData {
   /** True while the records behind this page are still placeholders. */
   contentIsDemo: boolean;
   authorName: string | null;
-  backLink: PublicPageLink;
   blocks: readonly PublicContentBlock[];
+  /** Home → news → this article; the same labels as the JSON-LD trail. */
+  breadcrumbs: readonly PublicPageLink[];
   categoryLabel: string;
   excerpt: string;
   heroMedia: PublicPageMedia | null;
@@ -260,13 +262,11 @@ export function NewsArticlePage({
       <PageNotices dictionary={dictionary} isDemo={isDemo} notices={notices} />
       <article>
         <header className="mx-auto max-w-5xl px-[var(--space-page)] pt-10 pb-12 text-center sm:pt-16 sm:pb-16">
-          <a
-            href={data.backLink.href}
-            className="text-burgundy hover:text-lacquer inline-flex min-h-11 items-center gap-2 text-sm font-semibold"
-          >
-            <span aria-hidden="true">←</span>
-            {data.backLink.label}
-          </a>
+          <Breadcrumbs
+            items={data.breadcrumbs}
+            label={dictionary.common.breadcrumbs}
+            className="[&_ol]:justify-center"
+          />
           <p className="eyebrow mt-8">{data.categoryLabel}</p>
           <h1 className="text-burgundy mt-5 font-serif text-5xl leading-[0.96] tracking-[-0.045em] text-balance sm:text-7xl">
             {data.title}
@@ -294,6 +294,7 @@ export function NewsArticlePage({
               media={data.heroMedia}
               sizes="100vw"
               className="max-h-[48rem] min-h-72 rounded-[var(--radius-display)]"
+              preload
             />
           </div>
         ) : null}

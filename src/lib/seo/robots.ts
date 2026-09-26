@@ -8,12 +8,6 @@ export function buildRobots(siteUrl: URL = getSiteUrl()): MetadataRoute.Robots {
     `/${locale}/search`,
     `/${locale}/search/`,
   ]);
-  const localizedFilterRoutes = locales.flatMap((locale) => [
-    `/${locale}/products?*`,
-    `/${locale}/products/?*`,
-    `/${locale}/news?*`,
-    `/${locale}/news/?*`,
-  ]);
   const localizedPrivateRoutes = locales.flatMap((locale) => [
     `/${locale}/private`,
     `/${locale}/private/`,
@@ -33,7 +27,6 @@ export function buildRobots(siteUrl: URL = getSiteUrl()): MetadataRoute.Robots {
         "/private",
         "/private/",
         ...localizedSearchRoutes,
-        ...localizedFilterRoutes,
         ...localizedPrivateRoutes,
       ],
     },

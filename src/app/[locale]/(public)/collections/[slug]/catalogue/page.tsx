@@ -1,22 +1,24 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import type { Route } from "next";
-import { notFound } from "next/navigation";
-
-import { ArrowLeft } from "lucide-react";
+import { notFound, permanentRedirect } from "next/navigation";
 
 import type { StoredPageDescriptor } from "@/components/flipbook/cloudinary-page-source";
 import type { FlipbookLabels } from "@/components/flipbook";
 import { CatalogueReader } from "@/components/public/catalogue-reader";
+import { Breadcrumbs } from "@/components/public/pages/shared";
 import { Container } from "@/components/ui";
 import { findCataloguesForCollections } from "@/domains/collections/catalogue";
 import { getPublicCollectionRepository } from "@/lib/public/repositories";
-import { getDemoCollectionMetadata } from "@/lib/seo/route-metadata";
+import { JsonLdScripts } from "@/lib/seo/json-ld";
+import { getCollectionCatalogueMetadata } from "@/lib/seo/route-metadata";
+import { collectionStructuredData } from "@/lib/seo/structured-data";
+import { encodeSeoSlug } from "@/lib/seo/urls";
 import {
   allowedPageWidths,
   type AllowedPageWidth,
 } from "@/lib/media/storage-port";
 import { CloudinaryMediaStorage } from "@/lib/media/cloudinary-storage";
+import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { isLocale, localePath, type Locale } from "@/lib/i18n/config";
 
 export const dynamic = "force-dynamic";
@@ -35,7 +37,7 @@ export const dynamic = "force-dynamic";
  * yet; when the working group next revises the six dictionaries, these
  * belong there.
  */
-const readerLabels: Record<Locale, FlipbookLabels & { back: string }> = {
+const readerLabels: Record<Locale, FlipbookLabels> = {
   vi: {
     previous: "Trang trước",
     next: "Trang sau",
@@ -46,7 +48,6 @@ const readerLabels: Record<Locale, FlipbookLabels & { back: string }> = {
     close: "Đóng",
     loading: "Đang tải trang…",
     fallbackNotice: "Đang hiển thị dạng cuộn dọc.",
-    back: "Quay lại bộ sưu tập",
   },
   en: {
     previous: "Previous page",
@@ -58,7 +59,6 @@ const readerLabels: Record<Locale, FlipbookLabels & { back: string }> = {
     close: "Close",
     loading: "Loading the page…",
     fallbackNotice: "Showing the sequential reader.",
-    back: "Back to the collection",
   },
   fr: {
     previous: "Page précédente",
@@ -70,7 +70,6 @@ const readerLabels: Record<Locale, FlipbookLabels & { back: string }> = {
     close: "Fermer",
     loading: "Chargement de la page…",
     fallbackNotice: "Affichage en lecture séquentielle.",
-    back: "Retour à la collection",
   },
   de: {
     previous: "Vorherige Seite",
@@ -82,7 +81,6 @@ const readerLabels: Record<Locale, FlipbookLabels & { back: string }> = {
     close: "Schließen",
     loading: "Seite wird geladen…",
     fallbackNotice: "Sequentielle Ansicht wird angezeigt.",
-    back: "Zurück zur Kollektion",
   },
   ja: {
     previous: "前のページ",
@@ -94,7 +92,6 @@ const readerLabels: Record<Locale, FlipbookLabels & { back: string }> = {
     close: "閉じる",
     loading: "ページを読み込み中…",
     fallbackNotice: "縦スクロール表示中です。",
-    back: "コレクションに戻る",
   },
   "zh-CN": {
     previous: "上一页",
@@ -106,7 +103,6 @@ const readerLabels: Record<Locale, FlipbookLabels & { back: string }> = {
     close: "关闭",
     loading: "正在加载页面…",
     fallbackNotice: "正在以纵向阅读模式显示。",
-    back: "返回系列",
   },
 };
 
@@ -119,7 +115,9 @@ export async function generateMetadata({
 }: CataloguePageProps): Promise<Metadata> {
   const { locale, slug } = await params;
   if (!isLocale(locale)) return {};
-  return getDemoCollectionMetadata(locale, slug);
+  // Canonical and hreflang point at the landing page: the reader is an
+  // alternate presentation of the same collection.
+  return getCollectionCatalogueMetadata(locale, slug);
 }
 
 export default async function CollectionCataloguePage({
@@ -133,6 +131,16 @@ export default async function CollectionCataloguePage({
     slug,
   );
   if (!collection) notFound();
+  // The URL carried another language's slug (the locale switcher keeps the
+  // slug); send visitors and crawlers to this locale's own address.
+  if (collection.slug !== slug) {
+    permanentRedirect(
+      localePath(
+        locale,
+        `/collections/${encodeSeoSlug(collection.slug)}/catalogue`,
+      ) as Route,
+    );
+  }
 
   const catalogues = await findCataloguesForCollections(
     [collection.id],
@@ -170,45 +178,65 @@ export default async function CollectionCataloguePage({
   );
 
   const labels = readerLabels[locale];
-  const backHref = localePath(locale, "/collections");
+  // The reader closes back onto the collection's landing page, which is
+  // also the trail's leaf: the flipbook is the same collection, presented
+  // as pages, not a level below it.
+  const landingHref = localePath(
+    locale,
+    `/collections/${encodeSeoSlug(collection.slug)}`,
+  );
+  const dictionary = await getDictionary(locale);
+  // The visible trail behind the BreadcrumbList JSON-LD: same nav.* labels.
+  const breadcrumbs = [
+    { href: localePath(locale, "/"), label: dictionary.nav.home },
+    {
+      href: localePath(locale, "/collections"),
+      label: dictionary.nav.collections,
+    },
+    { href: landingHref, label: collection.title },
+  ];
 
   return (
-    <main
-      id="main-content"
-      className="surface-deep text-ivory min-h-svh py-10 sm:py-14"
-    >
-      <Container size="wide">
-        <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <Link
-              href={backHref as Route}
-              className="text-gold hover:text-gold-light inline-flex items-center gap-2 text-xs font-semibold tracking-[0.18em] uppercase"
-            >
-              <ArrowLeft aria-hidden="true" className="size-3.5" />
-              {labels.back}
-            </Link>
-            <h1 className="mt-4 font-serif text-3xl tracking-[-0.02em] sm:text-4xl">
-              {collection.title}
-            </h1>
-            <p className="text-ivory/55 mt-1 text-sm">
-              {collection.editionLabel}
-              {collection.editionLabel ? " · " : ""}
-              {labels.page.toLowerCase()} 1 {labels.of} {catalogue.pageCount}
-            </p>
+    <>
+      <JsonLdScripts
+        documents={collectionStructuredData(locale, dictionary, collection)}
+        enabled={!collection.isDemo}
+      />
+      <main
+        id="main-content"
+        className="surface-deep text-ivory min-h-svh py-10 sm:py-14"
+      >
+        <Container size="wide">
+          <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <Breadcrumbs
+                items={breadcrumbs}
+                label={dictionary.common.breadcrumbs}
+                inverse
+              />
+              <h1 className="mt-4 font-serif text-3xl tracking-[-0.02em] sm:text-4xl">
+                {collection.title}
+              </h1>
+              <p className="text-ivory/55 mt-1 text-sm">
+                {collection.editionLabel}
+                {collection.editionLabel ? " · " : ""}
+                {labels.page.toLowerCase()} 1 {labels.of} {catalogue.pageCount}
+              </p>
+            </div>
           </div>
-        </div>
 
-        <CatalogueReader
-          pages={pages}
-          pageSize={{
-            width: catalogue.pageWidth,
-            height: catalogue.pageHeight,
-          }}
-          labels={labels}
-          storageKey={`reddoor:catalogue:${collection.id}:${catalogue.assetVersion}`}
-          backHref={backHref}
-        />
-      </Container>
-    </main>
+          <CatalogueReader
+            pages={pages}
+            pageSize={{
+              width: catalogue.pageWidth,
+              height: catalogue.pageHeight,
+            }}
+            labels={labels}
+            storageKey={`reddoor:catalogue:${collection.id}:${catalogue.assetVersion}`}
+            backHref={landingHref}
+          />
+        </Container>
+      </main>
+    </>
   );
 }

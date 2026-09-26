@@ -6,11 +6,32 @@ const dictionary = {
     siteTitle: "Red Door — Lackkunst aus Ha Thai, Vietnam",
     siteDescription:
       "Red Door fertigt handgemachte Lackwaren im Handwerksdorf Ha Thai bei Hanoi: Tabletts, Schatullen, Untersetzer und Dekorobjekte, in Schichten lackiert, nass geschliffen und von Hand poliert. SGS-geprüft nach europäischen Standards, exportiert in die USA und nach Europa.",
+    pageDescriptions: {
+      home: "Handgemachte Lackwaren von Red Door aus dem Lackdorf Ha Thai bei Hanoi: Tabletts, Schatullen, Untersetzer, Schalen und Vasen. SGS-geprüft nach EU-Standards.",
+      about:
+        "Red Door ist eine Werkstatt für vietnamesische Lackkunst im Dorf Ha Thai bei Hanoi: traditionelle Technik, modernes Design, SGS-geprüft nach EU-Standards.",
+      products:
+        "Handgemachte Lackwaren von Red Door: Tabletts, Schatullen, Schalen, Vasen und Dekorobjekte – in Schichten lackiert, nass geschliffen, von Hand poliert.",
+      collections:
+        "Lackwaren-Kollektionen und Kataloge von Red Door: jedes Jahr Tabletts, Schatullen, Schalen, Vasen und Dekorobjekte, von Hand gefertigt in Ha Thai, Vietnam.",
+      process:
+        "So entsteht vietnamesische Lackkunst bei Red Door: Kernaufbau, Grundierung, Lackschichten, Nassschliff und Politur – Dutzende Schritte, keiner überhastet.",
+      news: "Neuigkeiten und Geschichten aus der Lackwaren-Werkstatt Red Door in Ha Thai: neue Kollektionen, internationale Messen und der Weg jeder polierten Oberfläche.",
+      contact:
+        "Kontaktieren Sie Red Door für Katalog oder Angebot zu Lackwaren: Tabletts, Schatullen, Schalen, Vasen, eigene Entwürfe und Exportaufträge aus Ha Thai bei Hanoi.",
+      shop: "Lackwaren direkt aus der Werkstatt Red Door kaufen: handgemachte Tabletts, Schatullen, Untersetzer und Schalen vorrätig, Preise in VND und USD.",
+      privacy:
+        "Datenschutzerklärung von Red Door: welche Daten wir bei Kontaktaufnahme oder Angebotsanfrage erheben, wie wir sie verwenden und wie Sie uns erreichen.",
+      terms:
+        "Nutzungsbedingungen der Red Door Website, betrieben von der RED DOOR Co., Ltd.: geistiges Eigentum, Produktangaben zu Lackwaren, Angebote und Bestellungen.",
+      accessibility:
+        "Erklärung zur Barrierefreiheit der Red Door Website: unser Anspruch nach WCAG 2.1 AA, bekannte Einschränkungen und wie Sie uns Feedback geben.",
+    },
   },
   common: {
     updatingLabel: "Wird aktualisiert",
     skipToContent: "Zum Hauptinhalt springen",
-    learnMore: "Mehr erfahren",
+    learnMore: "So entsteht unser Lackwerk",
     explore: "Entdecken",
     viewAll: "Alle anzeigen",
     close: "Schließen",
@@ -26,6 +47,7 @@ const dictionary = {
     playVideo: "Video abspielen",
     updatingNotice:
       "Dieser Abschnitt wird derzeit von der Werkstatt fertiggestellt.",
+    breadcrumbs: "Brotkrumen-Navigation",
   },
   nav: {
     home: "Startseite",
@@ -39,8 +61,8 @@ const dictionary = {
   },
   home: {
     eyebrow: "RED DOOR — LACK AUS HA THAI",
-    title: "Eine lebendige Oberfläche,",
-    titleAccent: "von Hand geformt",
+    title: "Vietnamesische Lackkunst,",
+    titleAccent: "von Hand geformt, Schicht für Schicht",
     heroDescription:
       "Das Wesen vietnamesischer Lackkunst wird in jeder Schicht bewahrt — jedes Produkt ist ein Zusammenspiel von Natur und Handwerkskunst.",
     craftTitle: "Eine Materialgeschichte in Schichten",
@@ -55,27 +77,40 @@ const dictionary = {
     contactTitleAccent: "beginnen",
     contactBody:
       "Sagen Sie uns, was Sie suchen — eine verfügbare Kollektion, einen eigenen Entwurf oder einen Exportauftrag. Das Red-Door-Team antwortet so schnell wie möglich.",
+    heroImageAlt:
+      "Red-Door-Lackwaren-Set: Tablett, Vase, Schatullen, Untersetzer, Schale und eine Lotus-Lacktafel in Rot und Gold",
+    craftImageAlt:
+      "Kunsthandwerker poliert von Hand ein rotes Lacktablett mit goldenem Blütenmotiv, daneben Blattgold",
+    closingImageAlt:
+      "Die roten Türen der Werkstatt von Red Door Co., Ltd in Vietnam",
   },
   pages: {
     aboutTitle: "Über uns",
+    aboutHeading: "Über uns — Lackwerkstatt in Ha Thai, Hanoi",
     aboutIntro:
       "Red Door ist eine Lackwerkstatt im Handwerksdorf Ha Thai bei Hanoi, wo das Handwerk seit Generationen weitergegeben wird. Wir verbinden traditionelle Technik mit zeitgenössischem Design und bringen vietnamesische Lackkunst in Wohnräume auf der ganzen Welt.",
     productsTitle: "Produkte",
+    productsHeading: "Lackwaren: Tabletts, Schatullen, Schalen, Vasen",
     productsIntro:
       "Tabletts, Schatullen, Untersetzer, Gefäße und Dekorobjekte — jedes Stück entsteht von Hand in der Werkstatt Ha Thai, in Schichten lackiert, nass geschliffen und von Hand poliert.",
     collectionsTitle: "Kollektionen",
+    collectionsHeading: "Lackwaren-Kollektionen und Kataloge",
     collectionsIntro:
       "Jedes Jahr stellt Red Door eine neue Kollektion vor — Ergebnis der fortlaufenden Arbeit der Werkstatt an Material, Farbe und Oberfläche. Öffnen Sie jeden Katalog für das gesamte Sortiment.",
     processTitle: "Lackverfahren",
+    processHeading: "Wie vietnamesische Lackkunst entsteht",
     processIntro:
       "Ein fertiges Lackstück durchläuft Dutzende Arbeitsschritte: Kernaufbau, Grundierung, Lackschichten, Nassschliff und Politur. Keiner davon lässt sich beschleunigen.",
     newsTitle: "Neuigkeiten und Geschichten",
+    newsHeading: "Neuigkeiten aus der Lackwerkstatt",
     newsIntro:
       "Notizen aus der Werkstatt Ha Thai: neue Kollektionen, internationale Messen und die Geschichten hinter jeder lackierten Oberfläche.",
     contactTitle: "Kontakt und Angebotsanfrage",
+    contactHeading: "Kontakt und Angebot für Lackwaren",
     contactIntro:
       "Kontaktieren Sie Red Door für einen Katalog, ein Angebot oder ein Gespräch über einen Sonderauftrag. Wir arbeiten direkt mit Händlern, Designern und Marken weltweit.",
     shopTitle: "Shop",
+    shopHeading: "Lackwaren-Shop — direkt aus der Werkstatt",
     shopIntro:
       "Lackwaren, die in der Werkstatt vorrätig sind und direkt bestellt werden können. Wir bestätigen jede Bestellung und nennen die Versandkosten vor dem Versand.",
     searchTitle: "Suchen",
@@ -105,6 +140,7 @@ const dictionary = {
       "Französisches Fernsehen: Vietnamesische Lackkunst erobert die Welt",
     mediaFranceDescription:
       "Ein Dokumentarfilm des französischen Fernsehens über die exquisite Kunst der vietnamesischen Lackarbeiten, strenge Qualitätsstandards und ihre Beliebtheit in Europa.",
+    videoUnsupported: "Ihr Browser unterstützt keine eingebetteten Videos.",
     pillarKicker: "Grundwerte",
     pillarsDescription:
       "Drei Dinge, die sich bei keinem Stück ändern, das die Red-Door-Werkstatt verlässt.",
@@ -298,7 +334,7 @@ const dictionary = {
   legal: {
     lastUpdated: "Stand: August 2026",
     privacyIntro:
-      "Red Door respektiert die Privatsphäre seiner Besucher. Diese Erklärung beschreibt, welche Informationen wir bei der Nutzung von lacquerware.vn erheben und wie wir sie verwenden.",
+      "Red Door respektiert die Privatsphäre seiner Besucher. Diese Erklärung beschreibt, welche Informationen wir bei der Nutzung von reddoor.vn erheben und wie wir sie verwenden.",
     privacySections: [
       {
         title: "Welche Daten wir erheben",
@@ -314,7 +350,7 @@ const dictionary = {
       },
     ],
     termsIntro:
-      "Die folgenden Bedingungen gelten für den Zugriff auf und die Nutzung von lacquerware.vn, betrieben von der RED DOOR Co., Ltd.",
+      "Die folgenden Bedingungen gelten für den Zugriff auf und die Nutzung von reddoor.vn, betrieben von der RED DOOR Co., Ltd.",
     termsSections: [
       {
         title: "Geistiges Eigentum",

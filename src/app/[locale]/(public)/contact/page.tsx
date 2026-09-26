@@ -5,7 +5,9 @@ import { ContactRequestQuotePage } from "@/components/public/pages";
 import { isLocale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { getDemoContactRequestQuotePageData } from "@/lib/public/demo-page-data";
+import { JsonLdScripts } from "@/lib/seo/json-ld";
 import { getDemoStaticPageMetadata } from "@/lib/seo/route-metadata";
+import { sectionStructuredData } from "@/lib/seo/structured-data";
 
 type ContactRouteProps = {
   params: Promise<{ locale: string }>;
@@ -40,12 +42,20 @@ export default async function ContactRoute({
   const preselectedProductIds = requested.filter((id) => known.has(id));
 
   return (
-    <ContactRequestQuotePage
-      data={data}
-      dictionary={dictionary}
-      isDemo={data.contentIsDemo}
-      preselectedProductIds={preselectedProductIds}
-      submitQuoteRequest={submitQuoteRequestAction}
-    />
+    <>
+      <JsonLdScripts
+        documents={sectionStructuredData(locale, dictionary, {
+          name: dictionary.nav.contact,
+          path: "/contact",
+        })}
+      />
+      <ContactRequestQuotePage
+        data={data}
+        dictionary={dictionary}
+        isDemo={data.contentIsDemo}
+        preselectedProductIds={preselectedProductIds}
+        submitQuoteRequest={submitQuoteRequestAction}
+      />
+    </>
   );
 }

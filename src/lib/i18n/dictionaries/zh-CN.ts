@@ -3,14 +3,35 @@ import type { PublicDictionary } from "../dictionary";
 const dictionary = {
   meta: {
     siteName: "Red Door",
-    siteTitle: "Red Door — 越南下泰村漆器",
+    siteTitle: "Red Door — 越南漆器 · 河内下泰村手工漆器",
     siteDescription:
       "Red Door 在河内近郊的下泰漆艺村手工制作漆器：托盘、盒具、杯垫与装饰摆件，层层髹涂、水磨、手工推光。产品通过 SGS 欧盟标准检测，远销美国与欧洲。",
+    pageDescriptions: {
+      home: "Red Door 在河内近郊的下泰漆艺村手工制作越南漆器：托盘、盒具、杯垫、碗、花瓶与漆画。产品通过 SGS 欧盟标准检测，远销美国与欧洲。",
+      about:
+        "Red Door 是位于河内近郊下泰漆艺村的越南漆器工坊，将传统技法与当代设计相结合，产品通过 SGS 欧盟标准检测，出口美国与欧洲。",
+      products:
+        "Red Door 手工越南漆器产品：托盘、盒具、杯垫、碗、花瓶与装饰摆件，层层髹涂、水磨、手工推光。欢迎申请报价。",
+      collections:
+        "Red Door 越南漆器系列与画册：每年推出的手工托盘、盒具、碗、花瓶与装饰摆件，打开每本画册即可浏览全部作品。",
+      process:
+        "越南漆器的制作工序 — Red Door 工坊的制胎、裱布刮灰、髹涂、水磨与推光。数十道工序，每一道都急不得。",
+      news: "越南漆器资讯与 Red Door 工坊故事：新系列、国际展会，以及每一片手工漆面背后的故事。",
+      contact:
+        "联系 Red Door 索取画册或申请越南漆器报价：托盘、盒具、碗、花瓶、定制设计与出口订单，来自河内近郊下泰村的工坊。",
+      shop: "Red Door 越南漆器商店：工坊现货的手工托盘、盒具、杯垫与碗，以越南盾和美元标价，可直接下单。",
+      privacy:
+        "Red Door 隐私政策：说明您联系我们或申请报价时我们收集的信息、使用方式，以及如何就您的数据与我们联系。",
+      terms:
+        "由 RED DOOR Co., Ltd. 运营的 Red Door 网站使用条款：知识产权、漆器产品信息、报价与订购。",
+      accessibility:
+        "Red Door 网站无障碍声明：我们对 WCAG 2.1 AA 的承诺、已知的不足之处，以及如何向我们反馈。",
+    },
   },
   common: {
     updatingLabel: "更新中",
     skipToContent: "跳至主要内容",
-    learnMore: "了解更多",
+    learnMore: "了解漆器的制作过程",
     explore: "探索",
     viewAll: "查看全部",
     close: "关闭",
@@ -25,6 +46,7 @@ const dictionary = {
     featured: "精选",
     playVideo: "播放视频",
     updatingNotice: "此栏目的内容正在由工坊完善中。",
+    breadcrumbs: "面包屑导航",
   },
   nav: {
     home: "首页",
@@ -37,9 +59,9 @@ const dictionary = {
     contact: "联系我们",
   },
   home: {
-    eyebrow: "RED DOOR — 下泰村漆艺",
-    title: "生动的表面，",
-    titleAccent: "由手工塑造",
+    eyebrow: "RED DOOR — 越南漆器 · 下泰村",
+    title: "手工越南漆器，",
+    titleAccent: "层层髹涂，由手工塑造",
     heroDescription:
       "越南漆艺的精髓蕴于每一层涂刷——每件产品都是自然与匠人之手的和谐交融。",
     craftTitle: "层层展开的材料故事",
@@ -54,27 +76,39 @@ const dictionary = {
     contactTitleAccent: "交流",
     contactBody:
       "请告诉我们您在寻找什么——现有系列、定制设计或出口订单。Red Door 团队将尽快回复您。",
+    heroImageAlt:
+      "Red Door 漆器套组：托盘、花瓶、盒具、杯垫、碗，以及一幅红金配色的莲花漆板",
+    craftImageAlt:
+      "匠人正在手工推光一件绘有金色花卉纹样的红漆托盘，旁边放着金箔",
+    closingImageAlt: "位于越南的 Red Door Co., Ltd 工坊的红色大门",
   },
   pages: {
     aboutTitle: "关于我们",
+    aboutHeading: "关于我们 — 下泰村漆器工坊",
     aboutIntro:
       "Red Door 的工坊位于河内近郊的下泰漆艺村——漆艺在这里世代相传。我们将传统技法与当代设计相结合，把越南漆器带入世界各地的生活空间。",
     productsTitle: "产品",
+    productsHeading: "越南漆器产品：托盘、盒具、碗、花瓶",
     productsIntro:
       "托盘、盒具、杯垫、器皿与装饰摆件——每一件都在下泰工坊手工制作，层层髹涂、水磨、手工推光。",
     collectionsTitle: "系列",
+    collectionsHeading: "越南漆器系列与画册",
     collectionsIntro:
       "Red Door 每年推出一个新系列——这是工坊在材料、色彩与表面工艺上持续探索的成果。打开每本画册即可浏览全部作品。",
     processTitle: "漆艺工序",
+    processHeading: "越南漆器的制作工序",
     processIntro:
       "一件完整的漆器要经过数十道工序：制胎、裱布刮灰、髹涂、水磨、推光。每一道工序都急不得。",
     newsTitle: "资讯与故事",
+    newsHeading: "漆器资讯与工坊故事",
     newsIntro:
       "来自下泰工坊的手记：新系列、国际展会，以及每一片漆面背后的故事。",
     contactTitle: "联系与报价申请",
+    contactHeading: "联系与漆器报价申请",
     contactIntro:
       "欢迎联系 Red Door 索取画册、获取报价或洽谈定制订单。我们与世界各地的零售商、设计师和品牌直接合作。",
     shopTitle: "商店",
+    shopHeading: "越南漆器商店 — 工坊直购",
     shopIntro: "工坊现货漆器，可直接下单。我们会确认订单并在发货前告知运费。",
     searchTitle: "搜索",
     privacyTitle: "隐私政策",
@@ -91,15 +125,16 @@ const dictionary = {
     mediaFeaturesEyebrow: "媒体与电视报道",
     mediaFeaturesTitle: "漆器艺术亮相国内外权威电视台",
     mediaFeaturesDescription:
-      "通过权威纪录片，展现传承河泰漆艺村传统工艺与推动越南手工艺术走向世界舞台的历程。",
+      "通过权威纪录片，展现传承下泰漆艺村传统工艺与推动越南手工艺术走向世界舞台的历程。",
     mediaVtvChannel: "VTV — 越南国家电视台",
-    mediaVtvTitle: "VTV专题报道：守护河泰漆艺村的工艺精髓与灵魂",
+    mediaVtvTitle: "VTV专题报道：守护下泰漆艺村的工艺精髓与灵魂",
     mediaVtvDescription:
-      "越南国家电视台（VTV）专题报道，真实记录Red Door工坊与河泰手工艺村细腻繁复的漆艺制作工序与文化传承。",
+      "越南国家电视台（VTV）专题报道，真实记录Red Door工坊与下泰手工艺村细腻繁复的漆艺制作工序与文化传承。",
     mediaFranceChannel: "法国国家电视台 — France TV",
     mediaFranceTitle: "法国国家电视台：越南漆器艺术闪耀国际舞台",
     mediaFranceDescription:
       "法国电视台纪录片专题，赞誉越南传统漆艺的卓越品质与工艺标准，展现Red Door作品在欧洲市场的独特魅力。",
+    videoUnsupported: "您的浏览器不支持在线播放视频。",
     pillarKicker: "核心价值",
     pillarsDescription: "每一件走出 Red Door 工坊的作品都不变的三件事。",
     pillarCraftTitle: "全程手作",
@@ -164,9 +199,9 @@ const dictionary = {
       "从天然大漆原液经由匠人巧手雕琢，蜕变为极具文化底蕴与美学价值的艺术杰作。",
     playVideo1: "观看越南漆画艺术视频",
     video2Eyebrow: "传统大漆工艺与匠人精神",
-    video2Title: "匠人武辉门：守护河泰传统漆艺薪火",
+    video2Title: "匠人武辉门：守护下泰传统漆艺薪火",
     video2Paragraph1:
-      "河泰漆艺村匠人武辉门倾注心血，矢志传承天然生漆制作传统漆画的精湛技艺。",
+      "下泰漆艺村匠人武辉门倾注心血，矢志传承天然生漆制作传统漆画的精湛技艺。",
     video2Paragraph2:
       "其作品融汇传统大漆与个人创新，在工业漆冲击下坚守本真漆艺的深邃魅力。",
     playVideo2: "观看武辉门大师专访视频",
@@ -279,7 +314,7 @@ const dictionary = {
   legal: {
     lastUpdated: "更新：2026 年 8 月",
     privacyIntro:
-      "Red Door 尊重访问者的隐私。本政策说明您使用 lacquerware.vn 时我们收集哪些信息，以及我们如何使用这些信息。",
+      "Red Door 尊重访问者的隐私。本政策说明您使用 reddoor.vn 时我们收集哪些信息，以及我们如何使用这些信息。",
     privacySections: [
       {
         title: "我们收集的信息",
@@ -295,7 +330,7 @@ const dictionary = {
       },
     ],
     termsIntro:
-      "以下条款适用于访问和使用由 RED DOOR Co., Ltd. 运营的 lacquerware.vn。",
+      "以下条款适用于访问和使用由 RED DOOR Co., Ltd. 运营的 reddoor.vn。",
     termsSections: [
       {
         title: "知识产权",

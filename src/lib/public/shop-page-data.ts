@@ -93,10 +93,12 @@ export async function getShopItemPageData(
 
   return {
     contentIsDemo: content.isDemo,
-    backLink: {
-      href: localePath(locale, "/shop"),
-      label: dictionary.shop.backToShop,
-    },
+    // Same labels as the BreadcrumbList JSON-LD (nav.*, not pages.*Title).
+    breadcrumbs: [
+      { href: localePath(locale, "/"), label: dictionary.nav.home },
+      { href: localePath(locale, "/shop"), label: dictionary.nav.shop },
+      { href: itemHref(locale, item), label: item.name },
+    ],
     descriptionParagraphs: item.descriptionParagraphs,
     gallery: item.images.map(toMedia),
     inStock: item.inStock,

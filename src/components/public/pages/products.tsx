@@ -4,6 +4,7 @@ import { ProductFilterSelect } from "./product-filter-select";
 
 import {
   ActionLink,
+  Breadcrumbs,
   MediaFrame,
   PageFrame,
   PageHero,
@@ -169,7 +170,7 @@ export function ProductListingPage({
       <PageNotices dictionary={dictionary} isDemo={isDemo} notices={notices} />
       <PageHero
         eyebrow={data.heroEyebrow}
-        title={dictionary.pages.productsTitle}
+        title={dictionary.pages.productsHeading}
         intro={dictionary.pages.productsIntro}
         media={data.heroMedia}
       />
@@ -368,8 +369,9 @@ export interface ProductProcessStepView {
 export interface ProductDetailPageData {
   /** True while the records behind this page are still placeholders. */
   contentIsDemo: boolean;
-  backLink: PublicPageLink;
   badges: readonly string[];
+  /** Home → products → this product; the same labels as the JSON-LD trail. */
+  breadcrumbs: readonly PublicPageLink[];
   categoryLabel: string;
   dimensions: string | null;
   finish: string | null;
@@ -406,13 +408,10 @@ export function ProductDetailPage({
     <PageFrame>
       <PageNotices dictionary={dictionary} isDemo={isDemo} notices={notices} />
       <div className="mx-auto max-w-7xl px-[var(--space-page)] pt-8">
-        <a
-          href={data.backLink.href}
-          className="text-burgundy hover:text-lacquer inline-flex min-h-11 items-center gap-2 text-sm font-semibold"
-        >
-          <span aria-hidden="true">←</span>
-          {data.backLink.label}
-        </a>
+        <Breadcrumbs
+          items={data.breadcrumbs}
+          label={dictionary.common.breadcrumbs}
+        />
       </div>
 
       <section className="mx-auto grid max-w-7xl gap-10 px-[var(--space-page)] py-10 lg:grid-cols-[minmax(0,1.15fr)_minmax(22rem,0.85fr)] lg:gap-16 lg:py-16">
@@ -437,6 +436,7 @@ export function ProductDetailPage({
                     className={
                       index === 0 ? "aspect-4/5 sm:aspect-4/3" : "aspect-square"
                     }
+                    preload={index === 0}
                   />
                   {media.src ? (
                     <a

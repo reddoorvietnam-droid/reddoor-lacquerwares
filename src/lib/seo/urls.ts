@@ -3,14 +3,31 @@ import {
   localePath,
   locales,
   type Locale,
+  type LocalizedSlug,
 } from "@/lib/i18n/config";
+import { assertProductionSiteUrl } from "@/lib/seo/site-url-guard";
 
-const DEFAULT_SITE_URL = "http://localhost:3000";
+export { isLoopbackUrl } from "@/lib/seo/site-url-guard";
+
 const SAFE_SLUG_PATTERN = /^[\p{L}\p{N}]+(?:-[\p{L}\p{N}]+)*$/u;
 
-export function getSiteUrl(
-  value = process.env.NEXT_PUBLIC_SITE_URL ?? DEFAULT_SITE_URL,
-): URL {
+/**
+ * The public origin every canonical link, hreflang and sitemap entry is built
+ * on, resolved by `site-url-guard` exactly as `next.config.ts` resolves it at
+ * build time. Precedence: an explicit non-loopback `NEXT_PUBLIC_SITE_URL`
+ * (https://reddoor.vn in production) → Vercel's production domain
+ * (`VERCEL_PROJECT_PRODUCTION_URL`) → `http://localhost:3000` for
+ * development and tests. Under NODE_ENV=production the guard refuses a
+ * loopback, plain-http or *.vercel.app origin unless
+ * `ALLOW_LOOPBACK_SITE_URL=1` (local `next build`/`next start` only), because
+ * a localhost canonical tells Google the whole live site is a copy of a page
+ * it cannot reach.
+ */
+function configuredSiteUrl(): string {
+  return assertProductionSiteUrl(process.env).url;
+}
+
+export function getSiteUrl(value = configuredSiteUrl()): URL {
   const siteUrl = new URL(value);
 
   if (siteUrl.protocol !== "http:" && siteUrl.protocol !== "https:") {
@@ -103,4 +120,66 @@ export function localizedRouteAlternates(
       ? { "x-default": absoluteUrl(defaultRoute.path, siteUrl) }
       : {}),
   };
+}
+
+/**
+ * An image address as an absolute URL: CDN links pass through, site-relative
+ * paths resolve against the public origin, anything else is dropped.
+ */
+export function absoluteMediaUrl(
+  src: string | null | undefined,
+  siteUrl: URL = getSiteUrl(),
+): string | null {
+  if (!src) return null;
+
+  try {
+    const url = new URL(src, siteUrl);
+    return url.protocol === "http:" || url.protocol === "https:"
+      ? url.toString()
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+export type TranslatedRecord = {
+  readonly locale: Locale;
+  readonly slug: string;
+  readonly contentLocale: Locale;
+  readonly translations: readonly LocalizedSlug[];
+};
+
+/**
+ * Canonical and hreflang routes for a record whose slug differs per language.
+ * Only real translations become alternates, each at its own slug. A page
+ * showing another locale's copy canonicalizes to that original, so the
+ * untranslated copy never competes with it as a duplicate.
+ */
+export function translatedRoutes(
+  record: TranslatedRecord,
+  pathForSlug: (encodedSlug: string) => string,
+): {
+  routes: { locale: Locale; path: string }[];
+  canonicalPath: string;
+} {
+  const routeFor = (locale: Locale, slug: string) => ({
+    locale,
+    path: localePath(locale, pathForSlug(encodeSeoSlug(slug))),
+  });
+  const routes = record.translations
+    .filter((translation) => isSafeSeoSlug(translation.slug))
+    .map((translation) => routeFor(translation.locale, translation.slug));
+
+  if (
+    record.contentLocale === record.locale &&
+    !routes.some((route) => route.locale === record.locale)
+  ) {
+    routes.push(routeFor(record.locale, record.slug));
+  }
+
+  const canonical =
+    routes.find((route) => route.locale === record.contentLocale) ??
+    routeFor(record.locale, record.slug);
+
+  return { routes, canonicalPath: canonical.path };
 }

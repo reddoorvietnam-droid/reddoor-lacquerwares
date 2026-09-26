@@ -3,6 +3,7 @@ import "server-only";
 import type { AboutHistoryPageData } from "@/components/public/pages/about-history";
 import type {
   CollectionCardView,
+  CollectionLandingPageData,
   CollectionListingPageData,
 } from "@/components/public/pages/collections";
 import type { ContactRequestQuotePageData } from "@/components/public/pages/contact-request-quote";
@@ -116,6 +117,10 @@ function newsHref(locale: Locale, article: PublicNewsArticle): string {
   return localePath(locale, `/news/${article.slug}`);
 }
 
+function collectionHref(locale: Locale, collection: PublicCollection): string {
+  return localePath(locale, `/collections/${collection.slug}`);
+}
+
 function uniqueOptions(
   entries: readonly ProductFilterOptionView[],
 ): ProductFilterOptionView[] {
@@ -164,11 +169,9 @@ function mapCollectionCard(
 
   return {
     id: collection.id,
-    // The catalogue reader is the collection's only page now; until a PDF is
-    // attached the card announces the collection without linking anywhere.
-    href: hasCatalogue
-      ? localePath(locale, `/collections/${collection.slug}/catalogue`)
-      : null,
+    // The card opens the collection's landing page, which exists whether or
+    // not a catalogue is attached; the reader is reached from there.
+    href: collectionHref(locale, collection),
     title: collection.title,
     excerpt: collection.summary,
     cover: toPageMedia(collection.cover),
@@ -195,7 +198,13 @@ function formatPublishedDate(
 
   return {
     dateTime: value,
-    label: new Intl.DateTimeFormat(locale, { dateStyle: "long" }).format(date),
+    // The newsroom's calendar day, whatever timezone the server runs in
+    // (UTC on Vercel): a 23:30 Hanoi publish must not read as the day before.
+    // Date-only demo values parse as UTC midnight and land on the same day.
+    label: new Intl.DateTimeFormat(locale, {
+      dateStyle: "long",
+      timeZone: "Asia/Ho_Chi_Minh",
+    }).format(date),
   };
 }
 
@@ -685,11 +694,16 @@ export async function getDemoProductDetailPageData(
 
   return {
     contentIsDemo: product.isDemo,
-    backLink: {
-      href: localePath(locale, "/products"),
-      label: dictionary.pages.productsTitle,
-    },
     badges: product.tags,
+    // Same labels as the BreadcrumbList JSON-LD (nav.*, not pages.*Title).
+    breadcrumbs: [
+      { href: localePath(locale, "/"), label: dictionary.nav.home },
+      {
+        href: localePath(locale, "/products"),
+        label: dictionary.nav.products,
+      },
+      { href: productHref(locale, product), label: product.name },
+    ],
     categoryLabel: product.categoryLabel,
     dimensions,
     finish: product.finishLabel,
@@ -786,6 +800,60 @@ export async function getDemoCollectionListingPageData(
     resultSummary: `${collections.length} · ${dictionary.pages.collectionsTitle}`,
     yearLinks: [],
     yearNavigationLabel: dictionary.pages.collectionsTitle,
+  };
+}
+
+/**
+ * The collection's landing page. The route has already resolved and guarded
+ * the record, so this only shapes it: the copy, the cover, the reader link
+ * when a catalogue exists, and the collection's products as the same cards
+ * the listing uses, so each links to its own page by name.
+ */
+export async function getCollectionLandingPageData(
+  locale: Locale,
+  dictionary: PublicDictionary,
+  collection: PublicCollection,
+): Promise<CollectionLandingPageData> {
+  const products = await productRepository.list(locale, {
+    collectionId: collection.id,
+  });
+  const hasCatalogue =
+    collection.flipbook.pageCount !== null && collection.flipbook.pageCount > 0;
+
+  return {
+    contentIsDemo:
+      collection.isDemo || products.some((product) => product.isDemo),
+    // Same labels as the BreadcrumbList JSON-LD (nav.*, not pages.*Title).
+    breadcrumbs: [
+      { href: localePath(locale, "/"), label: dictionary.nav.home },
+      {
+        href: localePath(locale, "/collections"),
+        label: dictionary.nav.collections,
+      },
+      { href: collectionHref(locale, collection), label: collection.title },
+    ],
+    title: collection.title,
+    editionLabel: collection.editionLabel,
+    summary: collection.summary,
+    introParagraphs: collection.introParagraphs,
+    cover: toPageMedia(collection.cover),
+    catalogueLink: hasCatalogue
+      ? {
+          href: `${collectionHref(locale, collection)}/catalogue`,
+          label: dictionary.collection.openBook,
+        }
+      : null,
+    availabilityNote: hasCatalogue
+      ? null
+      : collection.flipbook.availabilityNote,
+    productsHeading: dictionary.collection.viewProducts,
+    products: products.map((product) =>
+      mapProductCard(locale, dictionary, product),
+    ),
+    allProductsLink: {
+      href: localePath(locale, "/products"),
+      label: dictionary.common.viewAll,
+    },
   };
 }
 
@@ -913,10 +981,12 @@ export async function getDemoNewsArticlePageData(
   return {
     contentIsDemo: article.isDemo,
     authorName: article.author,
-    backLink: {
-      href: localePath(locale, "/news"),
-      label: dictionary.pages.newsTitle,
-    },
+    // Same labels as the BreadcrumbList JSON-LD (nav.*, not pages.*Title).
+    breadcrumbs: [
+      { href: localePath(locale, "/"), label: dictionary.nav.home },
+      { href: localePath(locale, "/news"), label: dictionary.nav.news },
+      { href: newsHref(locale, article), label: article.title },
+    ],
     blocks: article.content.flatMap((block, index): PublicContentBlock[] => {
       const id = `${article.id}-block-${index + 1}`;
       switch (block.type) {
@@ -1159,11 +1229,7 @@ export async function getDemoSearchPageData(
         )
         .map((collection) => ({
           id: collection.id,
-          href:
-            collection.flipbook.pageCount !== null &&
-            collection.flipbook.pageCount > 0
-              ? localePath(locale, `/collections/${collection.slug}/catalogue`)
-              : localePath(locale, "/collections"),
+          href: collectionHref(locale, collection),
           title: collection.title,
           excerpt: collection.summary,
           typeLabel: dictionary.nav.collections,

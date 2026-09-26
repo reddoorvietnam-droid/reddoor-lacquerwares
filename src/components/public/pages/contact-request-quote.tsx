@@ -128,7 +128,7 @@ export function ContactRequestQuotePage({
       <PageNotices dictionary={dictionary} isDemo={isDemo} notices={notices} />
       <PageHero
         eyebrow={data.heroEyebrow}
-        title={dictionary.pages.contactTitle}
+        title={dictionary.pages.contactHeading}
         intro={dictionary.pages.contactIntro}
         media={data.heroMedia}
       />

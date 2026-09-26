@@ -7,6 +7,7 @@ import {
   getContentEntryModel,
   getContentTranslationModel,
 } from "@/domains/content/persistence/models";
+import { BRAND_COPY, BRAND_DISPLAY_NAME } from "@/domains/content/brand-copy";
 import { MongoSiteSettingsRepository } from "@/domains/content/persistence/repositories";
 import type {
   PublicCompanyProfile,
@@ -16,15 +17,15 @@ import type {
   PublicHistoryMilestone,
   PublicProcessStage,
   PublicSiteSettings,
-  PublicSocialLink,
-  PublicSocialPlatform,
 } from "@/domains/content/public-contract";
 import { connectToDatabase } from "@/lib/db/mongoose";
+import { getBaseEnv } from "@/lib/env/server";
 import type { Locale } from "@/lib/i18n/config";
 import {
   deliveredImage,
   pendingImage,
   pickTranslation,
+  toPublicSocialLinks,
 } from "@/lib/public/published-mapping";
 
 /**
@@ -62,14 +63,6 @@ type LeanTranslation = {
   title: string;
   summary?: string;
 };
-
-const SOCIAL_PLATFORMS: readonly PublicSocialPlatform[] = [
-  "facebook",
-  "instagram",
-  "linkedin",
-  "pinterest",
-  "youtube",
-];
 
 const settingsRepository = new MongoSiteSettingsRepository();
 
@@ -170,28 +163,16 @@ function emptyContact(): PublicContactDetails {
 
 async function getSettings(locale: Locale): Promise<PublicSiteSettings> {
   const settings = await cachedSettings(locale);
+  const socialLinks = toPublicSocialLinks(settings?.socialLinks ?? []);
 
-  const socialLinks: PublicSocialLink[] = (settings?.socialLinks ?? [])
-    .map((link, index): PublicSocialLink | null => {
-      const platform = link.platform.trim().toLowerCase();
-      if (!(SOCIAL_PLATFORMS as readonly string[]).includes(platform)) {
-        return null;
-      }
-      return {
-        id: `social-${platform}-${index}`,
-        platform: platform as PublicSocialPlatform,
-        label: link.label,
-        href: link.url,
-        isDemo: false,
-      };
-    })
-    .filter((link): link is PublicSocialLink => link !== null);
-
-  // The map is derived from the published address rather than stored
-  // separately: a keyless Google Maps query needs nothing but the address
-  // text, so the two can never drift apart.
+  // The map link is the company's claimed Google Business Profile when the
+  // deployment names one; otherwise it is derived from the published address,
+  // because a keyless Google Maps query needs nothing but the address text,
+  // so the two can never drift apart. The embed always uses the address: a
+  // `/maps/place/` link cannot be framed.
   const address = settings?.translation.addressLabel ?? null;
   const mapQuery = address ? encodeURIComponent(address) : null;
+  const placeUrl = getBaseEnv().SEO_GOOGLE_MAPS_PLACE_URL ?? null;
 
   return {
     id: settings?.id ?? "site-settings",
@@ -204,7 +185,9 @@ async function getSettings(locale: Locale): Promise<PublicSiteSettings> {
       email: settings?.publicEmail ?? null,
       phone: settings?.publicPhone ?? null,
       address,
-      mapUrl: mapQuery ? `https://www.google.com/maps?q=${mapQuery}` : null,
+      mapUrl:
+        placeUrl ??
+        (mapQuery ? `https://www.google.com/maps?q=${mapQuery}` : null),
       mapEmbedUrl: mapQuery
         ? `https://maps.google.com/maps?q=${mapQuery}&output=embed`
         : null,
@@ -214,13 +197,12 @@ async function getSettings(locale: Locale): Promise<PublicSiteSettings> {
 }
 
 // Brand text is hardcoded on purpose — display copy must not follow the
-// MongoDB settings document.
-const BRAND_DISPLAY_NAME = "RED DOOR VIET NAM";
-const BRAND_TAGLINE = "Nghệ thuật sơn mài Việt Nam";
-
+// MongoDB settings document. The per-locale strings live in brand-copy.ts,
+// shared with the demo repository.
 async function getCompany(locale: Locale): Promise<PublicCompanyProfile> {
   const settings = await cachedSettings(locale);
   const name = settings?.translation.companyName ?? "";
+  const brand = BRAND_COPY[locale];
 
   return {
     id: settings?.id ?? "company",
@@ -228,8 +210,8 @@ async function getCompany(locale: Locale): Promise<PublicCompanyProfile> {
     isDemo: false,
     displayName: BRAND_DISPLAY_NAME,
     legalName: name,
-    eyebrow: BRAND_TAGLINE,
-    tagline: BRAND_TAGLINE,
+    eyebrow: brand.eyebrow,
+    tagline: brand.tagline,
     summary: settings?.translation.description ?? "",
     contentNotice: "",
     heroImage: pendingImage("home-hero-01", name, 3200, 2000),

@@ -1,7 +1,12 @@
 import type { Route } from "next";
 import Link from "next/link";
 
-import { localePath, type Locale } from "@/lib/i18n/config";
+import {
+  localeConfig,
+  localePath,
+  locales,
+  type Locale,
+} from "@/lib/i18n/config";
 import type { PublicDictionary } from "@/lib/i18n/dictionary";
 import { cn } from "@/lib/utils/cn";
 
@@ -160,6 +165,37 @@ export function PublicFooter({
             </div>
           ) : null}
         </div>
+
+        {/*
+          Crawlable links to every language version. The header switcher is a
+          client-side listbox whose options only exist while it is open, so
+          without this row the server HTML carries no <a href> into the other
+          five locale trees at all. Each link targets that locale's home,
+          whose own header and footer link the rest of its tree.
+        */}
+        <nav
+          aria-label={dictionary.common.language}
+          className="border-b border-white/12 py-6"
+        >
+          <ul className="flex flex-wrap items-center gap-x-6 gap-y-2">
+            {locales.map((option) => (
+              <li key={option}>
+                <Link
+                  href={localePath(option) as Route}
+                  hrefLang={option}
+                  lang={option}
+                  aria-current={option === locale ? "page" : undefined}
+                  className={cn(
+                    "hover:text-gold text-sm transition-colors",
+                    option === locale ? "text-gold" : "text-ivory/68",
+                  )}
+                >
+                  {localeConfig[option].label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
 
         {/*
           The mark already appears in the wordmark above; repeating it here

@@ -1,4 +1,4 @@
-import type { Locale } from "@/lib/i18n/config";
+import { locales, type Locale } from "@/lib/i18n/config";
 
 import type {
   PublicProduct,
@@ -1538,6 +1538,13 @@ function makeProducts(locale: Locale): readonly PublicProduct[] {
         isDemo: false,
         locale,
         slug: blueprint.slug,
+        // Every locale carries its own copy under the same slug.
+        contentLocale: locale,
+        translations: locales.map((candidate) => ({
+          locale: candidate,
+          slug: blueprint.slug,
+        })),
+        updatedAt: null,
         internalReference: null,
         name: copy.name,
         group: blueprint.group,

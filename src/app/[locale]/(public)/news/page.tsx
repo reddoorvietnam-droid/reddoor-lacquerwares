@@ -4,7 +4,9 @@ import { NewsListingPage } from "@/components/public/pages";
 import { isLocale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { getDemoNewsListingPageData } from "@/lib/public/demo-page-data";
+import { JsonLdScripts } from "@/lib/seo/json-ld";
 import { getDemoStaticPageMetadata } from "@/lib/seo/route-metadata";
+import { sectionStructuredData } from "@/lib/seo/structured-data";
 
 type NewsRouteProps = {
   params: Promise<{ locale: string }>;
@@ -20,11 +22,12 @@ export async function generateMetadata({
   searchParams,
 }: NewsRouteProps) {
   const [{ locale }, query] = await Promise.all([params, searchParams]);
-  return getDemoStaticPageMetadata(
-    locale,
-    "news",
-    firstValue(query.category).trim().length === 0,
-  );
+
+  // A category view is a filter over the same newsroom: crawlable, but
+  // neither indexed nor offered as a canonical or hreflang target.
+  return getDemoStaticPageMetadata(locale, "news", {
+    filteredView: firstValue(query.category).trim().length > 0,
+  });
 }
 
 export default async function NewsRoute({
@@ -43,10 +46,18 @@ export default async function NewsRoute({
   });
 
   return (
-    <NewsListingPage
-      data={data}
-      dictionary={dictionary}
-      isDemo={data.contentIsDemo}
-    />
+    <>
+      <JsonLdScripts
+        documents={sectionStructuredData(locale, dictionary, {
+          name: dictionary.nav.news,
+          path: "/news",
+        })}
+      />
+      <NewsListingPage
+        data={data}
+        dictionary={dictionary}
+        isDemo={data.contentIsDemo}
+      />
+    </>
   );
 }

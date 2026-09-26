@@ -131,7 +131,12 @@ export class ShopService {
     await this.#afterCommit(context, "shopItem.created", item.id, occurredAt, {
       after: { slug: item.slug, status: item.status },
     });
-    await this.#emit({ kind: "itemChanged", itemId: item.id, slug: item.slug });
+    await this.#emit({
+      kind: "itemChanged",
+      itemId: item.id,
+      slug: item.slug,
+      status: item.status,
+    });
     return item;
   }
 
@@ -160,12 +165,19 @@ export class ShopService {
       before: { slug: before.slug, stockQuantity: before.stockQuantity },
       after: { slug: item.slug, stockQuantity: item.stockQuantity },
     });
-    await this.#emit({ kind: "itemChanged", itemId: item.id, slug: item.slug });
+    await this.#emit({
+      kind: "itemChanged",
+      itemId: item.id,
+      slug: item.slug,
+      status: item.status,
+    });
     if (before.slug !== item.slug) {
+      // Nothing answers at the old slug any more: report it like a removal.
       await this.#emit({
         kind: "itemChanged",
         itemId: item.id,
         slug: before.slug,
+        previousStatus: before.status,
       });
     }
     return item;
@@ -205,7 +217,13 @@ export class ShopService {
       occurredAt,
       { before: { status: before.status }, after: { status: item.status } },
     );
-    await this.#emit({ kind: "itemChanged", itemId: item.id, slug: item.slug });
+    await this.#emit({
+      kind: "itemChanged",
+      itemId: item.id,
+      slug: item.slug,
+      status: item.status,
+      previousStatus: before.status,
+    });
     return item;
   }
 
@@ -235,7 +253,12 @@ export class ShopService {
         after: { count: item.images.length },
       },
     );
-    await this.#emit({ kind: "itemChanged", itemId: item.id, slug: item.slug });
+    await this.#emit({
+      kind: "itemChanged",
+      itemId: item.id,
+      slug: item.slug,
+      status: item.status,
+    });
     return item;
   }
 
@@ -262,6 +285,7 @@ export class ShopService {
       kind: "itemChanged",
       itemId: before.id,
       slug: before.slug,
+      previousStatus: before.status,
     });
   }
 

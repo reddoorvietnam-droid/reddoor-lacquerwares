@@ -9,12 +9,30 @@ export type PublicSitemapSource = {
   path?: string;
   isDemo: boolean;
   status: "draft" | "published";
-  lastModified?: string | Date;
+  lastModified?: string | Date | null;
   changeFrequency?: MetadataRoute.Sitemap[number]["changeFrequency"];
   priority?: number;
+  /** Absolute image URLs shown on the page, for Google Images. */
+  images?: readonly string[];
 };
 
 const PRIVATE_TOP_LEVEL_SEGMENTS = new Set(["admin", "api", "auth", "private"]);
+
+const XML_ENTITIES: Record<string, string> = {
+  "&": "&amp;",
+  "<": "&lt;",
+  ">": "&gt;",
+  '"': "&quot;",
+  "'": "&apos;",
+};
+
+/**
+ * Next writes sitemap image URLs into the XML verbatim, so a CDN address
+ * carrying `&` would break the whole file for every crawler.
+ */
+function escapeXml(value: string): string {
+  return value.replace(/[&<>"']/g, (character) => XML_ENTITIES[character]!);
+}
 
 export function isPublicSitemapPath(path: string): boolean {
   let normalizedPath: string;
@@ -83,6 +101,9 @@ export function buildPublicSitemap(
         : {}),
       ...(typeof source.priority === "number"
         ? { priority: source.priority }
+        : {}),
+      ...(source.images && source.images.length > 0
+        ? { images: source.images.map(escapeXml) }
         : {}),
       ...(Object.keys(languages).length > 0
         ? { alternates: { languages } }

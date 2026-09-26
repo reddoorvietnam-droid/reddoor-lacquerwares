@@ -1,4 +1,4 @@
-import type { Locale } from "@/lib/i18n/config";
+import type { Locale, LocalizedSlug } from "@/lib/i18n/config";
 
 /**
  * `"DEMO"` marks copy that is a stand-in and must not be read as a company
@@ -45,6 +45,15 @@ export interface PublicCollection {
   readonly isDemo: boolean;
   readonly locale: Locale;
   readonly slug: string;
+  /**
+   * The locale the title and catalogue are written in. Differs from `locale`
+   * when neither exists in this locale and the page falls back.
+   */
+  readonly contentLocale: Locale;
+  /** Every published translation and its slug, for hreflang and the sitemap. */
+  readonly translations: readonly LocalizedSlug[];
+  /** ISO timestamp of the last change, `null` when unknown. */
+  readonly updatedAt: string | null;
   readonly title: string;
   readonly editionLabel: string;
   /** `null` unless the company has confirmed the edition year. */

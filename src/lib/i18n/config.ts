@@ -12,6 +12,12 @@ export type Locale = keyof typeof localeConfig;
 export const locales = Object.keys(localeConfig) as Locale[];
 export const defaultLocale: Locale = "vi";
 
+/** One published language version of a record and the slug it lives at. */
+export type LocalizedSlug = {
+  readonly locale: Locale;
+  readonly slug: string;
+};
+
 export function isLocale(value: string): value is Locale {
   return Object.hasOwn(localeConfig, value);
 }

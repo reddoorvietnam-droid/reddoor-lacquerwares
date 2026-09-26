@@ -25,8 +25,11 @@ import {
 import type { Locale } from "@/lib/i18n/config";
 import {
   blocksToParagraphs,
+  hasTranslationSlug,
   pendingImage,
   pickTranslation,
+  preferExactSlug,
+  translationSlugs,
 } from "@/lib/public/published-mapping";
 import { productCategoryLabel } from "@/domains/products/categories";
 
@@ -167,6 +170,7 @@ function mapProduct(
   product: LeanProduct,
   version: LeanVersion,
   translation: LeanTranslation,
+  published: readonly LeanTranslation[],
   stored: readonly StoredImageDescriptor[],
   locale: Locale,
   sortOrder: number,
@@ -181,6 +185,9 @@ function mapProduct(
     isDemo: false,
     locale,
     slug: translation.slug,
+    contentLocale: translation.locale,
+    translations: translationSlugs(published),
+    updatedAt: product.updatedAt ? product.updatedAt.toISOString() : null,
     internalReference: product.sku,
     name: translation.title,
     // Documents written before the grouping existed default to the production
@@ -299,31 +306,30 @@ async function loadPublished(
     const version = versionKey ? versionById.get(versionKey) : undefined;
     if (!version || !versionKey) continue;
 
-    const translation = pickTranslation(
-      translationsByVersion.get(versionKey) ?? [],
-      locale,
-    );
+    const published = translationsByVersion.get(versionKey) ?? [];
+    const translation = pickTranslation(published, locale);
     if (!translation) continue;
-    if (options.slug && translation.slug !== options.slug) continue;
+    if (options.slug && !hasTranslationSlug(published, options.slug)) continue;
 
     mapped.push(
       mapProduct(
         product,
         version,
         translation,
+        published,
         galleries.get(product._id.toHexString()) ?? [],
         locale,
         mapped.length,
       ),
     );
   }
-  return mapped;
+  return preferExactSlug(mapped, options.slug);
 }
 
 const cachedLoad = unstable_cache(
   async (locale: Locale, options: Record<string, unknown>) =>
     loadPublished(locale, options),
-  ["public-products-v1"],
+  ["public-products-v2"],
   { revalidate: 300, tags: ["products:public"] },
 );
 

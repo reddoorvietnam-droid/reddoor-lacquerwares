@@ -66,6 +66,18 @@ function assertPageNumber(pageNumber: number): void {
   }
 }
 
+function assertImageWidth(width: number): void {
+  if (!Number.isInteger(width) || width < 16 || width > 3_200) {
+    throw new MediaStorageError(
+      "INVALID_REQUEST",
+      "That image width is not permitted.",
+    );
+  }
+}
+
+/** Frames offered for article images; Cloudinary spells them `ar_16:9`. */
+export type CroppedImageAspect = "16:9" | "4:3" | "1:1";
+
 function assertVersion(version: number): void {
   if (!Number.isInteger(version) || version < 1) {
     throw new MediaStorageError(
@@ -205,16 +217,30 @@ export class CloudinaryMediaStorage implements MediaStoragePort {
   }
 
   buildImageUrl(publicId: string, version: number, width: number): string {
-    if (!Number.isInteger(width) || width < 16 || width > 3_200) {
-      throw new MediaStorageError(
-        "INVALID_REQUEST",
-        "That image width is not permitted.",
-      );
-    }
+    assertImageWidth(width);
     return this.#deliveryUrl(
       publicId,
       version,
       `w_${width},c_limit,f_auto,q_auto`,
+    );
+  }
+
+  /**
+   * The same photograph cropped to a fixed frame, for the aspect ratios
+   * search engines ask for on article results. `c_fill,g_auto` fills the
+   * frame and lets Cloudinary pick the crop window around the subject.
+   */
+  buildCroppedImageUrl(
+    publicId: string,
+    version: number,
+    width: number,
+    aspect: CroppedImageAspect,
+  ): string {
+    assertImageWidth(width);
+    return this.#deliveryUrl(
+      publicId,
+      version,
+      `w_${width},ar_${aspect},c_fill,g_auto,f_auto,q_auto`,
     );
   }
 

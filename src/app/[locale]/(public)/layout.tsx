@@ -6,16 +6,13 @@ import {
   PublicFooter,
   PublicHeader,
 } from "@/components/public";
+import { BRAND_COPY, BRAND_DISPLAY_NAME } from "@/domains/content/brand-copy";
 import { isLocale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { notFound } from "next/navigation";
 import { getPublicContentRepository } from "@/lib/public/repositories";
 
 const contentRepository = getPublicContentRepository();
-
-// Hardcoded brand text — intentionally not read from the CMS/MongoDB snapshot.
-const BRAND_NAME = "RED DOOR VIET NAM";
-const BRAND_DESCRIPTOR = "Nghệ thuật sơn mài Việt Nam";
 
 type PublicLayoutProps = {
   children: ReactNode;
@@ -36,6 +33,11 @@ export default async function PublicLayout({
     getDictionary(locale),
     contentRepository.getSnapshot(locale),
   ]);
+  // The wordmark's name and descriptor are brand signage, deliberately not
+  // read from the CMS/MongoDB snapshot. The descriptor follows the locale so
+  // the header and footer of an English or French page do not lead with
+  // Vietnamese.
+  const brandDescriptor = BRAND_COPY[locale].tagline;
   const contact = content.settings.contact;
   const addressLines = contact.address ? [contact.address] : [];
   const contactLinks = [
@@ -46,7 +48,7 @@ export default async function PublicLayout({
       ? [
           {
             label: contact.phone,
-            href: `tel:${contact.phone.replace(/s+/g, "")}`,
+            href: `tel:${contact.phone.replace(/\s+/g, "")}`,
           },
         ]
       : []),
@@ -65,21 +67,21 @@ export default async function PublicLayout({
       */}
       <DoorIntroCurtain />
       <DoorIntro
-        brandName={BRAND_NAME}
+        brandName={BRAND_DISPLAY_NAME}
         title={`${dictionary.home.title} ${dictionary.home.titleAccent}`}
       />
       <PublicHeader
         locale={locale}
         dictionary={dictionary}
-        brandName={BRAND_NAME}
-        brandDescriptor={BRAND_DESCRIPTOR}
+        brandName={BRAND_DISPLAY_NAME}
+        brandDescriptor={brandDescriptor}
       />
       {children}
       <PublicFooter
         locale={locale}
         dictionary={dictionary}
-        brandName={BRAND_NAME}
-        brandDescriptor={BRAND_DESCRIPTOR}
+        brandName={BRAND_DISPLAY_NAME}
+        brandDescriptor={brandDescriptor}
         addressLines={addressLines}
         contactLinks={contactLinks}
         socialLinks={socialLinks}

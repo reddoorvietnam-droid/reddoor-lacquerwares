@@ -11,6 +11,16 @@ import {
 
 export type PublicMetadataKind = "article" | "website";
 
+export type PublicMetadataImage = {
+  url: string;
+  width?: number;
+  height?: number;
+  alt?: string;
+};
+
+/** Size of the generated brand card in `app/[locale]/opengraph-image.tsx`. */
+const BRAND_CARD_SIZE = { width: 1200, height: 630 } as const;
+
 export type PublicMetadataInput = {
   locale: Locale;
   path?: string;
@@ -19,9 +29,24 @@ export type PublicMetadataInput = {
   siteName: string;
   isDemo: boolean;
   indexable?: boolean;
+  /**
+   * A filtered or paginated view of an indexable listing (`?category=`,
+   * `?group=`, `?page=`...). Crawlable and followed so its links still count,
+   * but neither indexed nor offered as a canonical or hreflang target: the
+   * clean listing is the only version search engines should keep.
+   */
+  filteredView?: boolean;
   kind?: PublicMetadataKind;
   localizedRoutes?: readonly { locale: Locale; path: string }[];
   canonicalOverride?: string | null;
+  /**
+   * Share images, most representative first. Without them the generated
+   * brand card is used: a page's `openGraph` replaces its parent's wholesale,
+   * so leaving images out would ship the page with no preview at all.
+   */
+  images?: readonly PublicMetadataImage[];
+  publishedTime?: string | null;
+  modifiedTime?: string | null;
 };
 
 function canonicalOverrideUrl(value: string, siteUrl: URL): string {
@@ -62,6 +87,16 @@ export function publicRobots(indexable: boolean): Metadata["robots"] {
   };
 }
 
+/** `noindex, follow`: the single mechanism Google recommends for filter views. */
+const FILTERED_VIEW_ROBOTS: Metadata["robots"] = {
+  index: false,
+  follow: true,
+  googleBot: {
+    index: false,
+    follow: true,
+  },
+};
+
 export function buildPublicMetadata({
   locale,
   path = "",
@@ -70,9 +105,13 @@ export function buildPublicMetadata({
   siteName,
   isDemo,
   indexable = true,
+  filteredView = false,
   kind = "website",
   localizedRoutes,
   canonicalOverride,
+  images,
+  publishedTime,
+  modifiedTime,
 }: PublicMetadataInput): Metadata {
   const siteUrl = getSiteUrl();
   const currentRoute = localizedRoutes?.find(
@@ -87,6 +126,16 @@ export function buildPublicMetadata({
   const alternateLocales = (
     localizedRoutes?.map((route) => route.locale) ?? locales
   ).filter((candidate) => candidate !== locale);
+  const shareImages =
+    images && images.length > 0
+      ? images.map((image) => ({ ...image }))
+      : [
+          {
+            url: localizedUrl(locale, "/opengraph-image", siteUrl),
+            ...BRAND_CARD_SIZE,
+            alt: siteName,
+          },
+        ];
 
   return {
     metadataBase: siteUrl,
@@ -95,14 +144,19 @@ export function buildPublicMetadata({
     // "Red Door — Vietnamese Handcrafted Lacquer | Red Door".
     title: title.startsWith(siteName) ? { absolute: title } : title,
     description,
-    alternates: {
-      canonical,
-      languages:
-        localizedRoutes && localizedRoutes.length > 0
-          ? localizedRouteAlternates(localizedRoutes, siteUrl)
-          : languageAlternates(path, siteUrl),
-    },
-    robots: publicRobots(canIndex),
+    // `null`, never an omitted key: Next merges segment metadata key by key,
+    // so a missing `alternates` would keep the locale layout's canonical to
+    // the locale home on a page that must carry no canonical at all.
+    alternates: filteredView
+      ? null
+      : {
+          canonical,
+          languages:
+            localizedRoutes && localizedRoutes.length > 0
+              ? localizedRouteAlternates(localizedRoutes, siteUrl)
+              : languageAlternates(path, siteUrl),
+        },
+    robots: filteredView ? FILTERED_VIEW_ROBOTS : publicRobots(canIndex),
     openGraph: {
       type: kind,
       title,
@@ -113,11 +167,15 @@ export function buildPublicMetadata({
       alternateLocale: alternateLocales.map((candidate) =>
         candidate.replace("-", "_"),
       ),
+      images: shareImages,
+      ...(kind === "article" && publishedTime ? { publishedTime } : {}),
+      ...(kind === "article" && modifiedTime ? { modifiedTime } : {}),
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
+      images: shareImages,
     },
     ...(isDemo ? { other: { "content-status": "DEMO" } } : {}),
   };

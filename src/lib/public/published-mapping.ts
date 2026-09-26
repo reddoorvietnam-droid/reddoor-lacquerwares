@@ -1,6 +1,10 @@
 import "server-only";
 
-import type { Locale } from "@/lib/i18n/config";
+import type {
+  PublicSocialLink,
+  PublicSocialPlatform,
+} from "@/domains/content/public-contract";
+import type { Locale, LocalizedSlug } from "@/lib/i18n/config";
 
 /**
  * Shared mapping helpers for the Mongo-backed public repositories.
@@ -167,4 +171,95 @@ export function pickTranslation<T extends { locale: Locale }>(
     translations[0] ??
     null
   );
+}
+
+/** The published translations as one locale + slug pair per locale. */
+export function translationSlugs(
+  translations: readonly { locale: Locale; slug: string }[],
+): LocalizedSlug[] {
+  const byLocale = new Map<Locale, string>();
+  for (const entry of translations) {
+    if (!byLocale.has(entry.locale)) byLocale.set(entry.locale, entry.slug);
+  }
+  return [...byLocale].map(([locale, slug]) => ({ locale, slug }));
+}
+
+/**
+ * Whether a record answers a slug lookup. Any published translation counts:
+ * the locale switcher rewrites only the locale segment, so a URL often
+ * carries another language's slug. Finding the record lets the route
+ * redirect to this locale's own slug instead of answering 404.
+ */
+export function hasTranslationSlug(
+  translations: readonly { slug: string }[],
+  slug: string,
+): boolean {
+  return translations.some((entry) => entry.slug === slug);
+}
+
+/**
+ * Orders slug-lookup hits so a record whose own slug matches comes first; a
+ * different record that merely shares the slug in another language must not
+ * shadow it.
+ */
+export function preferExactSlug<T extends { slug: string }>(
+  records: readonly T[],
+  slug: string | undefined,
+): T[] {
+  if (!slug) return [...records];
+  return [
+    ...records.filter((record) => record.slug === slug),
+    ...records.filter((record) => record.slug !== slug),
+  ];
+}
+
+/**
+ * Platforms whose links reach the footer and the Organization's `sameAs`.
+ * Mirrors `PublicSocialPlatform`; the admin form also accepts `whatsapp`,
+ * which is dropped here because a chat link is not a profile.
+ */
+const SOCIAL_PLATFORMS: readonly PublicSocialPlatform[] = [
+  "facebook",
+  "instagram",
+  "linkedin",
+  "pinterest",
+  "youtube",
+  "x",
+  "tiktok",
+];
+
+function isHttpsUrl(value: string): boolean {
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" && url.hostname.length > 0;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Published social links → the public contract. Unknown platforms and
+ * anything that is not an https URL are dropped rather than rendered: a
+ * broken or unexpected link in the footer is worse than no link.
+ */
+export function toPublicSocialLinks(
+  raw: readonly { platform: string; label: string; url: string }[],
+): PublicSocialLink[] {
+  return raw.flatMap((link, index) => {
+    const platform = link.platform.trim().toLowerCase();
+    if (!(SOCIAL_PLATFORMS as readonly string[]).includes(platform)) {
+      return [];
+    }
+    const href = link.url.trim();
+    if (!isHttpsUrl(href)) return [];
+    return [
+      {
+        id: `social-${platform}-${index}`,
+        platform: platform as PublicSocialPlatform,
+        label: link.label,
+        href,
+        isDemo: false,
+      },
+    ];
+  });
 }

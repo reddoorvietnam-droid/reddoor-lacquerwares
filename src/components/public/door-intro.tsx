@@ -55,9 +55,7 @@ export function DoorIntro({ brandName, title }: DoorIntroProps) {
    * static curtain the visitor is already looking at.
    */
   useEffect(() => {
-    if (
-      !document.documentElement.hasAttribute(DOOR_INTRO_PENDING_ATTRIBUTE)
-    ) {
+    if (!document.documentElement.hasAttribute(DOOR_INTRO_PENDING_ATTRIBUTE)) {
       return;
     }
 
@@ -194,7 +192,7 @@ export function DoorIntro({ brandName, title }: DoorIntroProps) {
             <BrandPlaque
               className="ring-gold/30 w-36 rounded-sm ring-1 sm:w-44"
               sizes="(min-width: 640px) 11rem, 9rem"
-              priority
+              preload
             />
             <p
               id={titleId}
@@ -211,4 +209,3 @@ export function DoorIntro({ brandName, title }: DoorIntroProps) {
     </AnimatePresence>
   );
 }
-

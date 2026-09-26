@@ -1,5 +1,6 @@
 import type { Locale } from "@/lib/i18n/config";
 
+import { BRAND_COPY } from "./brand-copy";
 import type {
   PublicCompanyProfile,
   PublicContentRepository,
@@ -46,9 +47,8 @@ type ProcessCopy = {
 };
 
 type ContentCopy = {
+  /** Eyebrow and tagline come from `BRAND_COPY`, shared with the Mongo path. */
   readonly company: {
-    readonly eyebrow: string;
-    readonly tagline: string;
     readonly summary: string;
     readonly contentNotice: string;
     readonly heroAlt: string;
@@ -75,8 +75,6 @@ function deepFreeze<T>(value: T): T {
 const SITE_CONTENT_COPY = deepFreeze({
   vi: {
     company: {
-      eyebrow: "Nghệ thuật sơn mài Việt Nam",
-      tagline: "Nghệ thuật sơn mài Việt Nam",
       summary:
         "Red Door là nhà sản xuất sơn mài Việt Nam đặt tại Hà Nội. Chúng tôi làm khay, bát, bình, hộp và các vật dụng trang trí bằng kỹ thuật sơn mài truyền thống — phủ từng lớp, mài nước giữa các lớp, đánh bóng bằng tay cho tới khi bề mặt sâu và ấm. Xưởng của chúng tôi ở Long Biên; kho hàng đặt tại Hưng Yên, ngay trên trục quốc lộ 5 đi cảng Hải Phòng.",
       contentNotice: "",
@@ -156,8 +154,6 @@ const SITE_CONTENT_COPY = deepFreeze({
   },
   en: {
     company: {
-      eyebrow: "Handcrafted lacquer · Hanoi",
-      tagline: "Vietnamese handcrafted lacquer",
       summary:
         "Red Door is a Vietnamese lacquerware manufacturer based in Hanoi. We make trays, bowls, vessels, boxes and decorative objects using traditional lacquer technique — coat upon coat, wet-sanded between layers, hand-polished until the surface reads deep and warm. Our workshop is in Long Bien; our warehouse sits in Hung Yen, on the highway that runs to Hai Phong port.",
       contentNotice: "",
@@ -237,8 +233,6 @@ const SITE_CONTENT_COPY = deepFreeze({
   },
   fr: {
     company: {
-      eyebrow: "Laque artisanale · Hanoï",
-      tagline: "Laque artisanale du Vietnam",
       summary:
         "Red Door est un fabricant vietnamien de laque établi à Hanoï. Nous réalisons plateaux, bols, vases, coffrets et objets décoratifs selon la technique traditionnelle de la laque — couche après couche, poncées à l'eau entre chaque passe, polies à la main jusqu'à obtenir une surface profonde et chaleureuse. Notre atelier se trouve à Long Bien ; notre entrepôt à Hung Yen, sur la route qui mène au port de Hai Phong.",
       contentNotice: "",
@@ -318,8 +312,6 @@ const SITE_CONTENT_COPY = deepFreeze({
   },
   de: {
     company: {
-      eyebrow: "Handgefertigte Lackkunst · Hanoi",
-      tagline: "Handgefertigte Lackkunst",
       summary:
         "Red Door ist ein vietnamesischer Lackwaren-Hersteller mit Sitz in Hanoi. Wir fertigen Tabletts, Schalen, Gefäße, Schatullen und dekorative Objekte in traditioneller Lacktechnik — Schicht auf Schicht, zwischen den Aufträgen nass geschliffen, von Hand poliert, bis die Oberfläche tief und warm wirkt. Unsere Werkstatt liegt in Long Bien; unser Lager in Hung Yen, an der Fernstraße zum Hafen Hai Phong.",
       contentNotice: "",
@@ -400,8 +392,6 @@ const SITE_CONTENT_COPY = deepFreeze({
   },
   ja: {
     company: {
-      eyebrow: "手仕事の漆 · ハノイ",
-      tagline: "ベトナムの手仕事の漆",
       summary:
         "レッドドアは、ハノイに拠点を置くベトナムの漆器メーカーです。トレイ、ボウル、花器、箱、装飾品を伝統的な漆の技法で制作しています。塗りを重ね、層のあいだで水研ぎを行い、深く温かい表情が出るまで手作業で磨き上げます。工房はロンビエン地区に、倉庫はハイフォン港へ向かう街道沿いのフンイエン省にあります。",
       contentNotice: "",
@@ -480,8 +470,6 @@ const SITE_CONTENT_COPY = deepFreeze({
   },
   "zh-CN": {
     company: {
-      eyebrow: "手工漆艺 · 河内",
-      tagline: "越南手工漆艺",
       summary:
         "红门是一家位于河内的越南漆器制造商。我们以传统漆艺制作托盘、碗、器皿、盒具与装饰摆件——层层髹涂，层间水磨，手工推光，直至表面呈现温润而有深度的光泽。工坊设在龙编郡；仓库位于兴安省，就在通往海防港的干线旁。",
       contentNotice: "",
@@ -616,8 +604,8 @@ function makeSnapshot(locale: Locale): PublicContentSnapshot {
     isDemo: false,
     displayName: "Red Door Vietnam",
     legalName: "Công ty TNHH Red Door",
-    eyebrow: copy.company.eyebrow,
-    tagline: copy.company.tagline,
+    eyebrow: BRAND_COPY[locale].eyebrow,
+    tagline: BRAND_COPY[locale].tagline,
     summary: copy.company.summary,
     contentNotice: copy.company.contentNotice,
     heroImage: reserveImage(

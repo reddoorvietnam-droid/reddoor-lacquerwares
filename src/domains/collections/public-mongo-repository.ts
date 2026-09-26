@@ -21,9 +21,12 @@ import { connectToDatabase } from "@/lib/db/mongoose";
 import { CloudinaryMediaStorage } from "@/lib/media/cloudinary-storage";
 import type { Locale } from "@/lib/i18n/config";
 import {
+  hasTranslationSlug,
   htmlToParagraphs,
   pendingImage,
   pickTranslation,
+  preferExactSlug,
+  translationSlugs,
 } from "@/lib/public/published-mapping";
 
 /**
@@ -43,6 +46,7 @@ type LeanCollection = {
   year?: number;
   displayOrder: number;
   currentPublishedTranslations?: LeanPointer[];
+  updatedAt?: Date;
 };
 
 type LeanTranslation = {
@@ -93,6 +97,7 @@ function coverFor(
 function mapCollection(
   collection: LeanCollection,
   translation: LeanTranslation,
+  published: readonly LeanTranslation[],
   productIds: readonly string[],
   catalogue: CatalogueDescriptor | null,
   locale: Locale,
@@ -104,6 +109,11 @@ function mapCollection(
     isDemo: false,
     locale,
     slug: translation.slug,
+    // A catalogue uploaded in this locale makes the page this locale's own
+    // even while the title still falls back.
+    contentLocale: catalogue?.locale === locale ? locale : translation.locale,
+    translations: translationSlugs(published),
+    updatedAt: collection.updatedAt ? collection.updatedAt.toISOString() : null,
     title: translation.title,
     editionLabel: collection.year ? String(collection.year) : "",
     year: collection.year ?? null,
@@ -148,7 +158,7 @@ async function loadPublished(
 
   const collections = await getCollectionModel()
     .find(filter)
-    .select("_id year displayOrder currentPublishedTranslations")
+    .select("_id year displayOrder currentPublishedTranslations updatedAt")
     .sort({ displayOrder: 1, year: -1 })
     .lean<LeanCollection[]>()
     .exec();
@@ -173,6 +183,7 @@ async function loadPublished(
   const chosen: Array<{
     collection: LeanCollection;
     translation: LeanTranslation;
+    published: LeanTranslation[];
   }> = [];
   for (const collection of collections) {
     const candidates = (collection.currentPublishedTranslations ?? [])
@@ -182,8 +193,10 @@ async function loadPublished(
       .filter((t): t is LeanTranslation => t !== undefined);
     const translation = pickTranslation(candidates, locale);
     if (!translation) continue;
-    if (options.slug && translation.slug !== options.slug) continue;
-    chosen.push({ collection, translation });
+    if (options.slug && !hasTranslationSlug(candidates, options.slug)) {
+      continue;
+    }
+    chosen.push({ collection, translation, published: candidates });
   }
 
   // One query answers membership for every collection on the page.
@@ -212,23 +225,27 @@ async function loadPublished(
     locale,
   );
 
-  const mapped = chosen.map(({ collection, translation }, index) =>
+  const mapped = chosen.map(({ collection, translation, published }, index) =>
     mapCollection(
       collection,
       translation,
+      published,
       productsByCollection.get(collection._id.toHexString()) ?? [],
       catalogues.get(collection._id.toHexString()) ?? null,
       locale,
       index,
     ),
   );
-  return options.limit !== undefined ? mapped.slice(0, options.limit) : mapped;
+  const ordered = preferExactSlug(mapped, options.slug);
+  return options.limit !== undefined
+    ? ordered.slice(0, options.limit)
+    : ordered;
 }
 
 const cachedLoad = unstable_cache(
   async (locale: Locale, options: Record<string, unknown>) =>
     loadPublished(locale, options),
-  ["public-collections-v1"],
+  ["public-collections-v2"],
   { revalidate: 300, tags: ["collections:public"] },
 );
 

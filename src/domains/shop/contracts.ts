@@ -307,7 +307,19 @@ export class ShopError extends Error {
 }
 
 export type ShopPostCommitEvent =
-  | { kind: "itemChanged"; itemId: string; slug: string }
+  | {
+      kind: "itemChanged";
+      itemId: string;
+      /** The slug whose public page changed; an old slug after a rename. */
+      slug: string;
+      /**
+       * The item's status after the write. Absent when nothing is left at
+       * this slug: the item was deleted, or renamed away from it.
+       */
+      status?: ShopItemStatus;
+      /** The status before the write, when the write changed or ended it. */
+      previousStatus?: ShopItemStatus;
+    }
   | { kind: "orderPlaced"; orderId: string; itemId: string }
   | { kind: "orderTransitioned"; orderId: string; itemId: string };
 

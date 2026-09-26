@@ -35,6 +35,13 @@ test.beforeEach(async ({ page }) => {
 test("redirects the root route and renders every supported locale", async ({
   page,
 }) => {
+  // `page.goto` follows redirects and hides the status, so check the bare
+  // request as well: the root must answer with a permanent 308, otherwise
+  // search engines keep the bare domain as a canonical candidate.
+  const rootResponse = await page.request.get("/", { maxRedirects: 0 });
+  expect(rootResponse.status()).toBe(308);
+  expect(rootResponse.headers()["location"]).toBe("/vi");
+
   await page.goto("/");
   await expect(page).toHaveURL(/\/vi$/);
 
@@ -44,6 +51,16 @@ test("redirects the root route and renders every supported locale", async ({
     await expect(page.locator("main h1")).toBeVisible();
     await expect(page.locator("html")).toHaveAttribute("lang", locale);
   }
+});
+
+test("answers an unknown product slug with a real 404 status", async ({
+  page,
+}) => {
+  // A streaming boundary above the page would fix the status at 200 before
+  // notFound() runs (a soft 404 that search engines index and cache), so the
+  // status itself is what matters here, not the not-found copy.
+  const response = await page.request.get("/vi/products/khong-ton-tai-123");
+  expect(response.status()).toBe(404);
 });
 
 test("preserves the current public path and query when switching language", async ({

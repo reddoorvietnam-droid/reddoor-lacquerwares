@@ -90,7 +90,7 @@ export function PublicHeader({
         <Link href={homeHref} aria-label={dictionary.nav.home}>
           <LogoWordmark
             name={brandName}
-            priority
+            preload
             {...(brandDescriptor ? { descriptor: brandDescriptor } : {})}
           />
         </Link>

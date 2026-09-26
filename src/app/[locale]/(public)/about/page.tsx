@@ -4,7 +4,9 @@ import { AboutHistoryPage } from "@/components/public/pages";
 import { isLocale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { getDemoAboutHistoryPageData } from "@/lib/public/demo-page-data";
+import { JsonLdScripts } from "@/lib/seo/json-ld";
 import { getDemoStaticPageMetadata } from "@/lib/seo/route-metadata";
+import { sectionStructuredData } from "@/lib/seo/structured-data";
 
 type AboutRouteProps = {
   params: Promise<{ locale: string }>;
@@ -26,10 +28,18 @@ export default async function AboutRoute({ params }: AboutRouteProps) {
   const data = await getDemoAboutHistoryPageData(locale, dictionary);
 
   return (
-    <AboutHistoryPage
-      data={data}
-      dictionary={dictionary}
-      isDemo={data.contentIsDemo}
-    />
+    <>
+      <JsonLdScripts
+        documents={sectionStructuredData(locale, dictionary, {
+          name: dictionary.nav.about,
+          path: "/about",
+        })}
+      />
+      <AboutHistoryPage
+        data={data}
+        dictionary={dictionary}
+        isDemo={data.contentIsDemo}
+      />
+    </>
   );
 }

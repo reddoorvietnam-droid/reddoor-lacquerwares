@@ -209,6 +209,7 @@ Nếu bootstrap tạo sai user, không xóa audit/payment/business records để
 
 - [ ] Add apex domain và `www` trong Vercel trước, sau đó tạo chính xác A/CNAME/TXT mà Vercel dashboard hiển thị. Không hard-code IP/CNAME từ một hướng dẫn khác.
 - [ ] Chọn một canonical host; redirect host còn lại bằng permanent redirect và đồng bộ `NEXT_PUBLIC_SITE_URL`, metadata, sitemap, Google OAuth và email links.
+- [ ] Canonical host đã chốt là `https://reddoor.vn` (xem `docs/SEO.md`): `NEXT_PUBLIC_SITE_URL=https://reddoor.vn` cho Production và Preview; `next build` từ chối chạy ở production nếu biến này còn là localhost/http/*.vercel.app. Redirect host phụ đặt trong Vercel Domains (308) và có lưới an toàn trong `next.config.ts`.
 - [ ] Giảm DNS TTL trước change window nếu domain đang phục vụ hệ thống khác; chỉ nâng lại sau verification.
 - [ ] Chờ Vercel cấp TLS, kiểm tra certificate chain/renewal và HTTP→HTTPS.
 - [ ] Thêm Search Console verification token thật khi sẵn sàng; bỏ env nếu chưa cấu hình.

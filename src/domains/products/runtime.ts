@@ -1,6 +1,7 @@
 import "server-only";
 
 import { revalidatePath, revalidateTag } from "next/cache";
+import { after } from "next/server";
 
 import { mongoAuditRepository } from "@/domains/audit/mongo-repository";
 import {
@@ -8,6 +9,7 @@ import {
   type ProductPostCommitEvent,
 } from "@/domains/products/commands";
 import { MongoProductCommandStore } from "@/domains/products/commands/mongo-store";
+import { scheduleIndexNowSubmission } from "@/lib/seo/indexnow";
 
 async function revalidateProducts(
   event: ProductPostCommitEvent,
@@ -20,6 +22,13 @@ async function revalidateProducts(
     for (const path of event.paths) {
       revalidatePath(path, "page");
     }
+    // Publishing runs inside a Server Action, so `after` is available: the
+    // product pages that just changed and the listings that now show them go
+    // to IndexNow once the editor has their response.
+    scheduleIndexNowSubmission(
+      [...event.paths, ...event.locales.map((locale) => `/${locale}/products`)],
+      after,
+    );
   }
 }
 

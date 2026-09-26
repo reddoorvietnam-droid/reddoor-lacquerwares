@@ -64,15 +64,21 @@ export function HomePage({
         any layout code.
       */}
       <section className="relative isolate flex h-svh max-h-[64rem] min-h-[36rem] items-center overflow-hidden">
-        {/* Background photograph — swap src to change the image */}
+        {/*
+          Background photograph — swap src to change the image. It is the
+          page's LCP element: `preload` puts a `<link rel="preload">` in the
+          head and `fetchPriority="high"` lifts both that link and the <img>
+          ahead of the font preloads (Next 16 does not set the priority hint
+          on its own; `priority` is deprecated and only aliased `preload`).
+        */}
         <Image
           src="/hinh_nen_rd1.jpg"
-          alt=""
+          alt={home.heroImageAlt}
           fill
-          priority
+          preload
+          fetchPriority="high"
           sizes="100vw"
           className="object-cover"
-          aria-hidden="true"
         />
         {/*
           Gradient scrim: opaque warm ivory on the left fading to transparent
@@ -141,7 +147,7 @@ export function HomePage({
             <div className="relative mx-auto aspect-[1000/1250] w-full max-w-lg overflow-hidden rounded-[var(--radius-display)] lg:mx-0">
               <Image
                 src="/cau_chuyen.jpg"
-                alt={content.company.eyebrow}
+                alt={home.craftImageAlt}
                 fill
                 sizes="(min-width: 1024px) 500px, 100vw"
                 className="object-cover"
@@ -298,11 +304,7 @@ export function HomePage({
               return (
                 <MotionReveal key={collection.id} delay={index * 0.07}>
                   <Link
-                    href={
-                      hasCatalogue
-                        ? href(`/collections/${collection.slug}/catalogue`)
-                        : href("/collections")
-                    }
+                    href={href(`/collections/${collection.slug}`)}
                     className="group block focus-visible:outline-offset-8"
                   >
                     {/*
@@ -486,11 +488,10 @@ export function HomePage({
       <section className="bg-burgundy text-ivory relative isolate flex min-h-[34rem] items-center overflow-hidden py-24 sm:py-28 lg:min-h-[46rem] lg:py-36">
         <Image
           src={CLOSING_IMAGE}
-          alt=""
+          alt={home.closingImageAlt}
           fill
           sizes="100vw"
           className="object-cover object-[72%_42%]"
-          aria-hidden="true"
         />
         {/*
           The hero's scrim mirrored: opaque lacquer on the left thinning to a

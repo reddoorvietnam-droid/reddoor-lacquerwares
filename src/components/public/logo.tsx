@@ -23,14 +23,18 @@ import logoPlaque from "../../../public/logo_rd.jpg";
 export type BrandPlaqueProps = {
   /** Accessible name; omit for a decorative plaque beside a visible wordmark. */
   label?: string;
-  priority?: boolean;
+  /**
+   * Emits a `<link rel="preload">` for the plaque (Next 16's replacement for
+   * the deprecated `priority`). Set where the plaque sits above the fold.
+   */
+  preload?: boolean;
   className?: string;
   sizes?: string;
 };
 
 export function BrandPlaque({
   label,
-  priority = false,
+  preload = false,
   className,
   sizes = "(min-width: 768px) 12rem, 8rem",
 }: BrandPlaqueProps) {
@@ -39,7 +43,7 @@ export function BrandPlaque({
       src={logoPlaque}
       alt={label ?? ""}
       {...(label ? {} : { "aria-hidden": true })}
-      priority={priority}
+      preload={preload}
       sizes={sizes}
       placeholder="blur"
       className={cn("h-auto w-full max-w-full object-contain", className)}
@@ -52,14 +56,14 @@ export type LogoWordmarkProps = HTMLAttributes<HTMLDivElement> & {
   descriptor?: string;
   inverse?: boolean;
   /** Set where the lockup sits above the fold, so the mark does not pop in. */
-  priority?: boolean;
+  preload?: boolean;
 };
 
 export function LogoWordmark({
   name,
   descriptor,
   inverse = false,
-  priority = false,
+  preload = false,
   className,
   ...props
 }: LogoWordmarkProps) {
@@ -74,7 +78,7 @@ export function LogoWordmark({
       <BrandPlaque
         className="ring-gold/30 w-12 shrink-0 rounded-sm ring-1 sm:w-16"
         sizes="4rem"
-        priority={priority}
+        preload={preload}
       />
       <span className="min-w-0">
         <span

@@ -28,5 +28,9 @@ export default defineConfig({
     url: baseURL,
     reuseExistingServer: false,
     timeout: 180_000,
+    // The production build refuses a loopback NEXT_PUBLIC_SITE_URL; the E2E
+    // build deliberately targets localhost, so allow it here regardless of the
+    // developer's .env. Merged into process.env by Playwright.
+    env: { ALLOW_LOOPBACK_SITE_URL: "1" },
   },
 });

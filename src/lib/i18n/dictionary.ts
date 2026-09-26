@@ -14,6 +14,25 @@ export type PublicDictionary = {
     /** Full home-page title, brand plus tagline. */
     siteTitle: string;
     siteDescription: string;
+    /**
+     * Meta descriptions for the static public routes, one per page, each
+     * kept within 160 code points so search snippets are not truncated.
+     * On-page intros (pages.*Intro) and the OG/JSON-LD description
+     * (siteDescription) stay separate and may run longer.
+     */
+    pageDescriptions: {
+      home: string;
+      about: string;
+      products: string;
+      collections: string;
+      process: string;
+      news: string;
+      contact: string;
+      shop: string;
+      privacy: string;
+      terms: string;
+      accessibility: string;
+    };
   };
   common: {
     /** Neutral status label for records whose media or copy is still coming. */
@@ -35,6 +54,8 @@ export type PublicDictionary = {
     /** Play button on the poster frame of an embedded film. */
     playVideo: string;
     updatingNotice: string;
+    /** aria-label of the visible breadcrumb navigation on detail pages. */
+    breadcrumbs: string;
   };
   nav: {
     home: string;
@@ -61,21 +82,37 @@ export type PublicDictionary = {
     contactTitle: string;
     contactTitleAccent: string;
     contactBody: string;
+    /** Descriptive alt text for the three home photographs. */
+    heroImageAlt: string;
+    craftImageAlt: string;
+    closingImageAlt: string;
   };
   pages: {
+    /**
+     * *Title keys are short labels (eyebrows, back links, counters).
+     * *Heading keys (max 48 characters) carry the search term and serve
+     * as both the <title> before " | Red Door" and the page <h1>.
+     */
     aboutTitle: string;
+    aboutHeading: string;
     aboutIntro: string;
     productsTitle: string;
+    productsHeading: string;
     productsIntro: string;
     collectionsTitle: string;
+    collectionsHeading: string;
     collectionsIntro: string;
     processTitle: string;
+    processHeading: string;
     processIntro: string;
     newsTitle: string;
+    newsHeading: string;
     newsIntro: string;
     shopTitle: string;
+    shopHeading: string;
     shopIntro: string;
     contactTitle: string;
+    contactHeading: string;
     contactIntro: string;
     searchTitle: string;
     privacyTitle: string;
@@ -102,6 +139,8 @@ export type PublicDictionary = {
     mediaFranceChannel: string;
     mediaFranceTitle: string;
     mediaFranceDescription: string;
+    /** Fallback text inside <video> for browsers without inline video. */
+    videoUnsupported: string;
     pillarKicker: string;
     pillarsDescription: string;
     pillarCraftTitle: string;

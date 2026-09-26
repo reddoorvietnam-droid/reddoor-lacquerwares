@@ -71,7 +71,7 @@ export function LacquerProcessPage({
       <PageNotices dictionary={dictionary} isDemo={isDemo} notices={notices} />
       <PageHero
         eyebrow={data.heroEyebrow}
-        title={dictionary.pages.processTitle}
+        title={dictionary.pages.processHeading}
         intro={dictionary.pages.processIntro}
         media={data.heroMedia}
       />
@@ -86,7 +86,9 @@ export function LacquerProcessPage({
                   index % 2 === 1 ? "lg:grid-cols-[1fr_1.35fr]" : ""
                 }`}
               >
-                <div className={`w-full ${index % 2 === 1 ? "lg:order-2" : ""}`}>
+                <div
+                  className={`w-full ${index % 2 === 1 ? "lg:order-2" : ""}`}
+                >
                   <VideoEmbed
                     videoId={video.videoId}
                     title={video.title}

@@ -6,11 +6,32 @@ const dictionary = {
     siteTitle: "Red Door — Ha Thai Lacquerware, Vietnam",
     siteDescription:
       "Red Door crafts handmade lacquerware in the Ha Thai lacquer village near Hanoi: trays, boxes, coasters and decorative objects built up in layers, wet-sanded and hand-polished. SGS-tested to European standards and exported to the United States and Europe.",
+    pageDescriptions: {
+      home: "Handmade Vietnamese lacquerware from the Ha Thai lacquer village near Hanoi: trays, boxes, coasters, bowls and vases by Red Door. SGS-tested to EU standards.",
+      about:
+        "Red Door is a lacquerware workshop in the Ha Thai lacquer village near Hanoi: traditional Vietnamese technique, contemporary design, SGS-tested to EU standards.",
+      products:
+        "Handmade lacquerware by Red Door: trays, boxes, coasters, bowls, vases and decorative objects, coated in layers, wet-sanded and hand-polished. Request a quote.",
+      collections:
+        "Red Door lacquerware collections and catalogues: each year's range of handmade trays, boxes, bowls, vases and decorative objects from Ha Thai, Vietnam.",
+      process:
+        "How Vietnamese lacquerware is made at Red Door: building the core, priming, coating, wet-sanding and polishing — dozens of stages, none of them hurried.",
+      news: "Lacquerware news and stories from the Red Door workshop in Ha Thai: new collections, international fairs and the making of each hand-polished surface.",
+      contact:
+        "Contact Red Door for a catalogue or a lacquerware quote: trays, boxes, bowls, vases, custom designs and export orders from our Ha Thai workshop near Hanoi.",
+      shop: "Shop handmade Vietnamese lacquerware direct from the Red Door workshop: trays, boxes, coasters and bowls in stock, with prices in VND and USD.",
+      privacy:
+        "Red Door privacy policy: what information we collect when you contact us or request a quote, how we use it, and how to reach us about your data.",
+      terms:
+        "Terms of use for the Red Door website, operated by RED DOOR Co., Ltd: intellectual property, lacquerware product information, quotations and orders.",
+      accessibility:
+        "Red Door accessibility statement: our WCAG 2.1 AA commitment, known limitations of the site and how to send us feedback.",
+    },
   },
   common: {
     updatingLabel: "Being updated",
     skipToContent: "Skip to main content",
-    learnMore: "Learn more",
+    learnMore: "See how our lacquerware is made",
     explore: "Explore",
     viewAll: "View all",
     close: "Close",
@@ -25,6 +46,7 @@ const dictionary = {
     featured: "Featured",
     playVideo: "Play video",
     updatingNotice: "This section is being finished by the workshop.",
+    breadcrumbs: "Breadcrumb",
   },
   nav: {
     home: "Home",
@@ -38,8 +60,8 @@ const dictionary = {
   },
   home: {
     eyebrow: "RED DOOR — HA THAI LACQUER",
-    title: "A living surface,",
-    titleAccent: "shaped by hand",
+    title: "Handmade Vietnamese lacquerware,",
+    titleAccent: "a living surface shaped by hand",
     heroDescription:
       "The essence of Vietnamese lacquer is preserved in every coat — each product is a harmony of nature and the artisan's hand.",
     craftTitle: "A material story in layers",
@@ -54,27 +76,40 @@ const dictionary = {
     contactTitleAccent: "a conversation",
     contactBody:
       "Tell us what you are looking for — a collection in stock, a custom design or an export order. The Red Door team will get back to you as soon as possible.",
+    heroImageAlt:
+      "Red Door lacquerware set: tray, vase, boxes, coasters, bowl and a lotus lacquer panel in red and gold",
+    craftImageAlt:
+      "Artisan hand-polishing a red lacquer tray with a gold blossom motif, beside sheets of gold leaf",
+    closingImageAlt:
+      "The red doors of the Red Door Co., Ltd workshop in Vietnam",
   },
   pages: {
     aboutTitle: "About us",
+    aboutHeading: "About us — lacquerware workshop in Ha Thai",
     aboutIntro:
       "Red Door is a lacquerware workshop in the Ha Thai craft village near Hanoi, where the craft has been passed down through generations. We pair traditional technique with contemporary design to bring Vietnamese lacquer into living spaces around the world.",
     productsTitle: "Products",
+    productsHeading: "Lacquerware: trays, boxes, bowls, vases",
     productsIntro:
       "Trays, boxes, coasters, vessels and decorative objects — each piece is handmade at the Ha Thai workshop, coated in layers, wet-sanded and hand-polished.",
     collectionsTitle: "Collections",
+    collectionsHeading: "Lacquerware collections & catalogues",
     collectionsIntro:
       "Each year Red Door presents a new collection — the result of the workshop's ongoing study of materials, colour and surface. Open each catalogue to see the full range.",
     processTitle: "Lacquer process",
+    processHeading: "How Vietnamese lacquerware is made",
     processIntro:
       "A finished piece of lacquerware passes through dozens of stages: building the core, priming, coating, wet-sanding and polishing. None of them can be hurried.",
     newsTitle: "News and stories",
+    newsHeading: "Lacquerware news & workshop stories",
     newsIntro:
       "Notes from the Ha Thai workshop: new collections, international fairs and the stories behind each lacquered surface.",
     contactTitle: "Contact and quote request",
+    contactHeading: "Contact & lacquerware quote request",
     contactIntro:
       "Contact Red Door for a catalogue, a quotation or a conversation about a custom order. We work directly with retailers, designers and brands worldwide.",
     shopTitle: "Shop",
+    shopHeading: "Lacquerware shop — buy direct from the workshop",
     shopIntro:
       "Lacquerware ready at the workshop, available to order directly. We confirm each order and quote the shipping cost before dispatch.",
     searchTitle: "Search",
@@ -103,6 +138,7 @@ const dictionary = {
       "French Television: Vietnamese Lacquer Art Reaching Global Stages",
     mediaFranceDescription:
       "A documentary by French Television celebrating the distinctive craftsmanship of Vietnamese lacquerware, rigorous quality standards, and the timeless elegance of Red Door creations cherished in France and across Europe.",
+    videoUnsupported: "Your browser does not support inline video.",
     pillarKicker: "Core values",
     pillarsDescription:
       "Three things that never change in a piece that leaves the Red Door workshop.",
@@ -294,7 +330,7 @@ const dictionary = {
   legal: {
     lastUpdated: "Updated: August 2026",
     privacyIntro:
-      "Red Door respects the privacy of its visitors. This policy describes what information we collect when you use lacquerware.vn and how we use it.",
+      "Red Door respects the privacy of its visitors. This policy describes what information we collect when you use reddoor.vn and how we use it.",
     privacySections: [
       {
         title: "Information we collect",
@@ -310,7 +346,7 @@ const dictionary = {
       },
     ],
     termsIntro:
-      "The following terms govern access to and use of lacquerware.vn, operated by RED DOOR Co., Ltd.",
+      "The following terms govern access to and use of reddoor.vn, operated by RED DOOR Co., Ltd.",
     termsSections: [
       {
         title: "Intellectual property",

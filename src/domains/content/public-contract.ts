@@ -61,8 +61,19 @@ export interface PublicProcessStage {
   readonly image: PublicImageAsset;
 }
 
+/**
+ * Profile platforms the public site links to. WhatsApp is accepted by the
+ * admin form but stays out of this list: a chat link is not a profile, so it
+ * belongs neither in the footer nor in the Organization's `sameAs`.
+ */
 export type PublicSocialPlatform =
-  "facebook" | "instagram" | "linkedin" | "pinterest" | "youtube";
+  | "facebook"
+  | "instagram"
+  | "linkedin"
+  | "pinterest"
+  | "youtube"
+  | "x"
+  | "tiktok";
 
 export interface PublicSocialLink {
   readonly id: string;

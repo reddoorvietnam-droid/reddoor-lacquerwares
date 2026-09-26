@@ -86,7 +86,7 @@ export function AboutHistoryPage({
       <PageNotices dictionary={dictionary} isDemo={isDemo} notices={notices} />
       <PageHero
         eyebrow={data.heroEyebrow}
-        title={dictionary.pages.aboutTitle}
+        title={dictionary.pages.aboutHeading}
         intro={dictionary.pages.aboutIntro}
         media={data.heroMedia}
       />
@@ -105,7 +105,7 @@ export function AboutHistoryPage({
                 index % 2 === 1 ? "lg:flex-row-reverse" : "lg:flex-row"
               }`}
             >
-              <div className="bg-lacquer/95 relative aspect-video w-full overflow-hidden rounded-[var(--radius-md)] lg:w-7/12 shrink-0 shadow-md">
+              <div className="bg-lacquer/95 relative aspect-video w-full shrink-0 overflow-hidden rounded-[var(--radius-md)] shadow-md lg:w-7/12">
                 <video
                   controls
                   preload="metadata"
@@ -114,7 +114,7 @@ export function AboutHistoryPage({
                   {...(feature.poster ? { poster: feature.poster } : {})}
                 >
                   <source src={feature.videoSrc} type="video/mp4" />
-                  Trình duyệt không hỗ trợ xem video trực tiếp.
+                  {dictionary.about.videoUnsupported}
                 </video>
               </div>
               <div className="flex flex-1 flex-col justify-center">

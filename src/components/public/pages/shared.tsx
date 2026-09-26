@@ -116,7 +116,9 @@ export function PageNotices({ dictionary, isDemo, notices }: PageNoticesProps) {
   return (
     <div
       className="mx-auto grid w-full max-w-7xl gap-3 px-[var(--space-page)] pt-5"
-      aria-label={isDemo ? dictionary.common.updatingLabel : notices?.[0]?.label}
+      aria-label={
+        isDemo ? dictionary.common.updatingLabel : notices?.[0]?.label
+      }
     >
       {isDemo ? (
         <aside className="border-gold/35 bg-gold/10 text-burgundy flex items-start gap-3 rounded-[var(--radius-md)] border px-4 py-3 text-sm leading-6">
@@ -171,6 +173,7 @@ export function PageHero({
             className="h-full rounded-none border-0"
             media={media}
             sizes="100vw"
+            preload
           />
         </div>
       ) : null}
@@ -201,10 +204,26 @@ export function PageHero({
 interface MediaFrameProps {
   className?: string;
   media: PublicPageMedia;
+  /**
+   * Set on the frame that is the page's likely Largest Contentful Paint (the
+   * hero background, the first gallery photograph, the article cover). It
+   * renders the image with `loading="eager"` and `fetchPriority="high"`,
+   * which the Next 16 image docs prefer over a head `<link rel="preload">`
+   * for anything but a fixed hero: the <img> is already in the server HTML
+   * with its srcset/sizes, so the browser's preload scanner discovers it at
+   * once, and on phones the article cover can sit below the fold, where a
+   * head preload would be wasted bandwidth. Left unset, the frame stays lazy.
+   */
+  preload?: boolean;
   sizes: string;
 }
 
-export function MediaFrame({ className, media, sizes }: MediaFrameProps) {
+export function MediaFrame({
+  className,
+  media,
+  preload = false,
+  sizes,
+}: MediaFrameProps) {
   return (
     <figure
       className={cn(
@@ -220,6 +239,9 @@ export function MediaFrame({ className, media, sizes }: MediaFrameProps) {
           height={media.height}
           sizes={sizes}
           className="h-full w-full object-cover transition duration-[var(--duration-slow)] ease-[var(--ease-brand)] motion-safe:group-hover:scale-[1.025]"
+          {...(preload
+            ? { loading: "eager" as const, fetchPriority: "high" as const }
+            : {})}
           {...(media.objectPosition
             ? { style: { objectPosition: media.objectPosition } }
             : {})}
@@ -423,6 +445,80 @@ export function RichContent({ blocks }: RichContentProps) {
         return null;
       })}
     </div>
+  );
+}
+
+interface BreadcrumbsProps {
+  className?: string;
+  /** Rendered on the dark reader surfaces (gold links on burgundy). */
+  inverse?: boolean;
+  /** Home first, the current page last; the last item is not linked. */
+  items: readonly { href: string; label: string }[];
+  /** Accessible name of the nav, `dictionary.common.breadcrumbs`. */
+  label: string;
+}
+
+/**
+ * The visible trail behind the BreadcrumbList JSON-LD. Google only shows a
+ * breadcrumb rich result when the same trail is on the page, so the labels
+ * must be the ones the structured data uses (`dictionary.nav.*`, then the
+ * item's own name). Plain anchors, like the rest of the page templates.
+ */
+export function Breadcrumbs({
+  className,
+  inverse = false,
+  items,
+  label,
+}: BreadcrumbsProps) {
+  return (
+    <nav
+      aria-label={label}
+      className={cn(
+        "text-xs font-semibold tracking-[0.18em] uppercase",
+        className,
+      )}
+    >
+      <ol className="flex flex-wrap items-center gap-x-2 gap-y-1">
+        {items.map((item, index) => {
+          const isCurrent = index === items.length - 1;
+          return (
+            <li
+              key={`${item.href}-${item.label}`}
+              className="flex min-h-11 items-center gap-x-2"
+            >
+              {index > 0 ? (
+                <span
+                  aria-hidden="true"
+                  className={inverse ? "text-ivory/40" : "text-charcoal/40"}
+                >
+                  /
+                </span>
+              ) : null}
+              {isCurrent ? (
+                <span
+                  aria-current="page"
+                  className={inverse ? "text-ivory/60" : "text-charcoal/64"}
+                >
+                  {item.label}
+                </span>
+              ) : (
+                <a
+                  href={item.href}
+                  className={cn(
+                    "transition-colors",
+                    inverse
+                      ? "text-gold hover:text-gold-light"
+                      : "text-burgundy hover:text-lacquer",
+                  )}
+                >
+                  {item.label}
+                </a>
+              )}
+            </li>
+          );
+        })}
+      </ol>
+    </nav>
   );
 }
 

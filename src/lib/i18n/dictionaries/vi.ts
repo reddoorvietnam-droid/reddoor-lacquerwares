@@ -6,11 +6,32 @@ const dictionary = {
     siteTitle: "Red Door — Sơn mài thủ công Việt Nam",
     siteDescription:
       "Red Door chế tác đồ sơn mài thủ công — Nghệ thuật sơn mài Việt Nam: khay, hộp, lót ly và đồ trang trí nội thất được phủ nhiều lớp sơn, mài nước và đánh bóng bằng tay. Sản phẩm kiểm định SGS theo tiêu chuẩn châu Âu, xuất khẩu đi Mỹ và châu Âu.",
+    pageDescriptions: {
+      home: "Red Door chế tác đồ sơn mài thủ công tại làng nghề Hạ Thái, Hà Nội: khay, hộp, bát, bình và tranh sơn mài. Kiểm định SGS chuẩn EU, xuất khẩu Mỹ và châu Âu.",
+      about:
+        "Red Door là xưởng sơn mài thủ công tại làng nghề Hạ Thái, Hà Nội, kết hợp kỹ thuật cổ truyền với thiết kế đương đại. Kiểm định SGS, xuất khẩu Mỹ và châu Âu.",
+      products:
+        "Sản phẩm sơn mài thủ công Red Door: khay, hộp, lót ly, bát, bình và đồ trang trí nội thất — phủ nhiều lớp sơn, mài nước và đánh bóng bằng tay. Nhận báo giá.",
+      collections:
+        "Các bộ sưu tập sơn mài Red Door theo năm — catalogue đầy đủ khay, hộp, bát, bình và đồ trang trí. Mở từng cuốn để xem trọn bộ và yêu cầu báo giá.",
+      process:
+        "Kỹ thuật sơn mài Việt Nam tại xưởng Red Door: làm vóc, bó hom, phủ sơn, mài nước và đánh bóng — hàng chục công đoạn cho một món đồ sơn mài hoàn chỉnh.",
+      news: "Tin tức sơn mài từ xưởng Red Door: bộ sưu tập mới, hội chợ quốc tế và câu chuyện phía sau từng bề mặt sơn mài thủ công.",
+      contact:
+        "Liên hệ Red Door để nhận catalogue và báo giá đồ sơn mài thủ công: khay, hộp, bát, bình, thiết kế riêng và đơn hàng xuất khẩu từ xưởng Hạ Thái, Hà Nội.",
+      shop: "Cửa hàng đồ sơn mài Red Door: khay, hộp, lót ly và bát sơn mài thủ công có sẵn tại xưởng, giá VND và USD, đặt mua trực tiếp. Xác nhận đơn trước khi giao.",
+      privacy:
+        "Chính sách quyền riêng tư của Red Door: thông tin chúng tôi thu thập khi bạn liên hệ hoặc yêu cầu báo giá, cách sử dụng và cách liên hệ về dữ liệu của bạn.",
+      terms:
+        "Điều khoản sử dụng website Red Door của Công ty TNHH Red Door: sở hữu trí tuệ, thông tin sản phẩm sơn mài, báo giá và đặt hàng.",
+      accessibility:
+        "Tuyên bố về khả năng tiếp cận của website Red Door: cam kết theo WCAG 2.1 AA, những điểm đang hoàn thiện và cách gửi phản hồi cho chúng tôi.",
+    },
   },
   common: {
     updatingLabel: "Đang cập nhật",
     skipToContent: "Chuyển đến nội dung chính",
-    learnMore: "Tìm hiểu thêm",
+    learnMore: "Xem cách chế tác đồ sơn mài",
     explore: "Khám phá",
     viewAll: "Xem tất cả",
     close: "Đóng",
@@ -25,6 +46,7 @@ const dictionary = {
     featured: "Nổi bật",
     playVideo: "Phát video",
     updatingNotice: "Nội dung của mục này đang được xưởng hoàn thiện.",
+    breadcrumbs: "Đường dẫn",
   },
   nav: {
     home: "Trang chủ",
@@ -38,8 +60,8 @@ const dictionary = {
   },
   home: {
     eyebrow: "RED DOOR — SƠN MÀI SỐNG",
-    title: "Bề mặt sống động,",
-    titleAccent: "được tạo tác thủ công",
+    title: "Đồ sơn mài thủ công Việt Nam,",
+    titleAccent: "sống động qua từng lớp sơn",
     heroDescription:
       "Tinh hoa sơn mài Việt được gìn giữ qua từng lớp sơn, mỗi sản phẩm là sự hòa quyện giữa thiên nhiên và bàn tay nghệ nhân.",
     craftTitle: "Câu chuyện vật liệu qua từng lớp",
@@ -54,27 +76,39 @@ const dictionary = {
     contactTitleAccent: "cuộc trò chuyện",
     contactBody:
       "Hãy cho chúng tôi biết bạn đang tìm kiếm điều gì — một bộ sưu tập có sẵn, một thiết kế riêng hay một đơn hàng xuất khẩu. Đội ngũ Red Door sẽ phản hồi sớm nhất có thể.",
+    heroImageAlt:
+      "Bộ đồ sơn mài Red Door: khay, bình, hộp, lót ly, bát và tranh sơn mài hoa sen đỏ thếp vàng",
+    craftImageAlt:
+      "Nghệ nhân đánh bóng khay sơn mài đỏ vẽ hoa thếp vàng, bên cạnh là những lá vàng quỳ",
+    closingImageAlt: "Cánh cổng đỏ của xưởng Red Door Co., Ltd tại Việt Nam",
   },
   pages: {
     aboutTitle: "Về chúng tôi",
+    aboutHeading: "Về chúng tôi — xưởng sơn mài Hạ Thái",
     aboutIntro:
       "Red Door gìn giữ và phát triển Nghệ thuật sơn mài Việt Nam — nơi nghề sơn mài được trao truyền qua nhiều thế hệ. Chúng tôi kết hợp kỹ thuật cổ truyền với thiết kế đương đại để đưa sơn mài Việt Nam đến những không gian sống trên khắp thế giới.",
     productsTitle: "Sản phẩm",
+    productsHeading: "Sản phẩm sơn mài: khay, hộp, bát, bình",
     productsIntro:
       "Khay, hộp, lót ly, bình và đồ trang trí nội thất — mỗi sản phẩm được chế tác thủ công theo Nghệ thuật sơn mài Việt Nam, phủ nhiều lớp sơn, mài nước và đánh bóng bằng tay.",
     collectionsTitle: "Bộ sưu tập",
+    collectionsHeading: "Bộ sưu tập sơn mài theo năm",
     collectionsIntro:
       "Mỗi năm, Red Door giới thiệu một bộ sưu tập mới — kết quả của quá trình nghiên cứu vật liệu, màu sắc và kỹ thuật bề mặt tại xưởng. Mở từng cuốn catalogue để xem trọn bộ.",
     processTitle: "Kỹ thuật sơn mài",
+    processHeading: "Kỹ thuật sơn mài: từ làm vóc đến đánh bóng",
     processIntro:
       "Một món đồ sơn mài hoàn chỉnh đi qua hàng chục công đoạn: làm vóc, bó hom, phủ sơn, mài nước và đánh bóng. Không công đoạn nào có thể vội.",
     newsTitle: "Tin tức và câu chuyện",
+    newsHeading: "Tin tức sơn mài từ xưởng Red Door",
     newsIntro:
       "Ghi chép từ xưởng Red Door: bộ sưu tập mới, hội chợ quốc tế và những câu chuyện phía sau từng bề mặt sơn.",
     contactTitle: "Liên hệ và yêu cầu báo giá",
+    contactHeading: "Liên hệ và yêu cầu báo giá đồ sơn mài",
     contactIntro:
       "Liên hệ với Red Door để nhận catalogue, báo giá hoặc trao đổi về đơn hàng riêng. Chúng tôi làm việc trực tiếp với các nhà bán lẻ, nhà thiết kế và thương hiệu trên toàn thế giới.",
     shopTitle: "Cửa hàng",
+    shopHeading: "Cửa hàng đồ sơn mài — mua trực tiếp từ xưởng",
     shopIntro:
       "Những món sơn mài có sẵn tại xưởng, đặt mua trực tiếp. Chúng tôi xác nhận đơn và thông báo phí vận chuyển trước khi giao.",
     searchTitle: "Tìm kiếm",
@@ -102,6 +136,7 @@ const dictionary = {
       "Đài Truyền hình Pháp: Tinh hoa sơn mài thủ công Việt Nam vươn tầm quốc tế",
     mediaFranceDescription:
       "Phóng sự tài liệu từ Đài Truyền hình Pháp tôn vinh kỹ nghệ sơn mài độc đáo của Việt Nam, quy trình kiểm định chất lượng khắt khe và sức hút vượt thời gian của các tác phẩm sơn mài Red Door đối với thị trường châu Âu.",
+    videoUnsupported: "Trình duyệt không hỗ trợ xem video trực tiếp.",
     pillarKicker: "Giá trị cốt lõi",
     pillarsDescription:
       "Ba điều không đổi trong từng món đồ rời xưởng Red Door.",
@@ -292,7 +327,7 @@ const dictionary = {
   legal: {
     lastUpdated: "Cập nhật: tháng 8, 2026",
     privacyIntro:
-      "Red Door tôn trọng quyền riêng tư của khách truy cập. Chính sách này mô tả những thông tin chúng tôi thu thập khi bạn sử dụng lacquerware.vn và cách chúng tôi sử dụng chúng.",
+      "Red Door tôn trọng quyền riêng tư của khách truy cập. Chính sách này mô tả những thông tin chúng tôi thu thập khi bạn sử dụng reddoor.vn và cách chúng tôi sử dụng chúng.",
     privacySections: [
       {
         title: "Thông tin chúng tôi thu thập",
@@ -308,7 +343,7 @@ const dictionary = {
       },
     ],
     termsIntro:
-      "Các điều khoản dưới đây áp dụng cho việc truy cập và sử dụng website lacquerware.vn của Công ty TNHH Red Door.",
+      "Các điều khoản dưới đây áp dụng cho việc truy cập và sử dụng website reddoor.vn của Công ty TNHH Red Door.",
     termsSections: [
       {
         title: "Sở hữu trí tuệ",

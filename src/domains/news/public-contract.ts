@@ -1,4 +1,4 @@
-import type { Locale } from "@/lib/i18n/config";
+import type { Locale, LocalizedSlug } from "@/lib/i18n/config";
 
 /**
  * `"DEMO"` marks copy that is a stand-in and must not be read as a company
@@ -20,6 +20,11 @@ export interface PublicNewsImage {
   /** True until a real photograph replaces the reserved slot. */
   readonly assetPending: boolean;
   readonly replacementHint: string;
+  /**
+   * Same photograph cropped to the 16:9, 4:3 and 1:1 frames search engines
+   * ask for on article results. Absent for reserved slots and demo copy.
+   */
+  readonly variants?: readonly string[];
 }
 
 export interface PublicNewsParagraph {
@@ -86,6 +91,15 @@ export interface PublicNewsArticle {
   readonly isDemo: boolean;
   readonly locale: Locale;
   readonly slug: string;
+  /**
+   * The locale the copy is written in. Differs from `locale` when this locale
+   * has no translation and the page falls back to another one.
+   */
+  readonly contentLocale: Locale;
+  /** Every published translation and its slug, for hreflang and the sitemap. */
+  readonly translations: readonly LocalizedSlug[];
+  /** ISO timestamp of the last change, `null` when unknown. */
+  readonly updatedAt: string | null;
   readonly title: string;
   readonly excerpt: string;
   readonly content: readonly PublicNewsContentBlock[];
@@ -97,7 +111,10 @@ export interface PublicNewsArticle {
    * been confirmed for any of this editorial.
    */
   readonly author: string | null;
-  /** ISO `YYYY-MM-DD`, or `null` while the date is unconfirmed. */
+  /**
+   * ISO 8601 timestamp with the newsroom's `+07:00` offset (or `YYYY-MM-DD`
+   * for demo copy), or `null` while the date is unconfirmed.
+   */
   readonly publishedAt: string | null;
   readonly image: PublicNewsImage;
   readonly featured: boolean;

@@ -6,6 +6,7 @@ import {
   shopCurrencyForLocale,
   shopTextLocaleFor,
   type ShopItemDto,
+  type ShopTextLocale,
 } from "@/domains/shop/contracts";
 import { MongoShopItemStore } from "@/domains/shop/mongo-store";
 import type {
@@ -33,7 +34,17 @@ function paragraphs(text: string): string[] {
     .filter(Boolean);
 }
 
-function mapImages(item: ShopItemDto, name: string): PublicShopImage[] {
+/**
+ * The stored alt is written in Vietnamese by construction (the editor copies
+ * the Vietnamese name; the seed wrote Vietnamese captions), so it fits only
+ * the Vietnamese page. Every other locale gets the localised product name,
+ * which is the text already shown beside the picture.
+ */
+function mapImages(
+  item: ShopItemDto,
+  name: string,
+  textLocale: ShopTextLocale,
+): PublicShopImage[] {
   let storage: CloudinaryMediaStorage | null = null;
   try {
     storage = CloudinaryMediaStorage.fromEnvironment();
@@ -56,7 +67,7 @@ function mapImages(item: ShopItemDto, name: string): PublicShopImage[] {
     src: storage
       ? storage.buildImageUrl(image.publicId, image.assetVersion, 1600)
       : null,
-    alt: image.alt ?? name,
+    alt: textLocale === "vi" ? (image.alt ?? name) : name,
     width: image.width,
     height: image.height,
   }));
@@ -84,7 +95,7 @@ function mapItem(item: ShopItemDto, locale: Locale): PublicShopItem {
     },
     stockQuantity: item.stockQuantity,
     inStock: item.stockQuantity > 0,
-    images: mapImages(item, name),
+    images: mapImages(item, name, textLocale),
     updatedAt: item.updatedAt,
   };
 }

@@ -1,13 +1,20 @@
-import { notFound } from "next/navigation";
+import type { Route } from "next";
+import { notFound, permanentRedirect } from "next/navigation";
 
 import { ProductDetailPage } from "@/components/public/pages";
-import { isLocale } from "@/lib/i18n/config";
+import { isLocale, localePath } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
 import {
   getDemoProductDetailPageData,
   getDemoProductStaticParams,
 } from "@/lib/public/demo-page-data";
+import { getPublicProductRepository } from "@/lib/public/repositories";
+import { JsonLdScripts } from "@/lib/seo/json-ld";
 import { getDemoProductMetadata } from "@/lib/seo/route-metadata";
+import { productStructuredData } from "@/lib/seo/structured-data";
+import { encodeSeoSlug } from "@/lib/seo/urls";
+
+const productRepository = getPublicProductRepository();
 
 type ProductDetailRouteProps = {
   params: Promise<{ locale: string; slug: string }>;
@@ -31,6 +38,18 @@ export default async function ProductDetailRoute({
     notFound();
   }
 
+  const product = await productRepository.getBySlug(locale, slug);
+  if (!product) {
+    notFound();
+  }
+  // The URL carried another language's slug (the locale switcher keeps the
+  // slug); send visitors and crawlers to this locale's own address.
+  if (product.slug !== slug) {
+    permanentRedirect(
+      localePath(locale, `/products/${encodeSeoSlug(product.slug)}`) as Route,
+    );
+  }
+
   const dictionary = await getDictionary(locale);
   const data = await getDemoProductDetailPageData(locale, dictionary, slug);
 
@@ -39,10 +58,16 @@ export default async function ProductDetailRoute({
   }
 
   return (
-    <ProductDetailPage
-      data={data}
-      dictionary={dictionary}
-      isDemo={data.contentIsDemo}
-    />
+    <>
+      <JsonLdScripts
+        documents={productStructuredData(locale, dictionary, product)}
+        enabled={!product.isDemo}
+      />
+      <ProductDetailPage
+        data={data}
+        dictionary={dictionary}
+        isDemo={data.contentIsDemo}
+      />
+    </>
   );
 }

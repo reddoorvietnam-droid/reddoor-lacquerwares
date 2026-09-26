@@ -1,6 +1,7 @@
 import type { PublicDictionary } from "@/lib/i18n/dictionary";
 
 import {
+  Breadcrumbs,
   MediaFrame,
   PageFrame,
   PageHero,
@@ -98,7 +99,7 @@ export function ShopListingPage({
       <PageNotices dictionary={dictionary} isDemo={isDemo} notices={notices} />
       <PageHero
         eyebrow={data.heroEyebrow}
-        title={dictionary.pages.shopTitle}
+        title={dictionary.pages.shopHeading}
         intro={dictionary.pages.shopIntro}
         media={data.heroMedia}
       />
@@ -127,7 +128,8 @@ export function ShopListingPage({
 
 export interface ShopItemPageData {
   contentIsDemo: boolean;
-  backLink: PublicPageLink;
+  /** Home → shop → this item; the same labels as the JSON-LD trail. */
+  breadcrumbs: readonly PublicPageLink[];
   descriptionParagraphs: readonly string[];
   gallery: readonly PublicPageMedia[];
   inStock: boolean;
@@ -158,13 +160,10 @@ export function ShopItemPage({
     <PageFrame>
       <PageNotices dictionary={dictionary} isDemo={isDemo} notices={notices} />
       <div className="mx-auto max-w-7xl px-[var(--space-page)] pt-8">
-        <a
-          href={data.backLink.href}
-          className="text-burgundy hover:text-lacquer inline-flex min-h-11 items-center gap-2 text-sm font-semibold"
-        >
-          <span aria-hidden="true">←</span>
-          {data.backLink.label}
-        </a>
+        <Breadcrumbs
+          items={data.breadcrumbs}
+          label={dictionary.common.breadcrumbs}
+        />
       </div>
 
       <section className="mx-auto grid max-w-7xl gap-10 px-[var(--space-page)] py-10 lg:grid-cols-[minmax(0,1.15fr)_minmax(22rem,0.85fr)] lg:gap-16 lg:py-16">
@@ -182,6 +181,7 @@ export function ShopItemPage({
                     className={
                       index === 0 ? "aspect-4/5 sm:aspect-4/3" : "aspect-square"
                     }
+                    preload={index === 0}
                   />
                 </div>
               ))}

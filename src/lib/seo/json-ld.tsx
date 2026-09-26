@@ -17,23 +17,41 @@ export type JsonLdDocument = {
 type OrganizationJsonLdInput = {
   name: string;
   url: string;
+  id?: string | null;
+  alternateNames?: readonly string[];
   description?: string | null;
   legalName?: string | null;
   logoUrl?: string | null;
   sameAs?: readonly string[];
+  email?: string | null;
+  telephone?: string | null;
+  /** One-line postal address as published on the site. */
+  address?: string | null;
+  addressCountry?: string | null;
 };
 
 type WebsiteJsonLdInput = {
   name: string;
   url: string;
   locale: string;
+  alternateNames?: readonly string[];
   description?: string | null;
   searchUrlTemplate?: string | null;
+  publisherId?: string | null;
 };
 
 export type BreadcrumbJsonLdItem = {
   name: string;
   url: string;
+};
+
+type ProductOfferInput = {
+  /** Decimal string in the currency's own scale, e.g. "1250000" or "48.00". */
+  price: string;
+  priceCurrency: string;
+  inStock: boolean;
+  url: string;
+  sellerName?: string | null;
 };
 
 type ProductJsonLdInput = {
@@ -44,6 +62,7 @@ type ProductJsonLdInput = {
   sku?: string | null;
   materials?: readonly string[];
   brandName?: string | null;
+  offer?: ProductOfferInput | null;
 };
 
 type ArticleJsonLdInput = {
@@ -54,7 +73,13 @@ type ArticleJsonLdInput = {
   datePublished?: string | null;
   dateModified?: string | null;
   authorName?: string | null;
+  /** Editorial signed by the company rather than a person. */
+  authorType?: "Organization" | "Person";
+  /** Absolute URL identifying the author, e.g. the company's home page. */
+  authorUrl?: string | null;
   publisherName?: string | null;
+  publisherLogoUrl?: string | null;
+  inLanguage?: string | null;
 };
 
 type VideoJsonLdInput = {
@@ -75,6 +100,16 @@ function presentValues(values: readonly string[] | undefined): string[] {
   return values?.filter(present) ?? [];
 }
 
+/** Distinct names other than the primary one, in first-seen order. */
+function aliasesOf(
+  name: string,
+  alternateNames: readonly string[] | undefined,
+): string[] {
+  return [...new Set(presentValues(alternateNames))].filter(
+    (alias) => alias !== name,
+  );
+}
+
 function optionalAbsoluteUrl(value: string | null | undefined): string | null {
   if (!present(value)) return null;
 
@@ -91,24 +126,55 @@ function optionalAbsoluteUrl(value: string | null | undefined): string | null {
 export function buildOrganizationJsonLd({
   name,
   url,
+  id,
+  alternateNames,
   description,
   legalName,
   logoUrl,
   sameAs,
+  email,
+  telephone,
+  address,
+  addressCountry,
 }: OrganizationJsonLdInput): JsonLdDocument {
   const logo = optionalAbsoluteUrl(logoUrl);
   const socialProfiles = presentValues(sameAs)
     .map(optionalAbsoluteUrl)
     .filter(present);
+  const aliases = aliasesOf(name, alternateNames);
+  const hasContact = present(email) || present(telephone);
 
   return {
     "@context": "https://schema.org",
     "@type": "Organization",
+    ...(present(id) ? { "@id": id } : {}),
     name,
+    ...(aliases.length > 0 ? { alternateName: aliases } : {}),
     url,
     ...(present(description) ? { description } : {}),
     ...(present(legalName) ? { legalName } : {}),
     ...(logo ? { logo } : {}),
+    ...(present(email) ? { email } : {}),
+    ...(present(telephone) ? { telephone } : {}),
+    ...(present(address)
+      ? {
+          address: {
+            "@type": "PostalAddress",
+            streetAddress: address,
+            ...(present(addressCountry) ? { addressCountry } : {}),
+          },
+        }
+      : {}),
+    ...(hasContact
+      ? {
+          contactPoint: {
+            "@type": "ContactPoint",
+            contactType: "sales",
+            ...(present(email) ? { email } : {}),
+            ...(present(telephone) ? { telephone } : {}),
+          },
+        }
+      : {}),
     ...(socialProfiles.length > 0 ? { sameAs: socialProfiles } : {}),
   };
 }
@@ -117,16 +183,22 @@ export function buildWebsiteJsonLd({
   name,
   url,
   locale,
+  alternateNames,
   description,
   searchUrlTemplate,
+  publisherId,
 }: WebsiteJsonLdInput): JsonLdDocument {
+  const aliases = aliasesOf(name, alternateNames);
+
   return {
     "@context": "https://schema.org",
     "@type": "WebSite",
     name,
+    ...(aliases.length > 0 ? { alternateName: aliases } : {}),
     url,
     inLanguage: locale,
     ...(present(description) ? { description } : {}),
+    ...(present(publisherId) ? { publisher: { "@id": publisherId } } : {}),
     ...(present(searchUrlTemplate)
       ? {
           potentialAction: {
@@ -162,11 +234,13 @@ export function buildProductJsonLd({
   sku,
   materials,
   brandName,
+  offer,
 }: ProductJsonLdInput): JsonLdDocument {
   const images = presentValues(imageUrls)
     .map(optionalAbsoluteUrl)
     .filter(present);
   const material = presentValues(materials);
+  const offerUrl = optionalAbsoluteUrl(offer?.url);
 
   return {
     "@context": "https://schema.org",
@@ -180,6 +254,25 @@ export function buildProductJsonLd({
     ...(present(brandName)
       ? { brand: { "@type": "Brand", name: brandName } }
       : {}),
+    ...(offer && offerUrl && present(offer.price)
+      ? {
+          offers: {
+            "@type": "Offer",
+            url: offerUrl,
+            price: offer.price,
+            priceCurrency: offer.priceCurrency,
+            availability: offer.inStock
+              ? "https://schema.org/InStock"
+              : "https://schema.org/OutOfStock",
+            itemCondition: "https://schema.org/NewCondition",
+            ...(present(offer.sellerName)
+              ? {
+                  seller: { "@type": "Organization", name: offer.sellerName },
+                }
+              : {}),
+          },
+        }
+      : {}),
   };
 }
 
@@ -191,11 +284,17 @@ export function buildArticleJsonLd({
   datePublished,
   dateModified,
   authorName,
+  authorType = "Person",
+  authorUrl,
   publisherName,
+  publisherLogoUrl,
+  inLanguage,
 }: ArticleJsonLdInput): JsonLdDocument {
   const images = presentValues(imageUrls)
     .map(optionalAbsoluteUrl)
     .filter(present);
+  const author = optionalAbsoluteUrl(authorUrl);
+  const publisherLogo = optionalAbsoluteUrl(publisherLogoUrl);
 
   return {
     "@context": "https://schema.org",
@@ -206,12 +305,25 @@ export function buildArticleJsonLd({
     ...(images.length > 0 ? { image: images } : {}),
     ...(present(datePublished) ? { datePublished } : {}),
     ...(present(dateModified) ? { dateModified } : {}),
+    ...(present(inLanguage) ? { inLanguage } : {}),
     ...(present(authorName)
-      ? { author: { "@type": "Person", name: authorName } }
+      ? {
+          author: {
+            "@type": authorType,
+            name: authorName,
+            ...(author ? { url: author } : {}),
+          },
+        }
       : {}),
     ...(present(publisherName)
       ? {
-          publisher: { "@type": "Organization", name: publisherName },
+          publisher: {
+            "@type": "Organization",
+            name: publisherName,
+            ...(publisherLogo
+              ? { logo: { "@type": "ImageObject", url: publisherLogo } }
+              : {}),
+          },
         }
       : {}),
   };
@@ -270,5 +382,24 @@ export function JsonLd({
       type="application/ld+json"
       dangerouslySetInnerHTML={{ __html: serializeJsonLd(data) }}
     />
+  );
+}
+
+/** Several documents, one script each, e.g. an Article and its breadcrumbs. */
+export function JsonLdScripts({
+  documents,
+  enabled = true,
+}: {
+  documents: readonly JsonLdDocument[];
+  enabled?: boolean;
+}): ReactElement | null {
+  if (!enabled || documents.length === 0) return null;
+
+  return (
+    <>
+      {documents.map((data, index) => (
+        <JsonLd key={`${data["@type"]}-${index}`} data={data} />
+      ))}
+    </>
   );
 }

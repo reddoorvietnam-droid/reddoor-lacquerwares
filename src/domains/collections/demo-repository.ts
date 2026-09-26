@@ -1,4 +1,4 @@
-import type { Locale } from "@/lib/i18n/config";
+import { locales, type Locale } from "@/lib/i18n/config";
 
 import type {
   PublicCollection,
@@ -325,6 +325,13 @@ function makeCollections(locale: Locale): readonly PublicCollection[] {
         isDemo: false,
         locale,
         slug: blueprint.slug,
+        // Every locale carries its own copy under the same slug.
+        contentLocale: locale,
+        translations: locales.map((candidate) => ({
+          locale: candidate,
+          slug: blueprint.slug,
+        })),
+        updatedAt: null,
         title: copy.title,
         editionLabel: copy.editionLabel,
         year: blueprint.year,

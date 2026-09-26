@@ -6,11 +6,32 @@ const dictionary = {
     siteTitle: "Red Door — Laque de Ha Thai, Vietnam",
     siteDescription:
       "Red Door fabrique des objets en laque artisanale dans le village de métier de Ha Thai, près de Hanoï : plateaux, coffrets, dessous de verre et objets décoratifs laqués en couches, poncés à l'eau et polis à la main. Produits testés par SGS selon les normes européennes, exportés vers les États-Unis et l'Europe.",
+    pageDescriptions: {
+      home: "Laque vietnamienne faite main par Red Door au village de Ha Thai, près de Hanoï : plateaux, coffrets, dessous de verre, bols et vases. Testés SGS aux normes UE.",
+      about:
+        "Red Door, atelier de laque vietnamienne au village de Ha Thai près de Hanoï : technique traditionnelle, dessin contemporain, pièces testées SGS aux normes UE.",
+      products:
+        "Objets en laque vietnamienne faits main : plateaux, coffrets, dessous de verre, bols, vases et objets décoratifs Red Door, laqués en couches, polis à la main.",
+      collections:
+        "Collections et catalogues de laque vietnamienne Red Door : chaque année, plateaux, coffrets, bols, vases et objets décoratifs faits main à Ha Thai.",
+      process:
+        "Comment naît la laque vietnamienne à l'atelier Red Door : support, apprêts, couches de laque, ponçage à l'eau et polissage — des dizaines d'étapes, sans hâte.",
+      news: "Actualités de la laque vietnamienne et récits de l'atelier Red Door à Ha Thai : nouvelles collections, salons internationaux et coulisses de chaque pièce.",
+      contact:
+        "Contactez Red Door pour un catalogue ou un devis d'objets en laque vietnamienne : plateaux, coffrets, bols, vases, créations sur mesure et commandes à l'export.",
+      shop: "Boutique Red Door : objets en laque vietnamienne faits main, disponibles à l'atelier — plateaux, coffrets, dessous de verre et bols, prix en VND et USD.",
+      privacy:
+        "Politique de confidentialité de Red Door : les informations recueillies lorsque vous nous contactez ou demandez un devis, et l'usage que nous en faisons.",
+      terms:
+        "Conditions d'utilisation du site Red Door, exploité par RED DOOR Co., Ltd : propriété intellectuelle, informations produits, devis et commandes.",
+      accessibility:
+        "Déclaration d'accessibilité du site Red Door : notre engagement WCAG 2.1 AA, les limites connues et la façon de nous faire part de vos remarques.",
+    },
   },
   common: {
     updatingLabel: "En cours de mise à jour",
     skipToContent: "Aller au contenu principal",
-    learnMore: "En savoir plus",
+    learnMore: "Voir comment nous fabriquons la laque",
     explore: "Explorer",
     viewAll: "Tout voir",
     close: "Fermer",
@@ -25,6 +46,7 @@ const dictionary = {
     featured: "À la une",
     playVideo: "Lire la vidéo",
     updatingNotice: "Cette section est en cours de finition par l'atelier.",
+    breadcrumbs: "Fil d'Ariane",
   },
   nav: {
     home: "Accueil",
@@ -38,8 +60,8 @@ const dictionary = {
   },
   home: {
     eyebrow: "RED DOOR — LAQUE DE HA THAI",
-    title: "Une surface vivante,",
-    titleAccent: "façonnée à la main",
+    title: "Objets en laque vietnamienne,",
+    titleAccent: "façonnés à la main, couche après couche",
     heroDescription:
       "L'essence de la laque vietnamienne est préservée dans chaque couche — chaque produit est une harmonie entre nature et main de l'artisan.",
     craftTitle: "Un récit de matière, couche après couche",
@@ -54,27 +76,40 @@ const dictionary = {
     contactTitleAccent: "la conversation",
     contactBody:
       "Dites-nous ce que vous recherchez — une collection disponible, un dessin sur mesure ou une commande à l'export. L'équipe Red Door vous répondra au plus vite.",
+    heroImageAlt:
+      "Ensemble en laque Red Door : plateau, vase, coffrets, dessous de verre, bol et panneau de laque au lotus, rouge et or",
+    craftImageAlt:
+      "Artisan polissant à la main un plateau en laque rouge au motif de fleurs dorées, à côté de feuilles d'or",
+    closingImageAlt:
+      "Les portes rouges de l'atelier Red Door Co., Ltd au Vietnam",
   },
   pages: {
     aboutTitle: "À propos",
+    aboutHeading: "À propos — atelier de laque à Ha Thai, Hanoï",
     aboutIntro:
       "Red Door est un atelier de laque installé dans le village de métier de Ha Thai, près de Hanoï, où le savoir-faire se transmet de génération en génération. Nous associons techniques traditionnelles et dessin contemporain pour porter la laque vietnamienne dans les intérieurs du monde entier.",
     productsTitle: "Produits",
+    productsHeading: "Objets en laque : plateaux, coffrets, bols",
     productsIntro:
       "Plateaux, coffrets, dessous de verre, vases et objets décoratifs — chaque pièce est façonnée à la main à l'atelier de Ha Thai, laquée en couches, poncée à l'eau et polie à la main.",
     collectionsTitle: "Collections",
+    collectionsHeading: "Collections de laque et catalogues",
     collectionsIntro:
       "Chaque année, Red Door présente une nouvelle collection — fruit du travail de l'atelier sur les matières, les couleurs et les surfaces. Ouvrez chaque catalogue pour découvrir l'ensemble.",
     processTitle: "Procédé de laque",
+    processHeading: "Fabrication de la laque vietnamienne",
     processIntro:
       "Une pièce de laque achevée traverse des dizaines d'étapes : préparation du support, apprêts, couches de laque, ponçage à l'eau et polissage. Aucune ne peut être précipitée.",
     newsTitle: "Actualités et récits",
+    newsHeading: "Actualités de la laque et récits d'atelier",
     newsIntro:
       "Notes de l'atelier de Ha Thai : nouvelles collections, salons internationaux et histoires derrière chaque surface laquée.",
     contactTitle: "Contact et demande de devis",
+    contactHeading: "Contact et devis pour objets en laque",
     contactIntro:
       "Contactez Red Door pour recevoir un catalogue, un devis ou échanger sur une commande particulière. Nous travaillons en direct avec détaillants, designers et marques du monde entier.",
     shopTitle: "Boutique",
+    shopHeading: "Boutique de laque — commander à l'atelier",
     shopIntro:
       "Des pièces en laque disponibles à l’atelier, à commander directement. Nous confirmons chaque commande et indiquons les frais de port avant l’expédition.",
     searchTitle: "Rechercher",
@@ -98,12 +133,14 @@ const dictionary = {
     mediaVtvTitle:
       "Reportage VTV : Préserver l'âme de la laque traditionnelle de Ha Thai",
     mediaVtvDescription:
-      "Un reportage exclusif de la Télévision Nationale du Vietnam (VTV) capturant les étapes minutieuses de création dans l'atelier Red Door và le village artisanal de Ha Thai.",
+      "Un reportage exclusif de la Télévision Nationale du Vietnam (VTV) capturant les étapes minutieuses de création dans l'atelier Red Door et au village artisanal de Ha Thai.",
     mediaFranceChannel: "France TV — Télévision Française",
     mediaFranceTitle:
       "Télévision Française : Le rayonnement de la laque d'art vietnamienne",
     mediaFranceDescription:
       "Un documentaire de la télévision française mettant à l'honneur le savoir-faire unique de la laque vietnamienne, ses standards de qualité rigoureux et son succès auprès des passionnés d'artisanat d'art en Europe.",
+    videoUnsupported:
+      "Votre navigateur ne prend pas en charge la lecture vidéo.",
     pillarKicker: "Valeurs fondatrices",
     pillarsDescription:
       "Trois constantes dans chaque pièce qui quitte l'atelier Red Door.",
@@ -296,7 +333,7 @@ const dictionary = {
   legal: {
     lastUpdated: "Mise à jour : août 2026",
     privacyIntro:
-      "Red Door respecte la vie privée de ses visiteurs. Cette politique décrit les informations que nous recueillons lorsque vous utilisez lacquerware.vn et l'usage que nous en faisons.",
+      "Red Door respecte la vie privée de ses visiteurs. Cette politique décrit les informations que nous recueillons lorsque vous utilisez reddoor.vn et l'usage que nous en faisons.",
     privacySections: [
       {
         title: "Les informations recueillies",
@@ -312,7 +349,7 @@ const dictionary = {
       },
     ],
     termsIntro:
-      "Les conditions suivantes régissent l'accès et l'utilisation de lacquerware.vn, exploité par RED DOOR Co., Ltd.",
+      "Les conditions suivantes régissent l'accès et l'utilisation de reddoor.vn, exploité par RED DOOR Co., Ltd.",
     termsSections: [
       {
         title: "Propriété intellectuelle",

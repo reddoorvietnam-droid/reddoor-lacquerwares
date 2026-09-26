@@ -1,4 +1,4 @@
-import type { Locale } from "@/lib/i18n/config";
+import type { Locale, LocalizedSlug } from "@/lib/i18n/config";
 
 /**
  * `"DEMO"` marks copy that is a stand-in and must not be read as a company
@@ -72,6 +72,16 @@ export interface PublicProduct {
   readonly isDemo: boolean;
   readonly locale: Locale;
   readonly slug: string;
+  /**
+   * The locale the copy is written in. Differs from `locale` when this locale
+   * has no translation and the page falls back to another one; search
+   * engines are then pointed at the original, not the untranslated copy.
+   */
+  readonly contentLocale: Locale;
+  /** Every published translation and its slug, for hreflang and the sitemap. */
+  readonly translations: readonly LocalizedSlug[];
+  /** ISO timestamp of the last change, `null` when unknown. */
+  readonly updatedAt: string | null;
   /**
    * `null` until the company confirms its own catalogue references. A public
    * page must never show an invented SKU.

@@ -8,6 +8,12 @@ const optionalText = z.preprocess(
   z.string().trim().min(1).optional(),
 );
 
+const optionalHttpsUrl = z.preprocess(
+  (value) =>
+    typeof value === "string" && value.trim() === "" ? undefined : value,
+  z.url({ protocol: /^https$/ }).optional(),
+);
+
 const baseSchema = z.object({
   NODE_ENV: z
     .enum(["development", "test", "production"])
@@ -15,6 +21,12 @@ const baseSchema = z.object({
   DATA_SOURCE: z.enum(["auto", "demo", "mongo"]).default("auto"),
   NEXT_PUBLIC_SITE_URL: z.url().default("http://localhost:3000"),
   MONGODB_DB_NAME: z.string().trim().min(1).default("reddoor"),
+  /**
+   * Google Maps `/maps/place/` or `?cid=` link of the claimed Business
+   * Profile. Set only once that listing's address matches the site; until
+   * then the contact page links to a plain address search instead.
+   */
+  SEO_GOOGLE_MAPS_PLACE_URL: optionalHttpsUrl,
 });
 
 const mongoSchema = baseSchema.extend({
