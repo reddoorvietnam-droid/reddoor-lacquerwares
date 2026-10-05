@@ -40,14 +40,17 @@ was removed, so Google is the only way in.
 - **Từ chối** deletes the pending account and its grants. Signing in again
   queues the person again; it is not a block.
 - **Khoá** sets `suspended` and keeps the role; **Mở khoá** restores it.
+- **Xoá** (added 2026-10-05) deletes a working or locked account and its grants
+  for good. Tasks and audit events keep the person's id and stay. Signing in
+  again queues the person as new; it is not a block either.
 - **Đổi role** replaces the grant. No notification is sent: the Director checks
   the page.
 
 | Tab           | Status      | Actions                    |
 | ------------- | ----------- | -------------------------- |
 | Chờ duyệt     | `pending`   | Duyệt (with role), Từ chối |
-| Đang làm việc | `active`    | Lưu role, Khoá             |
-| Đã khoá       | `suspended` | Mở khoá                    |
+| Đang làm việc | `active`    | Lưu role, Khoá, Xoá        |
+| Đã khoá       | `suspended` | Mở khoá, Xoá               |
 
 ## Internal test accounts
 
@@ -78,17 +81,18 @@ audit events still name them.
 
 Page and menu entry: `users.manageRoles`. Approve: `users.activate` +
 `users.manageRoles`; reject/unlock: `users.activate`; change role:
-`users.manageRoles`; lock: `users.suspend`. All three are in
-`globallyScopedPermissions`, so only a global grant satisfies them. Only the
-Director holds them.
+`users.manageRoles`; lock: `users.suspend`; delete: `users.delete`. All four
+are in `globallyScopedPermissions`, so only a global grant satisfies them. Only
+the Director holds them. A new permission reaches the database through
+`npm run seed`, which rewrites each role's permission list.
 
 ## How access follows
 
 Every command bumps `authzVersion`. The next-auth JWT callback re-reads status
 and `authzVersion` on each request, so approval, a new role, a lock or an unlock
-applies on the person's next page load without signing out. A rejected account
-no longer exists, so its old cookie resolves to no session and the portal sends
-the person to sign-in.
+applies on the person's next page load without signing out. A rejected or
+deleted account no longer exists, so its old cookie resolves to no session and
+the portal sends the person to sign-in.
 
 ## Verification
 
@@ -101,7 +105,7 @@ bumps `authzVersion`, voiding the cookies. `signInAs(page, role)` in
 `tests/e2e-admin/helpers.ts` sets that cookie.
 
 - `staff.spec.ts` seeds two pending accounts with `staff-fixture.ts` and walks
-  approve, change role, stale-page conflict, lock, unlock and reject from both
-  sides.
+  approve, change role, stale-page conflict, lock, unlock, delete and reject
+  from both sides.
 - `welcome.spec.ts` checks each role's welcome page, the sign-out, the
   signed-in redirect away from sign-in, and the sign-in error message.

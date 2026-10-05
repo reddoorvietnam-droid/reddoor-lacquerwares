@@ -76,6 +76,10 @@ const copy = {
     suspendConfirm:
       "Người này không vào được hệ thống từ lần tải trang kế tiếp. Role được giữ lại để mở khoá sau.",
     confirmSuspend: "Xác nhận khoá",
+    remove: "Xoá",
+    removeConfirm:
+      "Xoá hẳn tài khoản và role của người này; việc đã giao và lịch sử thao tác vẫn được giữ. Nếu người này đăng nhập lại bằng Gmail, họ sẽ vào hàng chờ như người mới.",
+    confirmRemove: "Xác nhận xoá",
     protected: {
       SELF: "Tài khoản của bạn",
       DIRECTOR_PROTECTED: "Giám đốc",
@@ -89,6 +93,8 @@ const copy = {
         "Đã đổi role. Quyền mới có hiệu lực từ lần tải trang kế tiếp.",
       suspended: "Đã khoá tài khoản.",
       unlocked: "Đã mở khoá tài khoản.",
+      deleted:
+        "Đã xoá tài khoản. Nếu người này đăng nhập lại, họ sẽ quay lại hàng chờ.",
     } as Record<string, string>,
     errorLead: "Thao tác không thành công:",
     errors: {
@@ -96,7 +102,7 @@ const copy = {
       NOT_FOUND: "Không tìm thấy tài khoản (có thể đã bị từ chối).",
       SELF: "Không thể thao tác trên tài khoản của chính mình.",
       DIRECTOR_PROTECTED:
-        "Tài khoản Giám đốc không thể khoá, đổi role hay từ chối.",
+        "Tài khoản Giám đốc không thể khoá, đổi role, từ chối hay xoá.",
       TEST_ACCOUNT: "Tài khoản kiểm thử không quản lý ở đây.",
       INVALID_STATE: "Trạng thái tài khoản không cho phép thao tác này.",
       INVALID_ROLE: "Hãy chọn một role hợp lệ.",
@@ -153,6 +159,10 @@ const copy = {
     suspendConfirm:
       "This person is shut out from their next page load. The role is kept so the account can be unlocked later.",
     confirmSuspend: "Confirm lock",
+    remove: "Delete",
+    removeConfirm:
+      "Deletes this account and its role for good; the work it was given and the audit trail stay. If the person signs in with Google again they queue up as new.",
+    confirmRemove: "Confirm deletion",
     protected: {
       SELF: "Your account",
       DIRECTOR_PROTECTED: "Director",
@@ -165,6 +175,8 @@ const copy = {
         "Role changed. The new access applies from the next page load.",
       suspended: "Account locked.",
       unlocked: "Account unlocked.",
+      deleted:
+        "Account deleted. If this person signs in again they queue up again.",
     } as Record<string, string>,
     errorLead: "The action failed:",
     errors: {
@@ -172,7 +184,7 @@ const copy = {
       NOT_FOUND: "The account was not found (it may have been rejected).",
       SELF: "You cannot act on your own account.",
       DIRECTOR_PROTECTED:
-        "The Director account cannot be locked, re-roled or rejected.",
+        "The Director account cannot be locked, re-roled, rejected or deleted.",
       TEST_ACCOUNT: "Test accounts are not managed here.",
       INVALID_STATE: "The account's status does not allow this action.",
       INVALID_ROLE: "Choose a valid role.",
@@ -398,7 +410,7 @@ function ConfirmAction({
   member: StaffMember;
   locale: AdminLocale;
   tab: UserStatus;
-  kind: "reject" | "suspend";
+  kind: "reject" | "suspend" | "delete";
   label: string;
   message: string;
   submit: string;
@@ -568,6 +580,17 @@ function StaffRow({
                 label={text.suspend}
                 message={text.suspendConfirm}
                 submit={text.confirmSuspend}
+              />
+            ) : null}
+            {allowed.includes("delete") ? (
+              <ConfirmAction
+                member={member}
+                locale={locale}
+                tab={tab}
+                kind="delete"
+                label={text.remove}
+                message={text.removeConfirm}
+                submit={text.confirmRemove}
               />
             ) : null}
           </div>

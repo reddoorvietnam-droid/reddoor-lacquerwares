@@ -16,6 +16,9 @@ import {
  * - Rejecting deletes the pending account, so signing in again simply queues
  *   the person again; it is not a permanent block.
  * - Locking keeps the role, so unlocking gives the same access back.
+ * - Deleting removes a working or locked account for good, role included,
+ *   while the work it was given and the audit trail stay. Signing in again
+ *   queues the person as new (added on 2026-10-05).
  *
  * Kept free of the database so the rules are tested on their own; the Mongo
  * service re-reads the account inside its transaction and runs them there.
@@ -74,7 +77,8 @@ export type StaffCommand =
   | { kind: "changeRole"; roleKey: string }
   | { kind: "suspend" }
   /** `roleKey` only when the account has no single role left to keep. */
-  | { kind: "unlock"; roleKey: string | null };
+  | { kind: "unlock"; roleKey: string | null }
+  | { kind: "delete" };
 
 export type StaffCommandKind = StaffCommand["kind"];
 
@@ -128,9 +132,9 @@ export function allowedStaffCommands(
     case "pending":
       return ["approve", "reject"];
     case "active":
-      return ["changeRole", "suspend"];
+      return ["changeRole", "suspend", "delete"];
     case "suspended":
-      return ["unlock"];
+      return ["unlock", "delete"];
   }
 }
 
@@ -193,6 +197,7 @@ export function assertStaffCommand(
     }
     case "reject":
     case "suspend":
+    case "delete":
       return null;
   }
 }

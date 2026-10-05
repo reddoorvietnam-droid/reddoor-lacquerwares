@@ -28,7 +28,14 @@ const tabSchema = z.enum(userStatuses).catch("pending");
 const inputSchema = z.object({
   userId: z.string().regex(/^[a-f0-9]{24}$/),
   expectedAuthzVersion: z.coerce.number().int().min(1),
-  kind: z.enum(["approve", "reject", "changeRole", "suspend", "unlock"]),
+  kind: z.enum([
+    "approve",
+    "reject",
+    "changeRole",
+    "suspend",
+    "unlock",
+    "delete",
+  ]),
   roleKey: z.string().trim().max(80),
 });
 
@@ -38,6 +45,7 @@ const notices: Record<StaffCommandKind, string> = {
   changeRole: "roleChanged",
   suspend: "suspended",
   unlock: "unlocked",
+  delete: "deleted",
 };
 
 function toCommand(kind: StaffCommandKind, roleKey: string): StaffCommand {
@@ -49,6 +57,7 @@ function toCommand(kind: StaffCommandKind, roleKey: string): StaffCommand {
       return { kind, roleKey: roleKey || null };
     case "reject":
     case "suspend":
+    case "delete":
       return { kind };
   }
 }
@@ -63,6 +72,8 @@ function permissionsFor(command: StaffCommand): readonly Permission[] {
       return ["users.manageRoles"];
     case "suspend":
       return ["users.suspend"];
+    case "delete":
+      return ["users.delete"];
     case "unlock":
       return command.roleKey
         ? ["users.activate", "users.manageRoles"]

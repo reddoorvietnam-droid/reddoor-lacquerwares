@@ -66,6 +66,7 @@ describe("the roles the Director hands out", () => {
     for (const permission of [
       "users.activate",
       "users.suspend",
+      "users.delete",
       "users.manageRoles",
     ] as const) {
       expect(requiresGlobalGrant(permission)).toBe(true);
@@ -76,8 +77,8 @@ describe("the roles the Director hands out", () => {
 describe("which actions a row offers", () => {
   it.each([
     ["pending", ["approve", "reject"]],
-    ["active", ["changeRole", "suspend"]],
-    ["suspended", ["unlock"]],
+    ["active", ["changeRole", "suspend", "delete"]],
+    ["suspended", ["unlock", "delete"]],
   ] as const)("a %s account offers %j", (status, expected) => {
     expect(
       allowedStaffCommands(
@@ -150,6 +151,7 @@ describe("the accounts no command may touch", () => {
     changeRole("WAREHOUSE_MANAGER"),
     { kind: "suspend" },
     { kind: "unlock", roleKey: "WAREHOUSE_MANAGER" },
+    { kind: "delete" },
   ];
 
   it.each(commands)("the actor's own account refuses $kind", (command) => {
@@ -248,7 +250,7 @@ describe("changing a working account's role", () => {
   });
 });
 
-describe("locking, unlocking and rejecting", () => {
+describe("locking, unlocking, rejecting and deleting", () => {
   it("locks a working account without touching its role", () => {
     expect(
       assertStaffCommand(
@@ -297,5 +299,19 @@ describe("locking, unlocking and rejecting", () => {
     expect(refusal(member({ status: "suspended" }), { kind: "reject" })).toBe(
       "INVALID_STATE",
     );
+  });
+
+  it("deletes a working or locked account, never a pending one", () => {
+    for (const status of ["active", "suspended"] as const) {
+      expect(
+        assertStaffCommand(
+          member({ status, roleKeys: ["FACTORY_MANAGER"] }),
+          { kind: "delete" },
+          { actorUserId, expectedAuthzVersion: 3 },
+        ),
+        status,
+      ).toBeNull();
+    }
+    expect(refusal(member(), { kind: "delete" })).toBe("INVALID_STATE");
   });
 });

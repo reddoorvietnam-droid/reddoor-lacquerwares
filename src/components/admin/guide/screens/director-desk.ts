@@ -694,7 +694,7 @@ export const directorDeskScreens: readonly ScreenGuide[] = [
     path: "/staff",
     title: "Danh sách nhân sự",
     summary:
-      "Nơi bạn duyệt người mới đăng nhập bằng Gmail, chọn một role cho mỗi người, đổi role, khoá và mở khoá tài khoản. Ai đăng nhập lần đầu sẽ nằm ở **Chờ duyệt** cho đến khi bạn duyệt.",
+      "Nơi bạn duyệt người mới đăng nhập bằng Gmail, chọn một role cho mỗi người, đổi role, khoá, mở khoá và xoá tài khoản. Ai đăng nhập lần đầu sẽ nằm ở **Chờ duyệt** cho đến khi bạn duyệt.",
     layout: [
       {
         text: "Phần đầu trang có dòng **Nhân sự**, tiêu đề **Danh sách nhân sự** và lời giải thích ngắn.",
@@ -712,7 +712,7 @@ export const directorDeskScreens: readonly ScreenGuide[] = [
         text: "Ở thẻ **Chờ duyệt**, người đăng nhập gần nhất nằm trên cùng. Ở hai thẻ còn lại, danh sách xếp theo tên từ A đến Z.",
       },
       {
-        text: "Nút **Từ chối** và **Khoá** không làm ngay: bấm vào sẽ mở một khung nhỏ màu đỏ giải thích hậu quả, kèm nút xác nhận.",
+        text: "Nút **Từ chối**, **Khoá** và **Xoá** không làm ngay: bấm vào sẽ mở một khung nhỏ màu đỏ giải thích hậu quả, kèm nút xác nhận.",
       },
     ],
     capabilities: [
@@ -730,6 +730,9 @@ export const directorDeskScreens: readonly ScreenGuide[] = [
       },
       {
         text: "Mở khoá tài khoản ở thẻ **Đã khoá** bằng nút **Mở khoá**. Người đó có lại đúng role cũ.",
+      },
+      {
+        text: "Xoá hẳn một tài khoản ở thẻ **Đang làm việc** hoặc **Đã khoá**: bấm **Xoá** rồi **Xác nhận xoá**. Role bị gỡ; việc đã giao và lịch sử thao tác của người đó vẫn còn.",
       },
       {
         text: "Chọn một trong năm role: **Quản lý nhà máy**, **Thủ kho / Quản lý kho**, **Kế toán nhà máy & mua hàng**, **Kế toán công ty**, **Biên tập nội dung**.",
@@ -755,10 +758,13 @@ export const directorDeskScreens: readonly ScreenGuide[] = [
         text: "Không có đăng nhập bằng số điện thoại, mã OTP hay mật khẩu; chỉ đăng nhập bằng Gmail.",
       },
       {
-        text: "**Từ chối** không chặn vĩnh viễn: nếu người đó đăng nhập lại, họ quay lại hàng chờ. Muốn chặn một người đang làm việc, hãy dùng **Khoá**.",
+        text: "**Từ chối** và **Xoá** không chặn vĩnh viễn: nếu người đó đăng nhập lại, họ quay lại hàng chờ như người mới. Muốn chặn một người mà vẫn giữ role của họ, hãy dùng **Khoá**.",
       },
       {
-        text: "Hệ thống không gửi thông báo cho người được duyệt, đổi role, khoá hay mở khoá.",
+        text: "**Xoá** không hoàn tác được. Nếu còn phân vân, hãy **Khoá** trước; tài khoản đã khoá vẫn xoá được sau.",
+      },
+      {
+        text: "Hệ thống không gửi thông báo cho người được duyệt, đổi role, khoá, mở khoá hay xoá.",
       },
     ],
     flows: [
@@ -829,6 +835,19 @@ export const directorDeskScreens: readonly ScreenGuide[] = [
         ],
         result:
           "Trang báo “Đã mở khoá tài khoản.”, người đó quay về thẻ **Đang làm việc** với role đã giữ. Muốn đổi role, hãy mở khoá trước rồi dùng **Lưu role**.",
+      },
+      {
+        title: "Xoá tài khoản",
+        when: "Khi một người đã nghỉ hẳn, hoặc một tài khoản được duyệt nhầm và không cần giữ lại.",
+        steps: [
+          "Bấm thẻ **Đang làm việc** hoặc **Đã khoá**.",
+          "Tìm dòng của người cần xoá.",
+          "Bấm **Xoá** ở cột **Thao tác**.",
+          "Đọc dòng giải thích trong khung màu đỏ.",
+          "Bấm **Xác nhận xoá**.",
+        ],
+        result:
+          "Trang báo “Đã xoá tài khoản.”, dòng đó biến mất khỏi mọi thẻ. Từ lần tải trang kế tiếp người đó bị đưa về trang đăng nhập; nếu đăng nhập lại bằng Gmail, họ nằm ở **Chờ duyệt** như người mới. Việc đã giao và lịch sử thao tác của họ vẫn còn.",
       },
     ],
     terms: [

@@ -258,14 +258,20 @@ export async function runStaffCommand(
     const expectOne = (matched: number) => {
       if (matched !== 1) throw new StaffCommandError("REVISION_CONFLICT");
     };
-    let after: { status: StaffMember["status"]; roleKeys: readonly string[] };
+    let after:
+      | { status: StaffMember["status"]; roleKeys: readonly string[] }
+      | { deleted: true };
 
     switch (input.command.kind) {
-      case "reject": {
+      // Rejecting a pending account and deleting a working or locked one
+      // remove the same rows: the account and every grant it ever held. What
+      // the person did (tasks, audit events) keeps their id and stays.
+      case "reject":
+      case "delete": {
         await AccessGrant.deleteMany({ userId }, { session }).exec();
         const removed = await User.deleteOne(current, { session }).exec();
         expectOne(removed.deletedCount);
-        after = { status: "pending", roleKeys: [] };
+        after = { deleted: true };
         break;
       }
       case "approve":
@@ -329,9 +335,7 @@ export async function runStaffCommand(
             status: member.status,
             roleKeys: member.roleKeys,
           }),
-          after: redactAuditValue(
-            input.command.kind === "reject" ? { deleted: true } : after,
-          ),
+          after: redactAuditValue(after),
           occurredAt: now,
         },
       ],

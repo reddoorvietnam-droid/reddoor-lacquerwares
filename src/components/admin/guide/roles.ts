@@ -56,17 +56,18 @@ export const roleGuides: Record<SystemRoleKey, RoleGuide> = {
         links: ["", "/staff"],
       },
       {
-        title: "Đổi vai trò, khoá và mở khoá tài khoản",
-        when: "Khi một người đổi vị trí, nghỉ việc hoặc quay lại làm.",
+        title: "Đổi vai trò, khoá, mở khoá và xoá tài khoản",
+        when: "Khi một người đổi vị trí, nghỉ việc, quay lại làm hoặc nghỉ hẳn.",
         steps: [
           "Mở **Danh sách nhân sự** và chọn tab **Đang làm việc**.",
           "Chọn vai trò mới trong cột **Role** của người đó.",
           "Bấm **Lưu role**.",
           "Để khoá, bấm **Khoá** rồi bấm **Xác nhận khoá**.",
           "Để mở lại, chọn tab **Đã khoá** và bấm **Mở khoá**.",
+          "Để xoá hẳn một người đã nghỉ, bấm **Xoá** rồi **Xác nhận xoá**; nút này có ở cả tab **Đang làm việc** và **Đã khoá**.",
         ],
         result:
-          "Vai trò mới, việc khoá hay mở khoá có hiệu lực từ lần tải trang kế tiếp của người đó. Hệ thống không gửi thông báo cho nhân viên, nên bạn tự báo họ. Khoá giữ lại vai trò cũ để mở khoá sau.",
+          "Vai trò mới, việc khoá, mở khoá hay xoá có hiệu lực từ lần tải trang kế tiếp của người đó. Hệ thống không gửi thông báo cho nhân viên, nên bạn tự báo họ. Khoá giữ lại vai trò cũ để mở khoá sau; xoá thì không hoàn tác được, và nếu người đó đăng nhập lại, họ quay lại hàng chờ như người mới.",
         links: ["/staff"],
       },
       {

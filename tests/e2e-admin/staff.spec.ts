@@ -16,6 +16,7 @@ import { signInAs } from "./helpers";
 // role. The fixture script creates two pending accounts and the session
 // cookies a Google sign-in would have left, so the spec watches both sides:
 // the Director's list and what each person sees on their next page load.
+// Deleting (2026-10-05) removes a working or locked account for good.
 
 type FixtureAccount = { id: string; email: string; token: string };
 type Fixture = Record<"a" | "b", FixtureAccount>;
@@ -196,6 +197,26 @@ test.describe.serial("staff directory", () => {
     await expect(
       menu(person).getByRole("link", { name: "Khách hàng", exact: true }),
     ).toBeVisible();
+    await person.context().close();
+  });
+
+  test("deleting a working account removes it and its session for good", async ({
+    page,
+    browser,
+  }) => {
+    await signInAs(page, "DIRECTOR");
+    await openTab(page, "active");
+    await confirm(rowOf(page, fixture.a.email), "Xoá", "Xác nhận xoá");
+    await expect(page.getByRole("status")).toContainText("Đã xoá tài khoản.");
+    for (const tab of ["active", "suspended", "pending"] as const) {
+      await openTab(page, tab);
+      await expect(rowOf(page, fixture.a.email)).toHaveCount(0);
+    }
+
+    // The account is gone, so the old cookie resolves to no session.
+    const person = await openAs(browser, baseURL, fixture.a);
+    await person.goto("/vi/admin", { waitUntil: "domcontentloaded" });
+    await person.waitForURL(/\/vi\/admin\/sign-in/);
     await person.context().close();
   });
 

@@ -21,6 +21,7 @@ export const permissionCatalog = [
   "users.invite",
   "users.activate",
   "users.suspend",
+  "users.delete",
   "users.manageRoles",
   "users.manageSuperAdmin",
   "roles.read",
@@ -380,9 +381,11 @@ export type SensitiveFieldPermission =
  */
 export const globallyScopedPermissions = [
   "users.manageSuperAdmin",
-  // Approving, locking and re-roling staff accounts ("Danh sách nhân sự").
+  // Approving, locking, deleting and re-roling staff accounts ("Danh sách
+  // nhân sự").
   "users.activate",
   "users.suspend",
+  "users.delete",
   "users.manageRoles",
   "roles.update",
   "settings.publishPublic",
