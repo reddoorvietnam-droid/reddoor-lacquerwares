@@ -11,8 +11,10 @@ import { commonScreens } from "@/components/admin/guide/screens/common";
 import { contentScreens } from "@/components/admin/guide/screens/content";
 import { counterSalesScreens } from "@/components/admin/guide/screens/counter-sales";
 import { directorDeskScreens } from "@/components/admin/guide/screens/director-desk";
+import { facilityContractScreens } from "@/components/admin/guide/screens/facility-contracts";
 import { financeBookScreens } from "@/components/admin/guide/screens/finance-books";
 import { financeMoneyScreens } from "@/components/admin/guide/screens/finance-money";
+import { importShipmentScreens } from "@/components/admin/guide/screens/import-shipments";
 import { orderFlowScreens } from "@/components/admin/guide/screens/order-flow";
 import { orderScreens } from "@/components/admin/guide/screens/orders";
 import { shopSettingsScreens } from "@/components/admin/guide/screens/shop-settings";
@@ -26,6 +28,8 @@ export const screenGuides: readonly ScreenGuide[] = [
   ...counterSalesScreens,
   ...orderFlowScreens,
   ...orderScreens,
+  ...facilityContractScreens,
+  ...importShipmentScreens,
   ...financeMoneyScreens,
   ...financeBookScreens,
   ...contentScreens,

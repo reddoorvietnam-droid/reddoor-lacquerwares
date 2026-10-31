@@ -54,7 +54,6 @@ export default async function OpenGraphImage({
           position: "absolute",
         }}
       />
-      {/* eslint-disable-next-line @next/next/no-img-element -- ImageResponse renders plain img only */}
       <img
         src={markSrc}
         alt=""
