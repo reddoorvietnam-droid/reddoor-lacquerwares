@@ -28,6 +28,7 @@ export const productCategories: readonly ProductCategory[] = [
       de: "Tabletts",
       ja: "トレイ・盆",
       "zh-CN": "托盘与果盘",
+      es: "Bandejas",
     },
   },
   {
@@ -39,6 +40,7 @@ export const productCategories: readonly ProductCategory[] = [
       de: "Tischgeschirr",
       ja: "食器",
       "zh-CN": "餐桌用品",
+      es: "Vajilla",
     },
   },
   {
@@ -50,6 +52,7 @@ export const productCategories: readonly ProductCategory[] = [
       de: "Vasen & Gefäße",
       ja: "花器・器",
       "zh-CN": "花瓶与器皿",
+      es: "Jarrones y recipientes",
     },
   },
   {
@@ -61,6 +64,7 @@ export const productCategories: readonly ProductCategory[] = [
       de: "Schatullen & Dosen",
       ja: "箱・小物入れ",
       "zh-CN": "盒与匣",
+      es: "Cajas y cofres",
     },
   },
   {
@@ -72,6 +76,7 @@ export const productCategories: readonly ProductCategory[] = [
       de: "Paneele & Wandkunst",
       ja: "パネル・壁面装飾",
       "zh-CN": "画屏与壁饰",
+      es: "Paneles y arte de pared",
     },
   },
   {
@@ -83,6 +88,7 @@ export const productCategories: readonly ProductCategory[] = [
       de: "Kleinmöbel",
       ja: "小家具",
       "zh-CN": "小型家具",
+      es: "Muebles pequeños",
     },
   },
 ] as const;

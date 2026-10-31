@@ -96,7 +96,7 @@ type SeoFields = {
 };
 ```
 
-Allowed public locales are `vi`, `en`, `fr`, `de`, `ja`, and `zh-CN`. Persist only configured locale keys; do not accept arbitrary locale strings from a client.
+Allowed public locales are `vi`, `en`, `fr`, `de`, `ja`, `zh-CN`, and `es`. Persist only configured locale keys; do not accept arbitrary locale strings from a client.
 
 ## 3. Identity and platform models
 

@@ -41,4 +41,8 @@ export const BRAND_COPY: Readonly<Record<Locale, BrandCopy>> = Object.freeze({
     eyebrow: "手工漆艺 · 河内",
     tagline: "越南手工漆艺",
   }),
+  es: Object.freeze({
+    eyebrow: "Laca artesanal · Hanói",
+    tagline: "Laca artesanal vietnamita",
+  }),
 });

@@ -97,6 +97,16 @@ function China() {
   );
 }
 
+function Spain() {
+  return (
+    <>
+      <rect width="24" height="4" fill="#AA151B" />
+      <rect y="4" width="24" height="8" fill="#F1BF00" />
+      <rect y="12" width="24" height="4" fill="#AA151B" />
+    </>
+  );
+}
+
 const flagsByLocale: Record<Locale, () => React.JSX.Element> = {
   vi: Vietnam,
   en: UnitedKingdom,
@@ -104,6 +114,7 @@ const flagsByLocale: Record<Locale, () => React.JSX.Element> = {
   de: Germany,
   ja: Japan,
   "zh-CN": China,
+  es: Spain,
 };
 
 export type LocaleFlagProps = {

@@ -20,6 +20,8 @@ const dictionaryLoaders = {
     import("./dictionaries/zh-CN").then(
       ({ default: dictionary }) => dictionary,
     ),
+  es: () =>
+    import("./dictionaries/es").then(({ default: dictionary }) => dictionary),
 } satisfies Record<Locale, DictionaryLoader>;
 
 export async function getDictionary(locale: Locale): Promise<PublicDictionary> {

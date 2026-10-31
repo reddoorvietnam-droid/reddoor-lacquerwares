@@ -12,6 +12,7 @@ const HEAD_TERMS: Record<Locale, string> = {
   de: "Lack",
   ja: "漆器",
   "zh-CN": "漆器",
+  es: "laca",
 };
 
 const MAX_DESCRIPTION_CODE_POINTS = 160;

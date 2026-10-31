@@ -45,7 +45,7 @@ Và cũng **không có role “Xuất nhập khẩu”** riêng: công việc XN
 
 Website Red Door có **hai phần tách biệt**:
 
-1. **Website cho khách** (`/vi`, `/en`, `/fr`, `/de`, `/ja`, `/zh-CN`) — ai cũng xem được: giới thiệu, sản phẩm, bộ sưu tập, kỹ thuật sơn mài, tin tức, cửa hàng bán lẻ, liên hệ.
+1. **Website cho khách** (`/vi`, `/en`, `/fr`, `/de`, `/ja`, `/zh-CN`, `/es`) — ai cũng xem được: giới thiệu, sản phẩm, bộ sưu tập, kỹ thuật sơn mài, tin tức, cửa hàng bán lẻ, liên hệ.
 2. **Cổng quản trị** (`/vi/admin`) — chỉ nhân viên đăng nhập bằng Gmail công việc và được Giám đốc duyệt mới vào được. Toàn bộ tài liệu này chủ yếu nói về phần 2.
 
 ## Luồng một đơn hàng đi qua công ty
@@ -3105,6 +3105,7 @@ Khách mở một mặt hàng **Còn hàng** ở **Cửa hàng**, kéo xuống p
 | `de`    | Deutsch    | `/de/…`    |
 | `ja`    | 日本語     | `/ja/…`    |
 | `zh-CN` | 简体中文   | `/zh-CN/…` |
+| `es`    | Español    | `/es/…`    |
 
 **Tiếng Việt là ngôn ngữ mặc định.** Mở địa chỉ gốc của website sẽ được chuyển sang `/vi`.
 
@@ -3479,7 +3480,7 @@ Hai nơi **không dùng chung số liệu**.
 | **Revision / Phiên bản**  | Một lần sửa được lưu lại. Ở tiến độ mẫu, mỗi lần **Lưu báo cáo** tạo một phiên bản mới.                                |
 | **Slug**                  | Phần chữ cuối đường dẫn của một trang, viết chữ thường không dấu nối bằng gạch ngang (ví dụ `binh-son-mai-do`).        |
 | **SEO**                   | Chữ hiện trên Google khi khách tìm kiếm. **Tiêu đề SEO** tối đa 70 ký tự, **Mô tả SEO** tối đa 180 ký tự.              |
-| **Locale / Ngôn ngữ**     | Mã ngôn ngữ ở đầu đường dẫn: `vi`, `en`, `fr`, `de`, `ja`, `zh-CN`.                                                    |
+| **Locale / Ngôn ngữ**     | Mã ngôn ngữ ở đầu đường dẫn: `vi`, `en`, `fr`, `de`, `ja`, `zh-CN`, `es`.                                              |
 | **Import Excel**          | Đưa dữ liệu từ file Excel vào hệ thống.                                                                                |
 | **Export Excel**          | Xuất dữ liệu từ hệ thống thành file Excel.                                                                             |
 | **CSV**                   | Một dạng file bảng đơn giản, mở được bằng Excel.                                                                       |

@@ -94,9 +94,9 @@ const dictionary = {
     productsIntro:
       "Tabletts, Schatullen, Untersetzer, Gefäße und Dekorobjekte — jedes Stück entsteht von Hand in der Werkstatt Ha Thai, in Schichten lackiert, nass geschliffen und von Hand poliert.",
     collectionsTitle: "Kollektionen",
-    collectionsHeading: "Lackwaren-Kollektionen und Kataloge",
+    collectionsHeading: "Unsere Kollektionen",
     collectionsIntro:
-      "Jedes Jahr stellt Red Door eine neue Kollektion vor — Ergebnis der fortlaufenden Arbeit der Werkstatt an Material, Farbe und Oberfläche. Öffnen Sie jeden Katalog für das gesamte Sortiment.",
+      "Jahr für Jahr, Saison für Saison erkunden wir neue Techniken, Motive und Ornamente auf der Grundlage traditioneller Lackkunst — und bringen unseren Kunden stets die neuesten Kollektionen, im Einklang mit den internationalen Trends der Inneneinrichtung.",
     processTitle: "Lackverfahren",
     processHeading: "Wie vietnamesische Lackkunst entsteht",
     processIntro:

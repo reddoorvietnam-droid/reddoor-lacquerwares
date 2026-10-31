@@ -169,7 +169,10 @@ const summarySchema = new Schema(
     outcomes: { type: outcomesSchema, required: true },
     totals: { type: [totalsLineSchema], required: true, default: [] },
   },
-  nestedSchemaOptions,
+  // `errors` counts error-severity findings and sits beside `warnings` and
+  // `infos`; it shadows Mongoose's reserved `Document.prototype.errors` only
+  // on this subdocument, which nothing reads validation errors off.
+  { ...nestedSchemaOptions, suppressReservedKeysWarning: true },
 );
 
 const resultSchema = new Schema(

@@ -546,6 +546,87 @@ const SITE_CONTENT_COPY = deepFreeze({
       },
     ],
   },
+  es: {
+    company: {
+      summary:
+        "Red Door es un fabricante vietnamita de objetos de laca con sede en Hanói. Elaboramos bandejas, cuencos, jarrones, cajas y objetos decorativos mediante la técnica tradicional de la laca: capa sobre capa, lijadas al agua entre cada capa y pulidas a mano hasta lograr una superficie profunda y cálida. Nuestro taller está en Long Bien; nuestro almacén se encuentra en Hung Yen, sobre la carretera que conduce al puerto de Hai Phong.",
+      contentNotice: "",
+      heroAlt:
+        "Superficie de laca roja con veta profunda, fotografiada en ángulo bajo luz cálida",
+    },
+    assetReplacementHint:
+      "Este espacio está a la espera de una fotografía real. Guarde el archivo con el nombre y el tamaño en píxeles indicados.",
+    contactNotice: "",
+    history: [
+      {
+        periodLabel: "Hanói",
+        title: "El taller de Long Bien",
+        summary:
+          "Nuestro taller principal se encuentra en la calle Nguyen Son, en el distrito de Long Bien. Aquí se construyen las bases, se aplican las capas, se lijan las superficies y se pulen las piezas: todas las etapas que determinan la profundidad final de una superficie de laca.",
+        imageAlt:
+          "Interior del taller de laca con piezas secándose en estanterías",
+      },
+      {
+        periodLabel: "Exportación",
+        title: "Envíos a mercados internacionales",
+        summary:
+          "Nuestras piezas salen por el puerto de Hai Phong hacia mercados internacionales; los registros de importación de Estados Unidos sobre nuestros envíos son públicos desde 2007. Preparamos nosotros mismos la documentación de exportación y las declaraciones aduaneras.",
+        imageAlt: "Piezas de laca terminadas, empacadas y listas para exportar",
+      },
+      {
+        periodLabel: "2016 – 2025",
+        title: "Ambiente Fráncfort",
+        summary:
+          "Hemos presentado nuestras colecciones en Ambiente Fráncfort a lo largo de varias ediciones, donde los compradores internacionales manipulan las piezas directamente y conversan sobre requisitos personalizados.",
+        imageAlt: "Estand de exhibición de laca en una feria internacional",
+      },
+      {
+        periodLabel: "Hung Yen",
+        title: "Almacenamiento y logística",
+        summary:
+          "Nuestro almacén se encuentra en la Carretera Nacional 5, en la localidad de Ban, Hung Yen, sobre el corredor que conecta Hanói con el puerto de Hai Phong, lo que reduce el tiempo entre el empaque y la carga.",
+        imageAlt: "Almacén con cajas organizadas por lote de envío",
+      },
+    ],
+    process: [
+      {
+        stepLabel: "Etapa 01",
+        title: "Construcción de la base",
+        summary:
+          "Cada pieza comienza como una base: madera, bambú o un material compuesto, según el objeto. Se cubre con tela, se rellena y se nivela para obtener una base estable que no se moverá bajo las capas que vendrán.",
+        imageAlt: "Un artesano nivelando una base de madera antes de lacar",
+      },
+      {
+        stepLabel: "Etapa 02",
+        title: "Aplicación de capas y lijado",
+        summary:
+          "La laca se aplica en capas finas. Cada una debe curarse por completo y lijarse al agua antes de aplicar la siguiente. Es la etapa más larga del proceso, y es la que confiere a la superficie una profundidad que los acabados pulverizados no pueden alcanzar.",
+        imageAlt: "Una superficie de laca siendo lijada al agua entre capas",
+      },
+      {
+        stepLabel: "Etapa 03",
+        title: "Decoración de superficie",
+        summary:
+          "Según el pedido, una superficie puede dorarse con pan de oro o plata, incrustarse con cáscara de huevo o nácar, pintarse a mano, o ajustarse a la paleta de color propia del cliente.",
+        imageAlt:
+          "Un artesano aplicando pan de oro sobre una superficie de laca",
+      },
+      {
+        stepLabel: "Etapa 04",
+        title: "Pulido",
+        summary:
+          "Las últimas capas se lijan de forma progresivamente más fina y luego se pulen a mano hasta que la luz se refleja de manera uniforme en toda la superficie. El brillo proviene del propio pulido, no de una capa de barniz añadida.",
+        imageAlt: "Manos puliendo una superficie de laca terminada",
+      },
+      {
+        stepLabel: "Etapa 05",
+        title: "Inspección y empaque",
+        summary:
+          "Cada pieza se inspecciona en color, planitud y acabado de los bordes antes de empacarla. Lo que no cumple el estándar regresa al taller para su reparación en lugar de avanzar a la línea de empaque.",
+        imageAlt: "Inspección de calidad de piezas de laca antes del empaque",
+      },
+    ],
+  },
 } satisfies Record<Locale, ContentCopy>);
 
 /**
@@ -700,6 +781,7 @@ export const DEMO_CONTENT_BY_LOCALE: Readonly<
   de: makeSnapshot("de"),
   ja: makeSnapshot("ja"),
   "zh-CN": makeSnapshot("zh-CN"),
+  es: makeSnapshot("es"),
 });
 
 const contentRepositoryImplementation: PublicContentRepository = {

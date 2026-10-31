@@ -691,6 +691,107 @@ const NEWS_COPY = deepFreeze({
       },
     ],
   },
+  es: {
+    assetReplacementHint:
+      "La fotografía definitiva sigue pendiente. Guarde la imagen aprobada con esta clave de activo y añada aquí su publicId de Cloudinary.",
+    author: "Red Door Vietnam",
+    articles: [
+      {
+        title: "El catálogo de la Colección 2026",
+        excerpt:
+          "La Colección 2026 reúne las familias actuales en un solo catálogo, legible como folleto interactivo y disponible a petición.",
+        paragraphs: [
+          "La Colección 2026 es nuestro catálogo vigente. Reúne las familias que fabricamos actualmente — bandejas, cuencos y piezas de mesa, recipientes de pie, cajas, paneles murales, piezas tejidas y pequeño mobiliario — en un solo lugar, para que el comprador pueda ver la gama como una gama, y no como una carpeta de fotografías sueltas.",
+          "Está organizado como colocaríamos las piezas sobre una mesa: según para qué sirve una forma y cómo está acabada su superficie, no según una referencia interna. El brillo, el mate y los acabados con incrustaciones se muestran deliberadamente uno junto al otro, porque esa es la decisión en la que la mayoría de los compradores tarda más tiempo.",
+          "Los precios no aparecen impresos. Casi todo lo que fabricamos se cotiza según una especificación — tamaño, acabado, cantidad y embalaje —, así que un precio impreso sería incorrecto para la mayoría de los lectores. Envíenos una consulta con lo que tiene en mente y cotizaremos sobre esa base.",
+          "El catálogo está disponible a petición y puede leerse como un folleto interactivo. Si desea un ejemplar, o una muestra de un acabado concreto para verla junto a él, pídanoslo.",
+        ],
+        categoryLabel: "Colecciones",
+        tags: ["Colección 2026", "Catálogo"],
+        imageAlt:
+          "El catálogo de la Colección 2026 abierto junto a varias piezas de laca sobre una mesa",
+      },
+      {
+        title: "Red Door Vietnam en Ambiente Fráncfort",
+        excerpt:
+          "Nuestro historial de participación en la feria de Fráncfort, y para qué sirve realmente un encuentro ferial cuando el producto es laca.",
+        paragraphs: [
+          "Red Door Vietnam ha participado en Ambiente, en Fráncfort, en 2016, 2018, 2019, 2020, 2024 y 2025. Es la feria a la que seguimos volviendo, y para un taller de laca la razón es sencilla: la laca no sobrevive a ser juzgada a partir de una fotografía.",
+          "Una superficie de laca pulida es un efecto de profundidad. Está construida en capas, y lo que hace con la luz depende del ángulo desde el que se mire, del color de esa luz y de la distancia. Una pantalla aplana todo eso en un único reflejo especular. Los compradores que solo han visto nuestro trabajo en un monitor suelen cambiar su especificación en el primer minuto de tener una pieza en la mano — por lo general sobre el acabado, a veces sobre el color, en ocasiones sobre la forma entera.",
+          "Por eso un estand es menos una vitrina que una mesa de muestras. Las conversaciones útiles en Ambiente son aquellas en las que un comprador toma dos piezas del mismo color con acabados distintos y decide, con la pieza en la mano, cuál pertenece a su gama. Los tamaños, las cantidades y el embalaje se derivan de esa decisión, y todos ellos son fáciles de resolver después por correo electrónico. La decisión que debe tomarse en persona es la del acabado.",
+          "Si planea vernos en una próxima edición, escríbanos con antelación. Decirnos de antemano qué familias quiere ver sobre la mesa — bandejas, cajas, paneles, piezas tejidas — nos permite llevar los acabados adecuados en lugar de una selección general.",
+        ],
+        categoryLabel: "Ferias",
+        tags: ["Ambiente Fráncfort", "Ferias"],
+        imageAlt:
+          "Piezas de laca dispuestas sobre una mesa de muestras ferial bajo una luz uniforme",
+      },
+      {
+        title: "Cómo se construye una superficie de sơn mài, capa a capa",
+        excerpt:
+          "La laca vietnamita no es un recubrimiento aplicado al final. Es todo el cuerpo exterior del objeto, construido y rebajado muchas veces.",
+        paragraphs: [
+          "Lo primero que hay que entender sobre el sơn mài es que es lento por física, no por tradición. La laca no se seca como se seca la pintura. Cura — una reacción química que necesita humedad del aire —, por lo que el trabajo recién hecho se guarda en un armario húmedo y no bajo una lámpara, y por lo que el calor empeora las cosas en lugar de mejorarlas.",
+          "El trabajo empieza por debajo de la superficie. El núcleo, sea macizo o tejido, se sella y se nivela para que no se mueva bajo las capas que vendrán después. Cualquier irregularidad que quede en esta etapa no se oculta; se amplifica, porque cada capa posterior sigue la forma que tiene debajo.",
+          "Entonces empieza el ciclo: aplicar una capa fina, dejarla curar, y rebajarla con agua y abrasivo hasta retirar casi todo lo que se acababa de aplicar. Las capas finas curan de manera uniforme; las gruesas forman una piel por encima y quedan blandas por debajo. Lijar con agua controla el polvo y permite al artesano sentir cómo la superficie se va nivelando bajo su mano. Una pieza seria pasa por ese ciclo muchas veces.",
+          "La decoración se incrusta en las capas, no se aplica sobre ellas. La cáscara de huevo se presiona en una capa aún blanda hasta que se resquebraja en un mosaico fino; la nácar y la lámina de metal se colocan del mismo modo. Todo queda después enterrado bajo capas posteriores y se recupera lijando. Esa es la parte que sorprende a la gente: la imagen no se pinta al final, se descubre desde el interior de la película.",
+          "El pulido final es lo que convierte un color plano en uno profundo. La luz entra en las capas, se dispersa y regresa, de modo que la superficie conserva un color que parece situarse un poco por debajo de donde está realmente el objeto. Por eso la laca merece las semanas que requiere, y por eso no se puede apresurar el final.",
+        ],
+        categoryLabel: "Oficio",
+        tags: ["Sơn mài", "Oficio"],
+        imageAlt:
+          "Un banco de trabajo con una pieza de laca siendo lijada en húmedo, con agua corriendo por la superficie",
+      },
+      {
+        title: "El cuidado de la laca",
+        excerpt:
+          "Lo que le gusta a la laca, lo que no, y la breve lista de hábitos que mantienen una superficie pulida con el aspecto que tenía al empacarla.",
+        paragraphs: [
+          "Los objetos de laca son más resistentes de lo que parecen y menos resistentes de lo que se siente al tacto. El acabado es duro y resiste el agua en el contacto ordinario, pero es una película natural sobre un núcleo natural, y ambos se mueven con el calor y la humedad. Casi todo lo que sale mal en una pieza proviene de una de estas tres cosas: agua estancada, calor sostenido o un abrasivo.",
+          "Para el día a día, basta un paño suave y seco. Para una marca que no desaparece, use un paño apenas humedecido con agua y seque la superficie de inmediato después. No se necesita nada más, y la mayoría de las demás cosas son perjudiciales: estropajos, cremas limpiadoras, lavavajillas, aerosoles con disolvente y abrillantadores de muebles de uso general opacarán una superficie de laca pulida, algunos de forma permanente y a la primera.",
+          "No sumerja los objetos de laca ni los deje permanecer en agua. Sirva alimentos húmedos o grasos sobre un protector en lugar de directamente sobre la superficie, y coloque algo entre la laca y cualquier cosa que acabe de salir del fuego. Un salvamanteles o posavasos no es aquí una exquisitez; una base caliente en contacto directo es la forma más rápida de dejar un anillo permanente.",
+          "Dónde vive una pieza importa tanto como la forma en que se limpia. Mantenga la laca lejos de la luz solar directa, de los radiadores y de las salidas de aire acondicionado, y fuera de habitaciones que oscilan entre muy húmedo y muy seco. Los baños y las repisas de ventana soleadas son los dos peores lugares. Guarde las piezas planas con un entrepaño suave en lugar de apiladas directamente, y levante los muebles en lugar de arrastrarlos.",
+          "Si una superficie se opaca con los años o con el uso, eso no es el final. La laca es una película gruesa, y un brillo opacado a menudo puede recuperarse a mano. Pregúntenos antes de intentar algo usted mismo — la respuesta correcta depende del acabado, y una superficie mate, pulida a mano, nunca debe tratarse como una brillante.",
+        ],
+        categoryLabel: "Cuidados",
+        tags: ["Cuidados", "Laca"],
+        imageAlt:
+          "Una mano limpiando una superficie de laca pulida con un paño suave y seco",
+      },
+      {
+        title: "Cómo trabajamos con los compradores en pedidos personalizados",
+        excerpt:
+          "Cómo avanza realmente un pedido de laca personalizado desde el primer dibujo hasta la muestra aprobada, y qué enviarnos para que la primera ronda cuente.",
+        paragraphs: [
+          "La mayor parte de lo que sale del taller se fabrica según la especificación de un comprador y no se elige de una página, así que el primer intercambio importa más que cualquier otro. Cuanto más concreto sea ese primer mensaje, menos rondas se necesitarán: un dibujo o una fotografía, las medidas que son fijas y las que son flexibles, las cantidades que está considerando, y la fecha en que la mercancía debe estar en algún lugar.",
+          "La forma y el acabado se definen por separado, y en ese orden. Una forma puede discutirse a partir de un boceto; un acabado no puede discutirse en absoluto a través de una pantalla. Los monitores no se ponen de acuerdo entre sí sobre el color, y ninguno puede mostrar lo que hace una superficie de laca pulida cuando cambia el ángulo de visión. El color y el acabado se cotejan con una muestra física, en la mano, y esa es la única aprobación en la que debería apoyarse cualquiera de las dos partes.",
+          "El plazo de entrega lo determinan las capas, no la cantidad. Una pieza debe recubrirse, curarse y rebajarse muchas veces, y la fase de curado no puede acortarse añadiendo más personas. Por eso una pieza mate y una pieza pulida a espejo con las mismas dimensiones pueden tener calendarios bastante distintos, y por eso conviene decidir el acabado temprano.",
+          "A continuación llega el muestreo: nosotros hacemos la pieza, usted la evalúa frente a lo que pidió, y acordamos los cambios. Algunas observaciones son fáciles de incorporar — una profundidad de color, un perfil de borde, una medida interior. Otras equivalen a una forma nueva, y es mejor para ambas partes saber de cuál se trata antes de hacer la muestra.",
+          "El embalaje, el marcado y el envío se discuten en la cotización y no se asumen. Envíenos la consulta con todo lo anterior que ya tenga, y responderemos con una cotización y una valoración honesta de cómo se ve el calendario.",
+        ],
+        categoryLabel: "Pedidos personalizados",
+        tags: ["Pedidos personalizados", "Para compradores"],
+        imageAlt:
+          "Un plano técnico y una fila de muestras de acabados de laca dispuestos juntos sobre un banco de trabajo",
+      },
+      {
+        title: "Dentro del taller de Long Biên",
+        excerpt:
+          "Nuestra fábrica está en el número 212 de la calle Nguyễn Sơn, en Long Biên, Hanói. Este es el recorrido que sigue un pedido dentro de ella.",
+        paragraphs: [
+          "La fábrica de Red Door Vietnam está en el número 212 de la calle Nguyễn Sơn, en Long Biên, Hanói, con la oficina al otro lado del río en Tây Hồ y un almacén en la Quốc lộ 5, en Bần, provincia de Hưng Yên. Un taller de laca se organiza en torno a una restricción por encima de todas las demás, y vale la pena decirlo con claridad: las capas deben curar, el curado necesita tiempo y humedad, y nada más adelante puede empezar antes de tiempo.",
+          "Así que el trabajo avanza en etapas y no en una línea continua. Las piezas en bruto llegan o se fabrican y luego se preparan — se sellan, se nivelan, se comprueba que no se muevan — antes de que se les confíe ningún color. Esa preparación no tiene nada de vistoso y, sin embargo, determina hasta qué punto puede llegar a ser buena la pieza terminada.",
+          "El recubrimiento y el curado ocupan más espacio y más paciencia que ninguna otra etapa. Se aplica una capa fina, la pieza pasa a un ambiente húmedo y vuelve a salir para rebajarse con agua antes de la siguiente capa. Las piezas entran y salen de ese ciclo muchas veces, lo que significa que un taller de laca siempre tiene mucho más trabajo en curso que trabajo terminado.",
+          "La incrustación, cuando una pieza la requiere, ocurre dentro de ese ciclo y no después de él: la nácar o la lámina se colocan en una capa blanda, quedan enterradas por las capas que siguen, y se recuperan más tarde a mano en el banco de lijado. El pulido es el último juicio — hasta dónde llevar una superficie se decide pieza por pieza, no lo fija una máquina.",
+          "Luego vienen la inspección y el embalaje, y la pieza deja de ser un objeto del taller para convertirse en un envío. Los compradores son bienvenidos a concertar una visita; ver sobre todo la etapa de curado suele explicar un calendario mejor que cualquier correo electrónico.",
+        ],
+        categoryLabel: "Taller",
+        tags: ["Taller", "Hanói"],
+        imageAlt:
+          "Trabajo en curso en los estantes del taller, esperando la siguiente capa de laca",
+      },
+    ],
+  },
 } satisfies Record<Locale, NewsLocaleCopy>);
 
 /** 16:9, the ratio the article hero and the listing card both reserve. */
@@ -772,6 +873,7 @@ export const DEMO_NEWS_BY_LOCALE: Readonly<
   de: makeArticles("de"),
   ja: makeArticles("ja"),
   "zh-CN": makeArticles("zh-CN"),
+  es: makeArticles("es"),
 });
 
 function applyListOptions(

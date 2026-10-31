@@ -156,6 +156,28 @@ export const stateCopy = {
       retry: "重试",
     },
   },
+  es: {
+    loading: "Cargando contenido",
+    error: {
+      eyebrow: "Se produjo un error",
+      title: "Esta página no se puede mostrar en este momento",
+      body: "Inténtelo de nuevo en un momento. Esta página no muestra información de diagnóstico sensible.",
+      retry: "Reintentar",
+    },
+    notFound: {
+      eyebrow: "404 · Página no encontrada",
+      title: "Esta puerta aún no está abierta",
+      body: "La página solicitada no existe o su traducción todavía no se ha publicado.",
+      home: "Volver al inicio",
+    },
+    globalError: {
+      documentTitle: "Error de la aplicación · Red Door",
+      eyebrow: "Red Door · Recuperación segura",
+      title: "Es necesario recargar la aplicación",
+      body: "No se muestra información de diagnóstico sensible. Intente cargar la aplicación de nuevo.",
+      retry: "Reintentar",
+    },
+  },
 } as const satisfies Record<Locale, LocalizedStateCopy>;
 
 export function localeFromPathname(

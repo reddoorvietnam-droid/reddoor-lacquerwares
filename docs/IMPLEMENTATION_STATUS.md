@@ -20,7 +20,7 @@ This document is the source of truth for implementation progress against the Red
 
 - Phase 0 foundation: Next.js 16 App Router, strict TypeScript, Tailwind design tokens, lazy typed environment validation, quality tooling, CI, and architecture/runbook documentation.
 - Phase 1 public prototype: complete locale-prefixed routes for Home, About/History, Products and details, Collections and details, Lacquer Process, News and details, Contact/Request Quote, Search, and policy pages.
-- Six typed UI dictionaries and localized, immutable, explicitly labelled DEMO repositories for `vi`, `en`, `fr`, `de`, `ja`, and `zh-CN`.
+- Seven typed UI dictionaries and localized, immutable, explicitly labelled DEMO repositories for `vi`, `en`, `fr`, `de`, `ja`, `zh-CN`, and `es`.
 - Responsive public navigation/footer, context-preserving language switching, keyboard-accessible mobile dialog, first-session door intro, reduced-motion behavior, loading/error/404 states, and code-native brand artwork.
 - Functional prototype search, product filters/sort/pagination, localized share controls, click-to-load map boundary, and a visibly disabled quote form whose persistence belongs to Phase 5.
 

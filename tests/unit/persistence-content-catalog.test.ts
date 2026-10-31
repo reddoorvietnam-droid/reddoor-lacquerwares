@@ -168,7 +168,7 @@ describe("localized and structured content boundaries", () => {
     const invalid = new Translation({
       entryId: ownerId,
       revisionId: new Types.ObjectId(),
-      locale: "es",
+      locale: "it",
       title: "Title",
       blocks: [{ blockId: "broken", type: "heading", html: "wrong" }],
       translationStatus: "draft",

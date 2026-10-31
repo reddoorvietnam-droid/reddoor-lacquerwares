@@ -92,9 +92,9 @@ const dictionary = {
     productsIntro:
       "Khay, hộp, lót ly, bình và đồ trang trí nội thất — mỗi sản phẩm được chế tác thủ công theo Nghệ thuật sơn mài Việt Nam, phủ nhiều lớp sơn, mài nước và đánh bóng bằng tay.",
     collectionsTitle: "Bộ sưu tập",
-    collectionsHeading: "Bộ sưu tập sơn mài theo năm",
+    collectionsHeading: "Bộ sưu tập của chúng tôi",
     collectionsIntro:
-      "Mỗi năm, Red Door giới thiệu một bộ sưu tập mới — kết quả của quá trình nghiên cứu vật liệu, màu sắc và kỹ thuật bề mặt tại xưởng. Mở từng cuốn catalogue để xem trọn bộ.",
+      "Mỗi năm, mỗi mùa, chúng tôi không ngừng tìm tòi công nghệ mới cùng những họa tiết, hoa văn mới trên nền tảng kỹ thuật sơn mài truyền thống — để mang đến cho khách hàng những bộ sưu tập mới nhất, bắt nhịp cùng xu hướng trang trí nội thất thế giới.",
     processTitle: "Kỹ thuật sơn mài",
     processHeading: "Kỹ thuật sơn mài: từ làm vóc đến đánh bóng",
     processIntro:

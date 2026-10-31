@@ -93,9 +93,9 @@ const dictionary = {
     productsIntro:
       "Trays, boxes, coasters, vessels and decorative objects — each piece is handmade at the Ha Thai workshop, coated in layers, wet-sanded and hand-polished.",
     collectionsTitle: "Collections",
-    collectionsHeading: "Lacquerware collections & catalogues",
+    collectionsHeading: "Our collections",
     collectionsIntro:
-      "Each year Red Door presents a new collection — the result of the workshop's ongoing study of materials, colour and surface. Open each catalogue to see the full range.",
+      "Season after season, year after year, we keep exploring new techniques, motifs and patterns rooted in traditional lacquer craftsmanship — bringing our clients the latest collections, in step with global interior design trends.",
     processTitle: "Lacquer process",
     processHeading: "How Vietnamese lacquerware is made",
     processIntro:

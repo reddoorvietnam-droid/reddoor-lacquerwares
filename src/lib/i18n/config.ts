@@ -5,6 +5,7 @@ export const localeConfig = {
   de: { label: "Deutsch", shortLabel: "DE", direction: "ltr" },
   ja: { label: "日本語", shortLabel: "JA", direction: "ltr" },
   "zh-CN": { label: "简体中文", shortLabel: "中文", direction: "ltr" },
+  es: { label: "Español", shortLabel: "ES", direction: "ltr" },
 } as const;
 
 export type Locale = keyof typeof localeConfig;

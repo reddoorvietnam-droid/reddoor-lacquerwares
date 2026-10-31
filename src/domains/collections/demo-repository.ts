@@ -281,6 +281,41 @@ const COLLECTION_COPY = deepFreeze({
       },
     ],
   },
+  es: {
+    assetReplacementHint:
+      "La fotografía de portada definitiva aún está pendiente. Guarde la imagen aprobada con esta clave de activo y añada aquí su publicId de Cloudinary.",
+    collections: [
+      {
+        title: "La Colección 2026",
+        editionLabel: "Edición 2026",
+        summary:
+          "El catálogo vigente: las familias que el taller está elaborando actualmente, reunidas en un solo lugar y agrupadas por forma y acabado.",
+        introParagraphs: [
+          "La Colección 2026 es un catálogo de trabajo, no un lookbook. Reúne las familias que el taller elabora realmente —bandejas, cuencos y piezas de mesa, recipientes de pie, cajas, paneles de pared, piezas tejidas y muebles pequeños— y las presenta tal como las mostraríamos sobre una mesa a un comprador que nos visita.",
+          "La agrupación sigue la forma y el acabado, no una referencia interna, porque el acabado es lo que los compradores realmente eligen entre sí. Las superficies brillantes, mate e incrustadas se muestran deliberadamente una junto a otra: el mismo color se comporta de forma distinta bajo cada una de ellas, y verlas contiguas es la forma más rápida de decidir cuál pertenece a una gama.",
+          "Nada aquí lleva un precio impreso. Todo se cotiza contra una especificación —tamaño, acabado, cantidad, embalaje— de modo que el catálogo es donde encuentra la forma, y el presupuesto es donde encuentra la cifra.",
+        ],
+        flipbookNote:
+          "El catálogo de la Colección 2026 está disponible bajo solicitud y puede leerse como un libro digital.",
+        coverAlt:
+          "Portada del catálogo de la Colección 2026 de Red Door Vietnam",
+      },
+      {
+        title: "La próxima colección",
+        editionLabel: "En preparación",
+        summary:
+          "El próximo catálogo está en preparación. Todavía no hay nada confirmado, y preferimos dejar esta página honesta antes que rellenarla.",
+        introParagraphs: [
+          "Estamos trabajando en la próxima colección. Mientras su contenido y su fecha no estén definidos, no hay nada aquí que estemos dispuestos a afirmar como un hecho, así que esta página permanece deliberadamente vacía en lugar de rellenarse con un anuncio que todavía no podríamos respaldar.",
+          "Mientras tanto, la Colección 2026 sigue siendo el catálogo vigente. Si desea que le avisemos cuando la próxima esté lista, díganoslo.",
+        ],
+        flipbookNote:
+          "Todavía no se ha publicado ningún catálogo para esta colección.",
+        coverAlt:
+          "Espacio de portada reservado para el próximo catálogo de colección",
+      },
+    ],
+  },
 } satisfies Record<Locale, CollectionLocaleCopy>);
 
 /** Portrait 5:7, the ratio the listing reserves for a catalogue cover. */
@@ -368,6 +403,7 @@ export const DEMO_COLLECTIONS_BY_LOCALE: Readonly<
   de: makeCollections("de"),
   ja: makeCollections("ja"),
   "zh-CN": makeCollections("zh-CN"),
+  es: makeCollections("es"),
 });
 
 function applyListOptions(

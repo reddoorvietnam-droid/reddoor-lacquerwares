@@ -104,6 +104,17 @@ const readerLabels: Record<Locale, FlipbookLabels> = {
     loading: "正在加载页面…",
     fallbackNotice: "正在以纵向阅读模式显示。",
   },
+  es: {
+    previous: "Página anterior",
+    next: "Página siguiente",
+    page: "Página",
+    of: "de",
+    fullscreen: "Pantalla completa",
+    exitFullscreen: "Salir de pantalla completa",
+    close: "Cerrar",
+    loading: "Cargando la página…",
+    fallbackNotice: "Mostrando la lectura secuencial.",
+  },
 };
 
 type CataloguePageProps = {

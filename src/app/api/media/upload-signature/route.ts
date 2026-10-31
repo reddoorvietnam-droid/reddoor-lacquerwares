@@ -44,7 +44,7 @@ const requestSchema = z.discriminatedUnion("kind", [
   z.object({
     kind: z.literal("collection"),
     id: objectIdSchema,
-    locale: z.enum(["vi", "en", "fr", "de", "ja", "zh-CN"]),
+    locale: z.enum(["vi", "en", "fr", "de", "ja", "zh-CN", "es"]),
   }),
   z.object({ kind: z.literal("article"), id: objectIdSchema }),
   z.object({ kind: z.literal("product"), id: objectIdSchema }),

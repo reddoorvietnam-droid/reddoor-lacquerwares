@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 
-const publicLocales = ["vi", "en", "fr", "de", "ja", "zh-CN"] as const;
+const publicLocales = ["vi", "en", "fr", "de", "ja", "zh-CN", "es"] as const;
 
 /**
  * The language control is a listbox rather than a native select, because a

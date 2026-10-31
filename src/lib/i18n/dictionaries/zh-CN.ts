@@ -92,9 +92,9 @@ const dictionary = {
     productsIntro:
       "托盘、盒具、杯垫、器皿与装饰摆件——每一件都在下泰工坊手工制作，层层髹涂、水磨、手工推光。",
     collectionsTitle: "系列",
-    collectionsHeading: "越南漆器系列与画册",
+    collectionsHeading: "我们的系列",
     collectionsIntro:
-      "Red Door 每年推出一个新系列——这是工坊在材料、色彩与表面工艺上持续探索的成果。打开每本画册即可浏览全部作品。",
+      "每一年、每一季，我们都在传统漆艺的基础上不断探索新的工艺与纹样，为客户带来紧跟全球室内装饰潮流的最新系列。",
     processTitle: "漆艺工序",
     processHeading: "越南漆器的制作工序",
     processIntro:

@@ -92,9 +92,9 @@ const dictionary = {
     productsIntro:
       "トレイ、箱、コースター、花器、装飾品 — どの品もハタイ村の工房で手作りされ、幾層にも塗り重ね、水研ぎし、手で磨き上げています。",
     collectionsTitle: "コレクション",
-    collectionsHeading: "ベトナム漆器のコレクションとカタログ",
+    collectionsHeading: "私たちのコレクション",
     collectionsIntro:
-      "Red Door は毎年、新しいコレクションを発表しています。素材、色、表面の研究を重ねた工房の成果です。カタログを開いて全作品をご覧ください。",
+      "私たちは毎年、毎シーズン、伝統的な漆芸の技法を土台に、新しい技術や文様・意匠を探求し続けています。世界のインテリアトレンドに寄り添う最新のコレクションをお届けするために。",
     processTitle: "漆の工程",
     processHeading: "ベトナム漆器の作り方 — 漆の工程",
     processIntro:

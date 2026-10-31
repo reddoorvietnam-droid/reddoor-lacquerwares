@@ -1482,6 +1482,228 @@ const PRODUCT_COPY = deepFreeze({
       },
     ],
   },
+  es: {
+    assetReplacementHint:
+      "La fotografía definitiva todavía está pendiente. Guarde la imagen aprobada con esta clave de activo y añada aquí su publicId de Cloudinary.",
+    products: [
+      {
+        name: "Bandeja de servicio en laca",
+        categoryLabel: "Bandejas",
+        summary:
+          "Una bandeja poco profunda, de borde bajo y continuo, construida a partir de numerosas capas finas de laca y lijada en húmedo hasta quedar plana entre cada una.",
+        storyParagraphs: [
+          "Una bandeja es, ante todo, una superficie plana, y la planitud es lo más difícil de exigirle a la laca. La forma parte de un panel de madera poco profundo con un borde bajo en el contorno; antes de aplicar cualquier color, la superficie se sella y se nivela, porque cada ondulación que queda en la base no desaparece: vuelve a aparecer, amplificada, en el momento en que se pule el acabado.",
+          "Aquí el color se construye, no se pinta. Las capas se aplican finas, curan en una cámara húmeda y no con calor —la laca fragua absorbiendo la humedad del aire, no secándose—, y se lijan en húmedo antes de aplicar la siguiente. Las capas que sobreviven a ese ciclo son las que dan a la superficie de laca su profundidad particular: la luz entra en la película, se dispersa en su interior y vuelve ligeramente distinta, por lo que la misma bandeja nunca luce igual durante el desayuno que bajo la luz de una lámpara.",
+          "El resultado es una pieza para servir, no una tabla de trabajo: lisa, cálida al tacto, discretamente reflectante. Como la última etapa se pule a mano, no hay dos bandejas idénticas dentro de un mismo lote; las pequeñas diferencias en la profundidad del color son una firma del proceso, no un defecto.",
+        ],
+        materialLabels: ["Laca sobre alma de madera"],
+        finishLabel: "Brillante, pulido a mano",
+        careNotes: [
+          "Limpiar con un paño suave y seco; para una marca persistente, usar un paño apenas humedecido y secar de inmediato.",
+          "No sumergir nunca en agua ni meter en el lavavajillas; mantener alejados estropajos, cremas abrasivas y limpiadores con disolventes.",
+          "Usar para servir, no para cortar, y colocar un protector debajo de cualquier alimento húmedo, graso o aún caliente.",
+          "Mantener alejada de la luz solar directa, los radiadores y las salidas de aire acondicionado; el calor seco prolongado es lo que hace trabajar la madera interior.",
+        ],
+        quoteCallToAction:
+          "Indíquenos el diámetro, el acabado y la cantidad que tiene en mente, y le enviaremos un presupuesto.",
+        leadTime: "Se confirma con cada presupuesto",
+        tags: ["Laca artesanal", "Presupuesto a solicitud"],
+        imageAlts: [
+          "Bandeja de servicio redonda en laca vista desde arriba, con su superficie pulida reflejando una luz suave",
+          "Vista cercana del borde de la bandeja, que muestra la profundidad de las capas de laca pulidas",
+        ],
+      },
+      {
+        name: "Cuenco lacado",
+        categoryLabel: "Vajilla",
+        summary:
+          "Un cuenco ancho y poco profundo, lacado por dentro y por fuera, de modo que el acabado se percibe como una superficie continua.",
+        storyParagraphs: [
+          "El cuenco se moldea primero y se acaba después. Su pared es lo bastante fina para sentirse ligera en la mano, pero lo bastante gruesa para mantener la curva estable a lo largo de decenas de capas: una superficie curva recibe la laca de forma muy distinta a una plana, y el interior de un cuenco es siempre el lugar donde se acumula una capa aplicada con prisa.",
+          "Cada capa se aplica fina, cura en humedad y después se rebaja con agua. Es el lijado lo que mantiene la curva fiel, porque elimina los relieves que deja el pincel. El interior y el exterior se trabajan al mismo nivel de exigencia, de modo que el borde se lee como una sola línea y no como la costura entre dos acabados.",
+          "Acabado de este modo, el cuenco es a la vez pieza de servicio y pieza decorativa: fruta, pan, llaves junto a la puerta, o un centro de mesa completamente vacío. Es cálido, no frío, al tacto, y su pared pulida recoge el color que ya existe en la habitación.",
+        ],
+        materialLabels: ["Laca sobre alma de madera"],
+        finishLabel: "Brillante, pulido a mano",
+        careNotes: [
+          "Secar con un paño suave después de usarlo; no dejar nunca agua estancada en su interior.",
+          "No sumergir en agua y mantener fuera del lavavajillas y del microondas.",
+          "Usar para alimentos secos o fríos; forrar el interior para cualquier alimento húmedo o graso.",
+          "Guardar en un lugar ventilado, alejado del sol directo y del calor seco prolongado.",
+        ],
+        quoteCallToAction:
+          "Envíenos el diámetro, la profundidad y el acabado que necesita, y le prepararemos un presupuesto.",
+        leadTime: "Se confirma con cada presupuesto",
+        tags: ["Laca artesanal", "Presupuesto a solicitud"],
+        imageAlts: [
+          "Cuenco lacado ancho y poco profundo fotografiado a la altura de los ojos sobre un fondo liso",
+          "Detalle del borde del cuenco, donde los acabados interior y exterior se encuentran en una sola línea",
+        ],
+      },
+      {
+        name: "Vasija lacada",
+        categoryLabel: "Jarrones y recipientes",
+        summary:
+          "Una vasija erguida, acabada en cada cara visible, concebida para sostener una silueta y no agua.",
+        storyParagraphs: [
+          "Una vasija se lee desde el otro extremo de una habitación antes de leerse a la distancia del brazo, así que la silueta se decide antes de mezclar una sola gota de laca: qué anchura tiene el hombro, dónde se cierra la pared, cuánta base necesita la forma para parecer asentada y no en precario equilibrio.",
+          "La laca se aplica después en capas finas sobre toda la superficie vertical, cura en humedad y se rebaja con agua entre una capa y otra. Las caras verticales son la parte más exigente del oficio —la gravedad trabaja en contra de la capa durante todo el tiempo que tarda en fraguar—, por lo que las capas se mantienen finas y el ritmo de trabajo, deliberadamente lento.",
+          "Una vez pulida, la pared se comporta como un espejo suave: retiene la forma de la ventana sin mostrar la ventana misma. Son vasijas decorativas; todo lo que deba contener agua debe hacerlo en un revestimiento interior independiente o en un vaso colocado en su interior.",
+        ],
+        materialLabels: ["Laca sobre alma de madera"],
+        finishLabel: "Brillante, pulido a mano",
+        careNotes: [
+          "Quitar el polvo con un paño suave y seco, siguiendo la línea de la forma.",
+          "No sumergir en agua ni verter agua directamente en su interior.",
+          "Usar un revestimiento interior o un vaso para flores cortadas, y limpiar de inmediato cualquier derrame.",
+          "Mantener alejada de alféizares soleados y de fuentes de calor.",
+        ],
+        quoteCallToAction:
+          "Indíquenos la altura y el perfil que busca, y le prepararemos un presupuesto.",
+        leadTime: "Se confirma con cada presupuesto",
+        tags: ["Laca artesanal", "Presupuesto a solicitud"],
+        imageAlts: [
+          "Vasija lacada de gran altura sobre un fondo liso, con el hombro recogiendo la luz",
+          "Vista cercana del hombro de la vasija, que muestra el brillo uniforme de la laca pulida",
+        ],
+      },
+      {
+        name: "Caja de joyas y recuerdos",
+        categoryLabel: "Cajas y cofres",
+        summary:
+          "Una caja con tapa acabada con incrustaciones de cáscara de huevo, pulida hasta que la cáscara queda a ras con la laca que la rodea.",
+        storyParagraphs: [
+          "Las cajas se juzgan por el ensamblaje. La tapa debe encajar sin bascular, las paredes deben mantenerse escuadradas a lo largo de decenas de capas, y el interior debe acabarse con el mismo cuidado que el exterior, porque se ve cada vez que se abre la caja.",
+          "El motivo se incrusta, no se imprime. Los fragmentos de cáscara de huevo se colocan, uno a uno, sobre una capa aún blanda y se presionan hasta que se agrietan formando su propio mosaico fino; después se añaden más capas por encima y se rebajan con agua hasta que la cáscara y la laca circundante forman un único plano nivelado. Por eso el tono marfil de la cáscara se lee como parte de la superficie y no como algo colocado sobre ella.",
+          "La caja terminada recibe por igual las huellas y la luz. Está pensada para joyas, pequeños recuerdos y objetos de escritorio: todo aquello que se beneficia de guardarse en un lugar elegido con intención y no simplemente a mano.",
+        ],
+        materialLabels: ["Laca sobre alma de madera"],
+        finishLabel: "Incrustación de cáscara de huevo, pulida a ras",
+        careNotes: [
+          "Limpiar únicamente con un paño suave y seco, y mantener la caja siempre seca.",
+          "No guardar en un cuarto de baño ni sobre un alféizar soleado.",
+          "Abrir y cerrar sujetando la tapa, sin hacer palanca en el borde.",
+          "Forrar el interior, o usar una bolsita, para joyas metálicas con bordes afilados, de modo que el interior no se raye.",
+        ],
+        quoteCallToAction:
+          "Envíenos las dimensiones interiores y la orientación que desea para el motivo, y le prepararemos un presupuesto.",
+        leadTime: "Se confirma con cada presupuesto",
+        tags: ["Incrustación de cáscara de huevo", "Presupuesto a solicitud"],
+        imageAlts: [
+          "Caja de laca con tapa e incrustación de cáscara de huevo, fotografiada cerrada sobre un fondo liso",
+          "Vista cercana de la incrustación de cáscara de huevo, con su fino craquelado a ras de la laca pulida",
+        ],
+      },
+      {
+        name: "Juego de posavasos y manteles individuales",
+        categoryLabel: "Vajilla",
+        summary:
+          "Piezas planas de mesa en tamaños a juego, acabadas en ambas caras para poder voltearlas sin mostrar un reverso sin terminar.",
+        storyParagraphs: [
+          "Un juego tiene que ser coherente consigo mismo. Los posavasos y los manteles se cortan en tamaños idénticos y después se lacan juntos, en las mismas tandas, para que el color de la octava pieza sea el mismo que el de la primera. La uniformidad dentro de un lote importa aquí más que en cualquier pieza individual, porque todo el juego reposa sobre una misma mesa bajo una misma luz.",
+          "Se acaban ambas caras. El reverso recibe las mismas capas que la cara superior, en parte para que la pieza se mantenga plana mientras la laca cura y se tensa, y en parte para que un mantel pueda voltearse a mitad de servicio sin dejar al descubierto una cara en bruto.",
+          "En el uso diario son las piezas que reciben más contacto y más calor, por lo que el acabado se trabaja para ser uniforme antes que vistoso. Un mantel pulido bajo un plato tibio seguirá pidiendo un momento de cuidado; es la naturaleza de la laca, y por eso los juegos suelen encargarse con una o dos piezas de repuesto.",
+        ],
+        materialLabels: ["Laca sobre alma de madera"],
+        finishLabel: "Brillante, pulido a mano",
+        careNotes: [
+          "Secar con un paño después de usarlos; no sumergir nunca en agua ni apilar mientras estén húmedos.",
+          "Apilar con una lámina suave entre cada pieza.",
+          "No colocar directamente sobre la superficie una sartén recién retirada del fuego.",
+          "Guardar alejados del sol directo, de los radiadores y del calor de la cocina.",
+        ],
+        quoteCallToAction:
+          "Indíquenos el tamaño del juego, la forma y el acabado, y le prepararemos un presupuesto para la tanda completa.",
+        leadTime: "Se confirma con cada presupuesto",
+        tags: ["Laca artesanal", "Presupuesto a solicitud"],
+        imageAlts: [
+          "Juego de manteles individuales cuadrados y posavasos redondos en laca, dispuestos en abanico sobre un fondo liso",
+          "Vista cercana del borde de un posavasos, que muestra el acabado continuando hacia el reverso",
+        ],
+      },
+      {
+        name: "Panel de pared en laca",
+        categoryLabel: "Paneles y arte de pared",
+        summary:
+          "Un panel trabajado como un único campo de laca, con la incrustación dispuesta dentro de las capas y no sobre ellas.",
+        storyParagraphs: [
+          "El panel es lo más cerca que la laca llega a la pintura, y también lo más exigente de realizar, porque la mirada no tiene otro lugar donde posarse que la propia superficie. El soporte se prepara y se nivela primero; a partir de ahí, todo el trabajo es acumulativo: capa sobre capa, capa sobre incrustación.",
+          "La cáscara, el pigmento y la lámina metálica pueden incorporarse todos a las capas. Lo que se coloca en una capa aún blanda queda enterrado por las capas siguientes y después se recupera con agua y abrasivo: la imagen no se pinta sobre el panel, se descubre desde su interior. Hasta dónde llevar ese proceso es un juicio que se hace a mano, panel por panel, y por eso dos paneles de un mismo diseño resultan emparentados y no idénticos.",
+          "Una vez colgado, el panel cambia con la habitación. La luz rasante descubre la incrustación; la luz uniforme deja que predomine el color de fondo. Está hecho para convivir con una luz cambiante, no para ser fotografiado una sola vez.",
+        ],
+        materialLabels: ["Laca sobre alma de madera"],
+        finishLabel: "Incrustación de cáscara de huevo, pulida a ras",
+        careNotes: [
+          "Quitar el polvo con un paño suave y seco; no usar aerosoles, ceras para muebles ni disolventes.",
+          "Colgar alejado de la luz solar directa, de fuentes de calor y de paredes húmedas.",
+          "Manipular sujetando por los bordes, sin apoyar la mano sobre la cara.",
+          "Si la superficie pierde brillo con el tiempo, consúltenos antes de intentar cualquier intervención por su cuenta.",
+        ],
+        quoteCallToAction:
+          "Envíenos el tamaño del panel, la orientación y el enfoque que desea para el diseño, y le prepararemos un presupuesto.",
+        leadTime: "Se confirma con cada presupuesto",
+        tags: ["Incrustación de cáscara de huevo", "Presupuesto a solicitud"],
+        imageAlts: [
+          "Panel de pared rectangular en laca colgado sobre un muro liso, con luz rasante que resalta la incrustación",
+          "Vista cercana de la superficie del panel, donde la cáscara incrustada se ha lijado hasta integrarse en el campo de laca",
+        ],
+      },
+      {
+        name: "Cesta tejida lacada",
+        categoryLabel: "Cestería",
+        summary:
+          "Una forma tejida en ratán, estabilizada y recubierta de laca, de modo que el tejido permanece visible bajo una superficie mate frotada a mano.",
+        storyParagraphs: [
+          "Esta pieza parte de un lugar completamente distinto: de una forma tejida y no de una forma sólida. El tejido se trabaja primero hasta darle forma y después se estabiliza, y la laca sigue la textura en lugar de ocultarla: el objeto conserva su lógica de cestería y gana, además, una piel de laca.",
+          "Como la base tiene textura, las capas son más finas y el acabado se frota en lugar de pulirse a espejo. Un brillo de espejo exigiría nivelar la superficie, y nivelarla significaría perder precisamente aquello para lo que existe el tejido. El mate mantiene el motivo legible y conserva intactas las sombras que viven dentro del tejido.",
+          "El resultado se sitúa entre dos oficios y pertenece a ambos: más ligera que un cuenco tornado, más cálida que el ratán desnudo, y más duradera que cualquiera de los dos por separado. Ideal para exponer, para guardar objetos secos, y para el rincón de una habitación que necesita textura más que brillo.",
+        ],
+        materialLabels: ["Laca sobre alma de ratán tejido"],
+        finishLabel: "Mate, frotado a mano",
+        careNotes: [
+          "Quitar el polvo con un cepillo suave o un paño seco, siguiendo la dirección del tejido.",
+          "Mantener seca: no lavar ni sumergir en agua.",
+          "Usar únicamente para guardar objetos secos.",
+          "Mantener alejada del sol directo y de ambientes persistentemente húmedos.",
+        ],
+        quoteCallToAction:
+          "Indíquenos el tamaño, el tipo de tejido y la intensidad de color que desea, y le prepararemos un presupuesto.",
+        leadTime: "Se confirma con cada presupuesto",
+        tags: ["Alma de ratán tejido", "Presupuesto a solicitud"],
+        imageAlts: [
+          "Cesta de ratán tejido lacada, fotografiada en ángulo para que el tejido se aprecie a lo largo de toda la forma",
+          "Vista cercana del tejido bajo la laca mate, que muestra la textura conservada y no rellenada",
+        ],
+      },
+      {
+        name: "Mesa auxiliar lacada",
+        categoryLabel: "Muebles pequeños",
+        summary:
+          "Una pequeña mesa auxiliar o consola cuyo tablero se acaba como un campo de laca y cuya estructura se laca a juego.",
+        storyParagraphs: [
+          "El mobiliario coloca la laca en el camino de la vida diaria, así que aquí las decisiones son estructurales antes que decorativas: cómo se construye el tablero para que se mantenga plano, cómo se une a la estructura, y qué parte de la pieza debe acabarse al mismo nivel que el tablero. En la práctica, toda ella: un tablero lacado sobre una estructura en bruto termina envejeciendo como dos objetos distintos.",
+          "El tablero recibe más capas y más lijado que ninguna otra parte, porque es la superficie que se mirará desde arriba. Las capas curan lentamente en humedad y se rebajan con agua; la estructura sigue el mismo calendario para que el color coincida en toda la pieza, y no solo de manera aproximada.",
+          "Acabada en mate, se percibe como un bloque sólido de color y refleja menos de la habitación que un tablero pulido, que es precisamente lo que suele necesitar una mesa pequeña en un rincón concurrido. Es una superficie para una lámpara, un libro y un vaso sobre su posavasos, no un banco de trabajo.",
+        ],
+        materialLabels: ["Laca sobre alma de madera"],
+        finishLabel: "Mate, frotado a mano",
+        careNotes: [
+          "Quitar el polvo con un paño suave y seco, y limpiar de inmediato cualquier derrame.",
+          "Usar siempre posavasos y manteles sobre el tablero.",
+          "No usar disolventes ni ceras para muebles.",
+          "Mantenerla alejada del sol directo y de fuentes de calor; levantarla en lugar de arrastrarla al moverla.",
+        ],
+        quoteCallToAction:
+          "Envíenos la altura, las dimensiones de la base y el acabado que necesita, y le prepararemos un presupuesto.",
+        leadTime: "Se confirma con cada presupuesto",
+        tags: ["Laca artesanal", "Presupuesto a solicitud"],
+        imageAlts: [
+          "Pequeña mesa auxiliar lacada fotografiada sobre un fondo liso, con su tablero mate recibiendo una luz uniforme",
+          "Vista cercana de la unión entre el tablero y la estructura, que muestra el acabado continuando sin interrupción entre ambos",
+        ],
+      },
+    ],
+  },
 } satisfies Record<Locale, ProductLocaleCopy>);
 
 /** Portrait 4:5, the ratio the gallery reserves for a product photograph. */
@@ -1593,6 +1815,7 @@ export const DEMO_PRODUCTS_BY_LOCALE: Readonly<
   de: makeProducts("de"),
   ja: makeProducts("ja"),
   "zh-CN": makeProducts("zh-CN"),
+  es: makeProducts("es"),
 });
 
 function applyListOptions(

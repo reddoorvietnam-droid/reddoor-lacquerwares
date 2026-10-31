@@ -28,6 +28,7 @@ export const newsCategories: readonly NewsCategory[] = [
       de: "Neuigkeiten",
       ja: "ニュース",
       "zh-CN": "新闻",
+      es: "Noticias",
     },
   },
   {
@@ -39,6 +40,7 @@ export const newsCategories: readonly NewsCategory[] = [
       de: "Aus der Werkstatt",
       ja: "工房から",
       "zh-CN": "来自工坊",
+      es: "Desde el taller",
     },
   },
   {
@@ -50,6 +52,7 @@ export const newsCategories: readonly NewsCategory[] = [
       de: "Ausstellungen & Messen",
       ja: "展示会・見本市",
       "zh-CN": "展会与博览",
+      es: "Exposiciones y ferias",
     },
   },
   {
@@ -61,6 +64,7 @@ export const newsCategories: readonly NewsCategory[] = [
       de: "Anleitungen & Pflege",
       ja: "ガイドとお手入れ",
       "zh-CN": "指南与保养",
+      es: "Guías y cuidados",
     },
   },
 ] as const;

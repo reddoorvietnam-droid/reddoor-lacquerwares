@@ -93,9 +93,9 @@ const dictionary = {
     productsIntro:
       "Plateaux, coffrets, dessous de verre, vases et objets décoratifs — chaque pièce est façonnée à la main à l'atelier de Ha Thai, laquée en couches, poncée à l'eau et polie à la main.",
     collectionsTitle: "Collections",
-    collectionsHeading: "Collections de laque et catalogues",
+    collectionsHeading: "Nos collections",
     collectionsIntro:
-      "Chaque année, Red Door présente une nouvelle collection — fruit du travail de l'atelier sur les matières, les couleurs et les surfaces. Ouvrez chaque catalogue pour découvrir l'ensemble.",
+      "Saison après saison, année après année, nous explorons sans cesse de nouvelles techniques, de nouveaux motifs et ornements ancrés dans le savoir-faire traditionnel de la laque — pour offrir à nos clients des collections toujours nouvelles, en phase avec les tendances internationales de la décoration intérieure.",
     processTitle: "Procédé de laque",
     processHeading: "Fabrication de la laque vietnamienne",
     processIntro:
