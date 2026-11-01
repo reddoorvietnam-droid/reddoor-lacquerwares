@@ -149,7 +149,7 @@ const dictionary = {
       "自然存在于色彩、材质，以及漆面捕捉光线的方式之中。我们追求经久耐用、越用越美的器物。",
     pillarStandardTitle: "国际标准",
     pillarStandardDescription:
-      "Red Door 产品由 SGS 依据欧盟化学品与材料安全法规检测，足以进入要求最严格的市场。",
+      "Red Door 产品在 TÜV、SGS、Eurofins 等知名实验室，依据国际化学品与材料安全法规进行检测，尤其是食品接触类产品。我们的产品已准备好满足要求最严格市场的标准。",
   },
   product: {
     category: "类别",

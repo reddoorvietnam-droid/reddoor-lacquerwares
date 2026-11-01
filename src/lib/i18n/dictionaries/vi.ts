@@ -152,7 +152,7 @@ const dictionary = {
       "Thiên nhiên có mặt trong màu sắc, chất liệu và cách bề mặt bắt sáng của từng thiết kế. Chúng tôi hướng đến những món đồ bền vững, dùng được và đẹp lên qua nhiều năm.",
     pillarStandardTitle: "Chuẩn mực quốc tế",
     pillarStandardDescription:
-      "Sản phẩm Red Door được kiểm định bởi SGS theo các quy định của châu Âu về an toàn hóa chất và vật liệu, sẵn sàng cho những thị trường khắt khe nhất.",
+      "Sản phẩm Red Door được kiểm định tại các phòng lab nổi tiếng như TÜV, SGS, Eurofins… theo các quy định của thế giới về an toàn hóa chất, vật liệu, sản phẩm đặc biệt cho công nghiệp thực phẩm. Sản phẩm của chúng tôi sẵn sàng đáp ứng tiêu chuẩn cho những thị trường khắt khe nhất.",
   },
   product: {
     category: "Danh mục",

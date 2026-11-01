@@ -154,7 +154,7 @@ const dictionary = {
       "Nature is present in the colours, the materials and the way each surface catches light. We aim for objects that are sustainable, useful and grow more beautiful with the years.",
     pillarStandardTitle: "International standards",
     pillarStandardDescription:
-      "Red Door products are tested by SGS against European regulations on chemical and material safety, ready for the most demanding markets.",
+      "Red Door products are tested at renowned laboratories such as TÜV, SGS and Eurofins against international regulations on chemical and material safety, especially for food-contact products. Our products are ready to meet the standards of the most demanding markets.",
   },
   product: {
     category: "Category",

@@ -156,7 +156,7 @@ const dictionary = {
       "La nature habite les couleurs, les matières et la façon dont chaque surface prend la lumière. Nous voulons des objets durables, utiles, qui embellissent avec les années.",
     pillarStandardTitle: "Normes internationales",
     pillarStandardDescription:
-      "Les produits Red Door sont testés par SGS selon la réglementation européenne sur la sécurité des substances et des matériaux, prêts pour les marchés les plus exigeants.",
+      "Les produits Red Door sont testés par des laboratoires reconnus tels que TÜV, SGS et Eurofins, selon les réglementations internationales sur la sécurité des substances et des matériaux, en particulier pour les produits au contact des aliments. Nos produits sont prêts à répondre aux normes des marchés les plus exigeants.",
   },
   product: {
     category: "Catégorie",

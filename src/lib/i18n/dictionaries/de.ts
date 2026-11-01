@@ -156,7 +156,7 @@ const dictionary = {
       "Die Natur lebt in den Farben, den Materialien und der Art, wie jede Oberfläche das Licht fängt. Wir wollen langlebige, nützliche Objekte, die mit den Jahren schöner werden.",
     pillarStandardTitle: "Internationale Standards",
     pillarStandardDescription:
-      "Red-Door-Produkte werden von SGS nach den europäischen Vorschriften zur Chemikalien- und Materialsicherheit geprüft — bereit für die anspruchsvollsten Märkte.",
+      "Red-Door-Produkte werden in renommierten Laboren wie TÜV, SGS und Eurofins nach internationalen Vorschriften zur Chemikalien- und Materialsicherheit geprüft, insbesondere für Produkte mit Lebensmittelkontakt. Unsere Produkte sind bereit, die Standards der anspruchsvollsten Märkte zu erfüllen.",
   },
   product: {
     category: "Kategorie",

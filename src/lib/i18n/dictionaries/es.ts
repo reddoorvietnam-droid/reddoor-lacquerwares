@@ -156,7 +156,7 @@ const dictionary = {
       "La naturaleza está presente en los colores, los materiales y la forma en que cada superficie capta la luz. Buscamos objetos sostenibles, útiles y que ganen belleza con los años.",
     pillarStandardTitle: "Estándares internacionales",
     pillarStandardDescription:
-      "Los productos de Red Door son probados por SGS conforme a la normativa europea sobre seguridad química y de materiales, listos para los mercados más exigentes.",
+      "Los productos de Red Door se ensayan en laboratorios de prestigio como TÜV, SGS y Eurofins conforme a la normativa internacional sobre seguridad química y de materiales, en especial para productos en contacto con alimentos. Nuestros productos están listos para cumplir los estándares de los mercados más exigentes.",
   },
   product: {
     category: "Categoría",
