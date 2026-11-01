@@ -5,11 +5,11 @@ const dictionary = {
     siteName: "Red Door",
     siteTitle: "Red Door — Sơn mài thủ công Việt Nam",
     siteDescription:
-      "Red Door chế tác đồ sơn mài thủ công — Nghệ thuật sơn mài Việt Nam: khay, hộp, lót ly và đồ trang trí nội thất được phủ nhiều lớp sơn, mài nước và đánh bóng bằng tay. Sản phẩm kiểm định SGS theo tiêu chuẩn châu Âu, xuất khẩu đi Mỹ và châu Âu.",
+      "Red Door chế tác đồ sơn mài thủ công — Nghệ thuật sơn mài Việt Nam: khay, hộp, lót ly và đồ trang trí nội thất được phủ nhiều lớp sơn, mài nước và đánh bóng bằng tay. Sản phẩm kiểm định tại TÜV, SGS, Eurofins theo tiêu chuẩn quốc tế, xuất khẩu đi Mỹ và châu Âu.",
     pageDescriptions: {
-      home: "Red Door chế tác đồ sơn mài thủ công tại làng nghề Hạ Thái, Hà Nội: khay, hộp, bát, bình và tranh sơn mài. Kiểm định SGS chuẩn EU, xuất khẩu Mỹ và châu Âu.",
+      home: "Red Door chế tác đồ sơn mài thủ công tại làng nghề Hạ Thái, Hà Nội: khay, hộp, bát, bình và tranh sơn mài. Kiểm định TÜV, SGS, Eurofins, xuất khẩu Mỹ, châu Âu.",
       about:
-        "Red Door là xưởng sơn mài thủ công tại làng nghề Hạ Thái, Hà Nội, kết hợp kỹ thuật cổ truyền với thiết kế đương đại. Kiểm định SGS, xuất khẩu Mỹ và châu Âu.",
+        "Red Door là xưởng sơn mài tại làng nghề Hạ Thái, Hà Nội, kết hợp kỹ thuật cổ truyền với thiết kế đương đại. Kiểm định TÜV, SGS, Eurofins, xuất khẩu Mỹ, châu Âu.",
       products:
         "Sản phẩm sơn mài thủ công Red Door: khay, hộp, lót ly, bát, bình và đồ trang trí nội thất — phủ nhiều lớp sơn, mài nước và đánh bóng bằng tay. Nhận báo giá.",
       collections:
@@ -124,7 +124,7 @@ const dictionary = {
     highlightVillageLabel: "Làng nghề",
     highlightVillageValue: "Nghệ thuật sơn mài Việt Nam",
     highlightComplianceLabel: "Kiểm định",
-    highlightComplianceValue: "SGS — tiêu chuẩn EU",
+    highlightComplianceValue: "TÜV, SGS, Eurofins",
     highlightMarketsLabel: "Thị trường",
     highlightMarketsValue: "Mỹ và châu Âu",
     mediaFeaturesEyebrow: "Dấu ấn truyền thông & truyền hình",

@@ -5,11 +5,11 @@ const dictionary = {
     siteName: "Red Door",
     siteTitle: "Red Door — Laca artesanal de Ha Thai, Vietnam",
     siteDescription:
-      "Red Door elabora objetos de laca artesanal en el pueblo de laqueado de Ha Thai, cerca de Hanói: bandejas, cajas, posavasos y piezas decorativas creadas en capas, pulidas en húmedo y acabadas a mano. Probados por SGS según los estándares europeos y exportados a Estados Unidos y Europa.",
+      "Red Door elabora objetos de laca artesanal en el pueblo de laqueado de Ha Thai, cerca de Hanói: bandejas, cajas, posavasos y piezas decorativas creadas en capas, pulidas en húmedo y acabadas a mano. Probados por TÜV, SGS y Eurofins según estándares internacionales y exportados a Estados Unidos y Europa.",
     pageDescriptions: {
-      home: "Laca vietnamita artesanal de Ha Thai, cerca de Hanói: bandejas, cajas, posavasos, cuencos y jarrones de Red Door. Probada por SGS según la UE.",
+      home: "Laca vietnamita artesanal de Ha Thai, cerca de Hanói: bandejas, cajas, posavasos, cuencos y jarrones de Red Door. Probada por TÜV, SGS y Eurofins.",
       about:
-        "Red Door es un taller de laca en Ha Thai, cerca de Hanói: técnica tradicional vietnamita y diseño contemporáneo, probado por SGS según la UE.",
+        "Red Door es un taller de laca en Ha Thai, cerca de Hanói: técnica tradicional vietnamita y diseño contemporáneo, probado por TÜV, SGS y Eurofins.",
       products:
         "Laca artesanal de Red Door: bandejas, cajas, posavasos, cuencos, jarrones y piezas decorativas, pulidas en húmedo y acabadas a mano. Pida presupuesto.",
       collections:
@@ -125,7 +125,7 @@ const dictionary = {
     highlightVillageLabel: "Pueblo artesanal",
     highlightVillageValue: "Ha Thai, Hanói",
     highlightComplianceLabel: "Certificación",
-    highlightComplianceValue: "SGS — estándares de la UE",
+    highlightComplianceValue: "TÜV, SGS, Eurofins",
     highlightMarketsLabel: "Mercados",
     highlightMarketsValue: "Estados Unidos y Europa",
     mediaFeaturesEyebrow: "Reportajes y apariciones en televisión",

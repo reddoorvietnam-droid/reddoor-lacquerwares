@@ -5,11 +5,11 @@ const dictionary = {
     siteName: "Red Door",
     siteTitle: "Red Door — Lackkunst aus Ha Thai, Vietnam",
     siteDescription:
-      "Red Door fertigt handgemachte Lackwaren im Handwerksdorf Ha Thai bei Hanoi: Tabletts, Schatullen, Untersetzer und Dekorobjekte, in Schichten lackiert, nass geschliffen und von Hand poliert. SGS-geprüft nach europäischen Standards, exportiert in die USA und nach Europa.",
+      "Red Door fertigt handgemachte Lackwaren im Handwerksdorf Ha Thai bei Hanoi: Tabletts, Schatullen, Untersetzer und Dekorobjekte, in Schichten lackiert, nass geschliffen und von Hand poliert. Geprüft von TÜV, SGS und Eurofins nach internationalen Standards, exportiert in die USA und nach Europa.",
     pageDescriptions: {
-      home: "Handgemachte Lackwaren von Red Door aus dem Lackdorf Ha Thai bei Hanoi: Tabletts, Schatullen, Untersetzer, Schalen und Vasen. SGS-geprüft nach EU-Standards.",
+      home: "Handgemachte Lackwaren von Red Door aus dem Lackdorf Ha Thai bei Hanoi: Tabletts, Schatullen, Untersetzer, Schalen und Vasen. Geprüft von TÜV, SGS und Eurofins.",
       about:
-        "Red Door ist eine Werkstatt für vietnamesische Lackkunst im Dorf Ha Thai bei Hanoi: traditionelle Technik, modernes Design, SGS-geprüft nach EU-Standards.",
+        "Red Door ist eine Werkstatt für vietnamesische Lackkunst im Dorf Ha Thai bei Hanoi: traditionelle Technik, modernes Design, geprüft von TÜV, SGS und Eurofins.",
       products:
         "Handgemachte Lackwaren von Red Door: Tabletts, Schatullen, Schalen, Vasen und Dekorobjekte – in Schichten lackiert, nass geschliffen, von Hand poliert.",
       collections:
@@ -126,7 +126,7 @@ const dictionary = {
     highlightVillageLabel: "Handwerksdorf",
     highlightVillageValue: "Ha Thai, Hanoi",
     highlightComplianceLabel: "Prüfung",
-    highlightComplianceValue: "SGS — EU-Standards",
+    highlightComplianceValue: "TÜV, SGS, Eurofins",
     highlightMarketsLabel: "Märkte",
     highlightMarketsValue: "USA und Europa",
     mediaFeaturesEyebrow: "Medien & Fernsehen",

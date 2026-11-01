@@ -5,11 +5,11 @@ const dictionary = {
     siteName: "Red Door",
     siteTitle: "Red Door — 越南漆器 · 河内下泰村手工漆器",
     siteDescription:
-      "Red Door 在河内近郊的下泰漆艺村手工制作漆器：托盘、盒具、杯垫与装饰摆件，层层髹涂、水磨、手工推光。产品通过 SGS 欧盟标准检测，远销美国与欧洲。",
+      "Red Door 在河内近郊的下泰漆艺村手工制作漆器：托盘、盒具、杯垫与装饰摆件，层层髹涂、水磨、手工推光。产品经 TÜV、SGS、Eurofins 等实验室依国际标准检测，远销美国与欧洲。",
     pageDescriptions: {
-      home: "Red Door 在河内近郊的下泰漆艺村手工制作越南漆器：托盘、盒具、杯垫、碗、花瓶与漆画。产品通过 SGS 欧盟标准检测，远销美国与欧洲。",
+      home: "Red Door 在河内近郊的下泰漆艺村手工制作越南漆器：托盘、盒具、杯垫、碗、花瓶与漆画。产品经 TÜV、SGS、Eurofins 等实验室依国际标准检测，远销美国与欧洲。",
       about:
-        "Red Door 是位于河内近郊下泰漆艺村的越南漆器工坊，将传统技法与当代设计相结合，产品通过 SGS 欧盟标准检测，出口美国与欧洲。",
+        "Red Door 是位于河内近郊下泰漆艺村的越南漆器工坊，将传统技法与当代设计相结合，产品经 TÜV、SGS、Eurofins 等实验室依国际标准检测，出口美国与欧洲。",
       products:
         "Red Door 手工越南漆器产品：托盘、盒具、杯垫、碗、花瓶与装饰摆件，层层髹涂、水磨、手工推光。欢迎申请报价。",
       collections:
@@ -123,7 +123,7 @@ const dictionary = {
     highlightVillageLabel: "漆艺村",
     highlightVillageValue: "下泰村，河内",
     highlightComplianceLabel: "检测",
-    highlightComplianceValue: "SGS — 欧盟标准",
+    highlightComplianceValue: "TÜV、SGS、Eurofins",
     highlightMarketsLabel: "市场",
     highlightMarketsValue: "美国与欧洲",
     mediaFeaturesEyebrow: "媒体与电视报道",

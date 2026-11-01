@@ -5,11 +5,11 @@ const dictionary = {
     siteName: "Red Door",
     siteTitle: "Red Door — Laque de Ha Thai, Vietnam",
     siteDescription:
-      "Red Door fabrique des objets en laque artisanale dans le village de métier de Ha Thai, près de Hanoï : plateaux, coffrets, dessous de verre et objets décoratifs laqués en couches, poncés à l'eau et polis à la main. Produits testés par SGS selon les normes européennes, exportés vers les États-Unis et l'Europe.",
+      "Red Door fabrique des objets en laque artisanale dans le village de métier de Ha Thai, près de Hanoï : plateaux, coffrets, dessous de verre et objets décoratifs laqués en couches, poncés à l'eau et polis à la main. Produits testés par TÜV, SGS et Eurofins selon les normes internationales, exportés vers les États-Unis et l'Europe.",
     pageDescriptions: {
-      home: "Laque vietnamienne faite main par Red Door au village de Ha Thai, près de Hanoï : plateaux, coffrets, dessous de verre, bols et vases. Testés SGS aux normes UE.",
+      home: "Laque vietnamienne faite main par Red Door au village de Ha Thai, près de Hanoï : plateaux, coffrets, dessous de verre, bols, vases. Testés TÜV, SGS, Eurofins.",
       about:
-        "Red Door, atelier de laque vietnamienne au village de Ha Thai près de Hanoï : technique traditionnelle, dessin contemporain, pièces testées SGS aux normes UE.",
+        "Red Door, atelier de laque vietnamienne au village de Ha Thai près de Hanoï : technique traditionnelle, dessin contemporain, pièces testées TÜV, SGS, Eurofins.",
       products:
         "Objets en laque vietnamienne faits main : plateaux, coffrets, dessous de verre, bols, vases et objets décoratifs Red Door, laqués en couches, polis à la main.",
       collections:
@@ -125,7 +125,7 @@ const dictionary = {
     highlightVillageLabel: "Village de métier",
     highlightVillageValue: "Ha Thai, Hanoï",
     highlightComplianceLabel: "Contrôles",
-    highlightComplianceValue: "SGS — normes UE",
+    highlightComplianceValue: "TÜV, SGS, Eurofins",
     highlightMarketsLabel: "Marchés",
     highlightMarketsValue: "États-Unis et Europe",
     mediaFeaturesEyebrow: "Médias & Télévision",
