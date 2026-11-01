@@ -64,8 +64,12 @@ const dictionary = {
     titleAccent: "dans un langage de design contemporain",
     heroDescription:
       "La laque vietnamienne n'est pas seulement une technique artisanale : c'est un héritage de savoir sur la matière, de sensibilité esthétique et de patience de l'artisan. Dans la continuité de ces valeurs, RED DOOR Co., Ltd préserve et fait vivre le savoir-faire traditionnel de la laque, tout en l'associant à des techniques d'impression et de peinture avancées pour élargir les possibilités d'expression à la surface de chaque œuvre.\n\nÀ la croisée de la profondeur des couches de laque, de l'art du traitement de surface et d'une pensée design moderne, chaque pièce est un dialogue entre héritage et création — profondément ancrée dans la culture vietnamienne, tout en s'accordant aux espaces de vie contemporains.",
-    craftTitle: "Un récit de matière, couche après couche",
+    craftTitle: "Le métier dès le support, l'âme à chaque couche",
     craftBody:
+      "Pour l'artisan laqueur, une belle pièce commence par un support soigneusement préparé. Ce n'est que lorsque la base est solide et la surface plane que les couches suivantes peuvent adhérer durablement. De la préparation du support à l'application de la laque, du ponçage à l'eau au polissage, à la main comme à la machine, chaque étape exige un soin minutieux et attentif. Chaque couche doit sécher complètement avant que la suivante ne soit posée. Au ponçage, il faut savoir quand s'arrêter pour préserver la couleur, le trait et la profondeur de la surface, comme on préserve chaque strate du temps dans chaque pièce.",
+    craftDetails:
+      "Au village artisanal de Ha Thai, à Hanoï, Red Door Co., Ltd réalise dans ce même esprit des plateaux, des boîtes, des pièces d'art de la table et des objets de décoration intérieure. Nous préservons les techniques transmises de génération en génération, tout en recourant à des techniques d'impression et de peinture avancées et au design contemporain. La nouveauté élargit nos moyens d'expression, sans jamais remplacer le soin de la main de l'artisan.\n\nNous croyons que préserver un métier ne consiste pas seulement à refaire les modèles d'autrefois, mais aussi à faire entrer la laque dans la vie d'aujourd'hui — pour que, dans un objet du quotidien ou une pièce posée au cœur d'une maison moderne, la beauté et le savoir-faire vietnamiens continuent d'être chéris et transmis.",
+    craftQuote:
       "Du premier apprêt à la dernière couche, chaque pièce Red Door traverse des dizaines d'étapes et des semaines de séchage naturel. Nous laquons, ponçons à l'eau, puis laquons encore — jusqu'à ce que la surface prenne la profondeur d'une eau calme.",
     historyTitle: "Le chemin de l'atelier",
     featuredTitle: "Produits à la une",

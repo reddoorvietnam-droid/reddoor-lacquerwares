@@ -64,8 +64,12 @@ const dictionary = {
     titleAccent: "trong ngôn ngữ thiết kế đương đại",
     heroDescription:
       "Sơn mài Việt Nam không chỉ là một kỹ nghệ chế tác, mà còn là di sản của tri thức vật liệu, cảm quan thẩm mỹ và sự kiên nhẫn của người nghệ nhân. Tiếp nối những giá trị ấy, RED DOOR Co., Ltd gìn giữ và phát huy kỹ nghệ sơn mài truyền thống, đồng thời kết hợp các kỹ thuật in, vẽ tiên tiến để mở rộng khả năng biểu đạt trên bề mặt tác phẩm.\n\nTrong sự giao thoa giữa chiều sâu của những lớp sơn, nghệ thuật xử lý bề mặt và tư duy thiết kế hiện đại, mỗi sản phẩm là một cuộc đối thoại giữa di sản và sáng tạo — mang đậm bản sắc văn hoá Việt, đồng thời hài hoà với không gian sống đương đại.",
-    craftTitle: "Câu chuyện vật liệu qua từng lớp",
+    craftTitle: "Giữ nghề từ vóc, giữ hồn qua từng lớp sơn",
     craftBody:
+      "Với người làm sơn mài, một sản phẩm đẹp trước hết phải được làm kỹ từ phần vóc. Nền có chắc, mặt có phẳng thì những lớp sơn tiếp theo mới có chỗ bám bền. Từ làm vóc, phủ sơn đến mài nước và đánh bóng, dẫu là đánh bóng tay hay bằng máy, thì mỗi công đoạn đều cần sự chăm chút một cách kỹ lưỡng và cẩn trọng. Từng lớp sơn phải đợi đủ khô mới làm tiếp lớp mới. Khi mài, phải biết lúc nào nên dừng để giữ được màu, được nét và chiều sâu của mặt sơn, như giữ gìn từng lớp thời gian qua mỗi một sản phẩm.",
+    craftDetails:
+      "Tại làng nghề Hạ Thái, Hà Nội, Red Door Co., Ltd làm các sản phẩm như khay, hộp, các sản phẩm trang trí bàn ăn cũng như các đồ trang trí nội thất bằng tinh thần ấy. Chúng tôi gìn giữ những kỹ thuật làm nghề đã được truyền lại, đồng thời ứng dụng kỹ thuật in, vẽ tiên tiến và thiết kế hiện đại. Cái mới giúp mở rộng cách thể hiện, nhưng không thay thế sự cẩn trọng của bàn tay người thợ.\n\nChúng tôi tin rằng giữ nghề không chỉ là làm lại những mẫu xưa, mà còn là đưa sơn mài vào đời sống hôm nay. Để trong một vật dụng hằng ngày hay một món đồ đặt giữa căn nhà hiện đại thì vẻ đẹp và nếp làm nghề của người Việt vẫn luôn được trân trọng và tiếp nối.",
+    craftQuote:
       "Từ tấm vóc đầu tiên đến lớp sơn cuối cùng, mỗi món đồ Red Door đi qua hàng chục công đoạn và nhiều tuần chờ sơn khô tự nhiên. Chúng tôi phủ, mài nước rồi lại phủ — cho đến khi mặt sơn sâu và trong như mặt nước lặng.",
     historyTitle: "Hành trình của xưởng",
     featuredTitle: "Sản phẩm nổi bật",

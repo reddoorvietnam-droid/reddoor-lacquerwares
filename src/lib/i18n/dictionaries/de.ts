@@ -65,8 +65,12 @@ const dictionary = {
     titleAccent: "in einer zeitgenössischen Designsprache",
     heroDescription:
       "Vietnamesische Lackkunst ist mehr als eine Handwerkstechnik — sie ist ein Erbe aus Materialwissen, ästhetischem Empfinden und der Geduld des Kunsthandwerkers. In dieser Tradition bewahrt RED DOOR Co., Ltd das traditionelle Lackhandwerk und entwickelt es weiter, verbunden mit modernen Druck- und Maltechniken, die die Ausdrucksmöglichkeiten auf der Oberfläche jedes Werks erweitern.\n\nIm Zusammenspiel aus der Tiefe der Lackschichten, der Kunst der Oberflächenbearbeitung und modernem Designdenken wird jedes Stück zu einem Dialog zwischen Erbe und Kreativität — tief verwurzelt in der vietnamesischen Kultur und zugleich im Einklang mit zeitgenössischen Wohnräumen.",
-    craftTitle: "Eine Materialgeschichte in Schichten",
+    craftTitle: "Handwerk ab dem Kern, Seele in jeder Schicht",
     craftBody:
+      "Für Lackkünstler beginnt ein schönes Stück mit einem sorgfältig gefertigten Kern. Nur wenn der Untergrund fest und die Oberfläche eben ist, können die folgenden Lackschichten dauerhaft haften. Vom Aufbau des Kerns über das Auftragen des Lacks bis zum Nassschleifen und Polieren, ob von Hand oder mit der Maschine, verlangt jeder Arbeitsschritt gründliche und gewissenhafte Sorgfalt. Jede Schicht muss vollständig trocknen, bevor die nächste aufgetragen wird. Beim Schleifen muss man wissen, wann man aufhört, um Farbe, Linien und die Tiefe der Oberfläche zu bewahren — so, als bewahre man in jedem Stück jede Schicht der Zeit.",
+    craftDetails:
+      "Im Handwerksdorf Ha Thai in Hanoi fertigt Red Door Co., Ltd in diesem Geist Tabletts, Dosen, Tischaccessoires und Wohndekor. Wir bewahren die überlieferten Handwerkstechniken und setzen zugleich moderne Druck- und Maltechniken sowie zeitgenössisches Design ein. Das Neue erweitert unsere Ausdrucksmöglichkeiten, ersetzt aber nie die Sorgfalt der Hand des Kunsthandwerkers.\n\nWir glauben, dass ein Handwerk zu bewahren nicht nur heißt, alte Formen nachzubilden, sondern Lackkunst in das heutige Leben zu bringen — damit in einem Alltagsgegenstand oder einem Stück in einem modernen Zuhause die Schönheit und die Handwerkstradition Vietnams weiterhin geschätzt und fortgeführt werden.",
+    craftQuote:
       "Vom ersten grundierten Kern bis zur letzten Schicht durchläuft jedes Red-Door-Stück Dutzende Arbeitsschritte und Wochen natürlicher Trocknung. Wir lackieren, schleifen nass und lackieren erneut — bis die Oberfläche die Tiefe stillen Wassers trägt.",
     historyTitle: "Der Weg der Werkstatt",
     featuredTitle: "Ausgewählte Produkte",

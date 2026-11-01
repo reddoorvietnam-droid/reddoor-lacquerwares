@@ -74,6 +74,10 @@ export type PublicDictionary = {
     heroDescription: string;
     craftTitle: string;
     craftBody: string;
+    /** Paragraphs under the craft heading; blank lines separate them. */
+    craftDetails: string;
+    /** The short pull quote over the craft film. */
+    craftQuote: string;
     historyTitle: string;
     featuredTitle: string;
     collectionsTitle: string;

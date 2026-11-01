@@ -160,8 +160,8 @@ export function HomePage({
               title={home.craftTitle}
               description={home.craftBody}
             />
-            <p className="text-charcoal/68 mt-7 max-w-2xl leading-8">
-              {content.company.summary}
+            <p className="text-charcoal/68 mt-7 max-w-2xl leading-8 whitespace-pre-line">
+              {home.craftDetails}
             </p>
             <Link
               href={href("/about")}
@@ -366,7 +366,7 @@ export function HomePage({
             <MotionReveal className="max-w-3xl">
               <p className="eyebrow eyebrow-inverse">{home.eyebrow}</p>
               <blockquote className="mt-6 font-serif text-[clamp(1.9rem,3.5vw,3.3rem)] leading-[1.06] tracking-[-0.04em] text-balance">
-                “{home.craftBody}”
+                “{home.craftQuote}”
               </blockquote>
             </MotionReveal>
             <MotionReveal delay={0.08}>

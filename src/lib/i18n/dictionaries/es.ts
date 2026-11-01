@@ -64,8 +64,12 @@ const dictionary = {
     titleAccent: "en un lenguaje de diseño contemporáneo",
     heroDescription:
       "La laca vietnamita no es solo una técnica artesanal: es un legado de conocimiento de los materiales, sensibilidad estética y paciencia del artesano. Continuando estos valores, RED DOOR Co., Ltd preserva y desarrolla el oficio tradicional de la laca, a la vez que lo combina con técnicas avanzadas de impresión y pintura para ampliar las posibilidades expresivas de la superficie de cada obra.\n\nEn la confluencia entre la profundidad de las capas de laca, el arte del tratamiento de superficies y el pensamiento de diseño moderno, cada pieza es un diálogo entre herencia y creación, con una marcada identidad cultural vietnamita y en armonía con los espacios de vida contemporáneos.",
-    craftTitle: "Una historia de materiales en capas",
+    craftTitle: "Oficio desde el núcleo, alma en cada capa",
     craftBody:
+      "Para quien trabaja la laca, una pieza bella empieza por un núcleo hecho con esmero. Solo cuando la base es firme y la superficie plana, las capas siguientes pueden adherirse de forma duradera. Desde la preparación del núcleo y la aplicación de la laca hasta el pulido en húmedo y el abrillantado, ya sea a mano o a máquina, cada etapa exige un cuidado minucioso y atento. Cada capa debe secarse por completo antes de aplicar la siguiente. Al pulir, hay que saber cuándo detenerse para conservar el color, el trazo y la profundidad de la superficie, como quien guarda cada capa del tiempo en cada pieza.",
+    craftDetails:
+      "En la aldea artesanal de Ha Thai, en Hanói, Red Door Co., Ltd elabora con ese mismo espíritu bandejas, cajas, piezas de mesa y objetos de decoración de interiores. Conservamos las técnicas transmitidas de generación en generación, a la vez que aplicamos técnicas avanzadas de impresión y pintura y diseño moderno. Lo nuevo amplía las formas de expresión, pero nunca sustituye el cuidado de la mano del artesano.\n\nCreemos que preservar un oficio no es solo rehacer los modelos de antaño, sino también llevar la laca a la vida de hoy, para que en un objeto cotidiano o en una pieza situada en un hogar moderno, la belleza y la tradición artesanal vietnamitas sigan siendo apreciadas y transmitidas.",
+    craftQuote:
       "Desde el primer núcleo imprimado hasta la última capa, cada pieza de Red Door pasa por decenas de etapas y semanas de secado natural. Recubrimos, pulimos en húmedo y volvemos a recubrir, hasta que la superficie adquiere la profundidad y la calma del agua oscura.",
     historyTitle: "La trayectoria del taller",
     featuredTitle: "Productos destacados",

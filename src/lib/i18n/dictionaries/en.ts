@@ -64,8 +64,12 @@ const dictionary = {
     titleAccent: "in a contemporary design language",
     heroDescription:
       "Vietnamese lacquer is more than a craft technique — it is a heritage of material knowledge, aesthetic sensibility and the artisan's patience. Carrying these values forward, RED DOOR Co., Ltd preserves and develops traditional lacquer craftsmanship, while combining it with advanced printing and painting techniques to broaden what the surface of each piece can express.\n\nWhere the depth of lacquer layers, the art of surface finishing and modern design thinking meet, every piece becomes a dialogue between heritage and creativity — deeply rooted in Vietnamese culture, yet in harmony with contemporary living spaces.",
-    craftTitle: "A material story in layers",
+    craftTitle: "Craft from the core, soul in every coat",
     craftBody:
+      "For a lacquer maker, a beautiful piece begins with a carefully made core. Only when the base is solid and the surface flat can the coats that follow hold fast. From building the core and applying lacquer to wet-sanding and polishing, whether by hand or by machine, every stage calls for meticulous, careful attention. Each coat must dry fully before the next is laid. When sanding, the maker must know when to stop to keep the colour, the line and the depth of the surface, as if preserving each layer of time within every piece.",
+    craftDetails:
+      "In the Ha Thai craft village, Hanoi, Red Door Co., Ltd makes trays, boxes, tableware accents and interior décor in that same spirit. We preserve the techniques handed down to us, while applying advanced printing and painting techniques and modern design. The new widens how we express ourselves, but never replaces the care of the artisan's hand.\n\nWe believe that keeping a craft alive is not only about remaking old designs, but about bringing lacquer into life today — so that in an everyday object, or a piece placed in a modern home, the beauty and craft traditions of Vietnam continue to be cherished and carried forward.",
+    craftQuote:
       "From the first primed core to the final coat, every Red Door piece passes through dozens of stages and weeks of natural drying. We coat, wet-sand and coat again — until the surface holds the depth and stillness of dark water.",
     historyTitle: "The workshop's journey",
     featuredTitle: "Featured products",
