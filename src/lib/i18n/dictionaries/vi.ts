@@ -146,7 +146,7 @@ const dictionary = {
       "Ba điều không đổi trong từng món đồ rời xưởng Red Door.",
     pillarCraftTitle: "Thủ công trọn vẹn",
     pillarCraftDescription:
-      "Mỗi sản phẩm được làm hoàn toàn bằng tay: phủ từng lớp sơn, mài nước giữa các lớp và đánh bóng đến độ sâu mong muốn. Không có hai món đồ giống hệt nhau.",
+      "Mỗi sản phẩm được làm hoàn toàn bằng tay, phủ từng lớp sơn, mài nước giữa các lớp và đánh bóng đến độ sâu mong muốn. Đó là cách chúng tôi giới thiệu công nghệ di sản sơn mài Việt đến với bạn bè và khách hàng trong nước và quốc tế.",
     pillarMaterialTitle: "Cảm hứng tự nhiên",
     pillarMaterialDescription:
       "Thiên nhiên có mặt trong màu sắc, chất liệu và cách bề mặt bắt sáng của từng thiết kế. Chúng tôi hướng đến những món đồ bền vững, dùng được và đẹp lên qua nhiều năm.",

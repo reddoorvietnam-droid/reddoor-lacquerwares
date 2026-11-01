@@ -150,7 +150,7 @@ const dictionary = {
       "Drei Dinge, die sich bei keinem Stück ändern, das die Red-Door-Werkstatt verlässt.",
     pillarCraftTitle: "Vollständig handgemacht",
     pillarCraftDescription:
-      "Jedes Stück entsteht von Hand: Schicht um Schicht Lack, Nassschliff zwischen den Lagen, dann Politur bis zur gewünschten Tiefe. Keine zwei Stücke sind identisch.",
+      "Jedes Stück entsteht vollständig von Hand: Schicht um Schicht Lack, Nassschliff zwischen den Lagen, dann Politur bis zur gewünschten Tiefe. So bringen wir das Erbe der vietnamesischen Lackkunst Freunden und Kunden im In- und Ausland näher.",
     pillarMaterialTitle: "Von der Natur inspiriert",
     pillarMaterialDescription:
       "Die Natur lebt in den Farben, den Materialien und der Art, wie jede Oberfläche das Licht fängt. Wir wollen langlebige, nützliche Objekte, die mit den Jahren schöner werden.",

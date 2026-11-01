@@ -150,7 +150,7 @@ const dictionary = {
       "Trois constantes dans chaque pièce qui quitte l'atelier Red Door.",
     pillarCraftTitle: "Entièrement fait main",
     pillarCraftDescription:
-      "Chaque pièce est réalisée à la main : couche après couche de laque, ponçage à l'eau entre les couches, puis polissage jusqu'à la profondeur voulue. Il n'existe pas deux pièces identiques.",
+      "Chaque pièce est entièrement réalisée à la main : couche après couche de laque, ponçage à l'eau entre les couches, puis polissage jusqu'à la profondeur voulue. C'est ainsi que nous faisons découvrir le savoir-faire patrimonial de la laque vietnamienne à nos amis et clients, au Vietnam comme à l'international.",
     pillarMaterialTitle: "Inspiré par la nature",
     pillarMaterialDescription:
       "La nature habite les couleurs, les matières et la façon dont chaque surface prend la lumière. Nous voulons des objets durables, utiles, qui embellissent avec les années.",

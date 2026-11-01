@@ -150,7 +150,7 @@ const dictionary = {
       "Tres cosas que nunca cambian en una pieza que sale del taller Red Door.",
     pillarCraftTitle: "Totalmente artesanal",
     pillarCraftDescription:
-      "Cada pieza se elabora a mano: capa tras capa de laca, pulido en húmedo entre capas y un acabado final hasta alcanzar la profundidad deseada. No existen dos piezas idénticas.",
+      "Cada pieza se elabora íntegramente a mano: capa tras capa de laca, pulido en húmedo entre capas y un acabado final hasta alcanzar la profundidad deseada. Así damos a conocer el oficio patrimonial de la laca vietnamita a amigos y clientes, en Vietnam y en el resto del mundo.",
     pillarMaterialTitle: "Inspirada en la naturaleza",
     pillarMaterialDescription:
       "La naturaleza está presente en los colores, los materiales y la forma en que cada superficie capta la luz. Buscamos objetos sostenibles, útiles y que ganen belleza con los años.",

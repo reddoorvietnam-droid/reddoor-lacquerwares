@@ -148,7 +148,7 @@ const dictionary = {
       "Three things that never change in a piece that leaves the Red Door workshop.",
     pillarCraftTitle: "Entirely handmade",
     pillarCraftDescription:
-      "Every piece is made by hand: coat after coat of lacquer, wet-sanding between layers, then polishing to the intended depth. No two pieces are ever identical.",
+      "Every piece is made entirely by hand: coat after coat of lacquer, wet-sanding between layers, then polishing to the intended depth. This is how we share the heritage craft of Vietnamese lacquer with friends and customers at home and abroad.",
     pillarMaterialTitle: "Nature inspired",
     pillarMaterialDescription:
       "Nature is present in the colours, the materials and the way each surface catches light. We aim for objects that are sustainable, useful and grow more beautiful with the years.",

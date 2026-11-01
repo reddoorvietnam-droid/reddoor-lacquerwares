@@ -143,7 +143,7 @@ const dictionary = {
     pillarsDescription: "每一件走出 Red Door 工坊的作品都不变的三件事。",
     pillarCraftTitle: "全程手作",
     pillarCraftDescription:
-      "每一件作品都由手工完成：层层髹漆、层间水磨，再推光至理想的深度。没有两件完全相同的作品。",
+      "每一件作品都完全由手工完成：层层髹漆、层间水磨，再推光至理想的深度。我们正是以这样的方式，将越南漆艺这一传统技艺介绍给国内外的朋友与客户。",
     pillarMaterialTitle: "师法自然",
     pillarMaterialDescription:
       "自然存在于色彩、材质，以及漆面捕捉光线的方式之中。我们追求经久耐用、越用越美的器物。",
