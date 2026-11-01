@@ -5,11 +5,11 @@ const dictionary = {
     siteName: "Red Door",
     siteTitle: "Red Door — Sơn mài thủ công Việt Nam",
     siteDescription:
-      "Red Door chế tác đồ sơn mài thủ công — Nghệ thuật sơn mài Việt Nam: khay, hộp, lót ly và đồ trang trí nội thất được phủ nhiều lớp sơn, mài nước và đánh bóng bằng tay. Sản phẩm kiểm định tại TÜV, SGS, Eurofins theo tiêu chuẩn quốc tế, xuất khẩu đi Mỹ và châu Âu.",
+      "Red Door chế tác đồ sơn mài thủ công — Nghệ thuật sơn mài Việt Nam: khay, hộp, lót ly và đồ trang trí nội thất được phủ nhiều lớp sơn, mài nước và đánh bóng bằng tay. Sản phẩm đã kiểm định đạt tại TÜV, SGS, Eurofins theo tiêu chuẩn quốc tế, xuất khẩu đi Mỹ và châu Âu.",
     pageDescriptions: {
-      home: "Red Door chế tác đồ sơn mài thủ công tại làng nghề Hạ Thái, Hà Nội: khay, hộp, bát, bình và tranh sơn mài. Kiểm định TÜV, SGS, Eurofins, xuất khẩu Mỹ, châu Âu.",
+      home: "Red Door chế tác đồ sơn mài thủ công tại làng nghề Hạ Thái, Hà Nội: khay, hộp, bát, bình và tranh sơn mài. Đạt kiểm định TÜV, SGS, Eurofins, xuất khẩu Mỹ, EU.",
       about:
-        "Red Door là xưởng sơn mài tại làng nghề Hạ Thái, Hà Nội, kết hợp kỹ thuật cổ truyền với thiết kế đương đại. Kiểm định TÜV, SGS, Eurofins, xuất khẩu Mỹ, châu Âu.",
+        "Red Door là xưởng sơn mài tại làng nghề Hạ Thái, Hà Nội, kết hợp kỹ thuật cổ truyền với thiết kế đương đại. Đạt kiểm định TÜV, SGS, Eurofins, xuất khẩu Mỹ, EU.",
       products:
         "Sản phẩm sơn mài thủ công Red Door: khay, hộp, lót ly, bát, bình và đồ trang trí nội thất — phủ nhiều lớp sơn, mài nước và đánh bóng bằng tay. Nhận báo giá.",
       collections:
@@ -124,7 +124,7 @@ const dictionary = {
     highlightVillageLabel: "Làng nghề",
     highlightVillageValue: "Nghệ thuật sơn mài Việt Nam",
     highlightComplianceLabel: "Kiểm định",
-    highlightComplianceValue: "TÜV, SGS, Eurofins",
+    highlightComplianceValue: "Đạt — TÜV, SGS, Eurofins",
     highlightMarketsLabel: "Thị trường",
     highlightMarketsValue: "Mỹ và châu Âu",
     mediaFeaturesEyebrow: "Dấu ấn truyền thông & truyền hình",
@@ -152,7 +152,7 @@ const dictionary = {
       "Thiên nhiên có mặt trong màu sắc, chất liệu và cách bề mặt bắt sáng của từng thiết kế. Chúng tôi hướng đến những món đồ bền vững, dùng được và đẹp lên qua nhiều năm.",
     pillarStandardTitle: "Chuẩn mực quốc tế",
     pillarStandardDescription:
-      "Sản phẩm Red Door được kiểm định tại các phòng lab nổi tiếng như TÜV, SGS, Eurofins… theo các quy định của thế giới về an toàn hóa chất, vật liệu, sản phẩm đặc biệt cho công nghiệp thực phẩm. Sản phẩm của chúng tôi sẵn sàng đáp ứng tiêu chuẩn cho những thị trường khắt khe nhất.",
+      "Sản phẩm Red Door đã được kiểm định đạt tại các phòng lab nổi tiếng như TÜV, SGS, Eurofins… theo các quy định của thế giới về an toàn hóa chất, vật liệu, sản phẩm đặc biệt cho công nghiệp thực phẩm. Sản phẩm của chúng tôi sẵn sàng đáp ứng tiêu chuẩn cho những thị trường khắt khe nhất.",
   },
   product: {
     category: "Danh mục",

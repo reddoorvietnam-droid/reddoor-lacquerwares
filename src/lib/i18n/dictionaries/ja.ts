@@ -5,11 +5,11 @@ const dictionary = {
     siteName: "Red Door",
     siteTitle: "Red Door — ベトナム漆器｜ハノイ・ハタイ村の手仕事",
     siteDescription:
-      "Red Door はハノイ近郊の漆器の里ハタイ村で、手仕事のベトナム漆器を制作しています。トレイ、箱、コースター、装飾品を幾層にも塗り重ね、水研ぎし、手で磨き上げます。TÜV、SGS、Eurofins などの検査機関で国際基準の検査を受け、アメリカとヨーロッパへ輸出しています。",
+      "Red Door はハノイ近郊の漆器の里ハタイ村で、手仕事のベトナム漆器を制作しています。トレイ、箱、コースター、装飾品を幾層にも塗り重ね、水研ぎし、手で磨き上げます。TÜV、SGS、Eurofins などの検査機関で国際基準の検査に合格し、アメリカとヨーロッパへ輸出しています。",
     pageDescriptions: {
-      home: "Red Door はハノイ近郊の漆器の里ハタイ村で、手仕事のベトナム漆器を制作しています。トレイ、箱、コースター、椀、花器、漆絵。TÜV、SGS、Eurofins などの検査機関で国際基準の検査を受け、アメリカとヨーロッパへ輸出しています。",
+      home: "Red Door はハノイ近郊の漆器の里ハタイ村で、手仕事のベトナム漆器を制作しています。トレイ、箱、コースター、椀、花器、漆絵。TÜV、SGS、Eurofins などの検査機関で国際基準の検査に合格し、アメリカとヨーロッパへ輸出しています。",
       about:
-        "Red Door は、ハノイ近郊の漆器の里ハタイ村に工房を構えるベトナム漆器の工房です。伝統の技法と現代のデザインを組み合わせ、TÜV、SGS、Eurofins などで国際基準の検査を受けた漆器を世界へ届けています。",
+        "Red Door は、ハノイ近郊の漆器の里ハタイ村に工房を構えるベトナム漆器の工房です。伝統の技法と現代のデザインを組み合わせ、TÜV、SGS、Eurofins などで国際基準の検査に合格した漆器を世界へ届けています。",
       products:
         "Red Door の手仕事のベトナム漆器：トレイ、箱、コースター、椀、花器、装飾品。幾層にも塗り重ね、水研ぎし、手で磨き上げた製品をご覧いただけます。お見積もりも承ります。",
       collections:
@@ -124,7 +124,7 @@ const dictionary = {
     highlightVillageLabel: "産地",
     highlightVillageValue: "ハタイ村、ハノイ",
     highlightComplianceLabel: "検査",
-    highlightComplianceValue: "TÜV・SGS・Eurofins",
+    highlightComplianceValue: "合格 — TÜV・SGS・Eurofins",
     highlightMarketsLabel: "輸出先",
     highlightMarketsValue: "アメリカ・ヨーロッパ",
     mediaFeaturesEyebrow: "メディア・テレビ放映",
@@ -152,7 +152,7 @@ const dictionary = {
       "色にも、素材にも、光を受けとめる表面にも、自然が息づいています。長く使え、年を重ねるほど美しくなる品を目指しています。",
     pillarStandardTitle: "国際基準",
     pillarStandardDescription:
-      "Red Door の製品は、TÜV、SGS、Eurofins などの著名な検査機関で、化学物質と素材の安全に関する国際的な規則に基づき、とりわけ食品に触れる製品について検査を受けています。最も厳しい市場の基準にも応えられる品質です。",
+      "Red Door の製品は、TÜV、SGS、Eurofins などの著名な検査機関で、化学物質と素材の安全に関する国際的な規則に基づき、とりわけ食品に触れる製品について検査に合格しています。最も厳しい市場の基準にも応えられる品質です。",
   },
   product: {
     category: "カテゴリー",

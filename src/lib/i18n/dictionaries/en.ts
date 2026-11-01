@@ -5,11 +5,11 @@ const dictionary = {
     siteName: "Red Door",
     siteTitle: "Red Door — Ha Thai Lacquerware, Vietnam",
     siteDescription:
-      "Red Door crafts handmade lacquerware in the Ha Thai lacquer village near Hanoi: trays, boxes, coasters and decorative objects built up in layers, wet-sanded and hand-polished. Tested by TÜV, SGS and Eurofins to international standards and exported to the United States and Europe.",
+      "Red Door crafts handmade lacquerware in the Ha Thai lacquer village near Hanoi: trays, boxes, coasters and decorative objects built up in layers, wet-sanded and hand-polished. Passed testing by TÜV, SGS and Eurofins to international standards and exported to the United States and Europe.",
     pageDescriptions: {
-      home: "Handmade Vietnamese lacquerware from the Ha Thai lacquer village near Hanoi: trays, boxes, coasters, bowls and vases by Red Door. Tested by TÜV, SGS, Eurofins.",
+      home: "Handmade Vietnamese lacquerware from the Ha Thai lacquer village near Hanoi: trays, boxes, coasters, bowls, vases by Red Door. Passed TÜV, SGS, Eurofins tests.",
       about:
-        "Red Door is a lacquerware workshop in the Ha Thai lacquer village near Hanoi: traditional technique, contemporary design, tested by TÜV, SGS, Eurofins.",
+        "Red Door is a lacquerware workshop in the Ha Thai lacquer village near Hanoi: traditional technique, contemporary design, passed TÜV, SGS, Eurofins tests.",
       products:
         "Handmade lacquerware by Red Door: trays, boxes, coasters, bowls, vases and decorative objects, coated in layers, wet-sanded and hand-polished. Request a quote.",
       collections:
@@ -125,7 +125,7 @@ const dictionary = {
     highlightVillageLabel: "Craft village",
     highlightVillageValue: "Ha Thai, Hanoi",
     highlightComplianceLabel: "Testing",
-    highlightComplianceValue: "TÜV, SGS, Eurofins",
+    highlightComplianceValue: "Passed — TÜV, SGS, Eurofins",
     highlightMarketsLabel: "Markets",
     highlightMarketsValue: "USA and Europe",
     mediaFeaturesEyebrow: "Media & Television Features",
@@ -154,7 +154,7 @@ const dictionary = {
       "Nature is present in the colours, the materials and the way each surface catches light. We aim for objects that are sustainable, useful and grow more beautiful with the years.",
     pillarStandardTitle: "International standards",
     pillarStandardDescription:
-      "Red Door products are tested at renowned laboratories such as TÜV, SGS and Eurofins against international regulations on chemical and material safety, especially for food-contact products. Our products are ready to meet the standards of the most demanding markets.",
+      "Red Door products have passed testing at renowned laboratories such as TÜV, SGS and Eurofins against international regulations on chemical and material safety, especially for food-contact products. Our products are ready to meet the standards of the most demanding markets.",
   },
   product: {
     category: "Category",

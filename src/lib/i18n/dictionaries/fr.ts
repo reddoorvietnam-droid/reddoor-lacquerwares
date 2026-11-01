@@ -5,11 +5,11 @@ const dictionary = {
     siteName: "Red Door",
     siteTitle: "Red Door — Laque de Ha Thai, Vietnam",
     siteDescription:
-      "Red Door fabrique des objets en laque artisanale dans le village de métier de Ha Thai, près de Hanoï : plateaux, coffrets, dessous de verre et objets décoratifs laqués en couches, poncés à l'eau et polis à la main. Produits testés par TÜV, SGS et Eurofins selon les normes internationales, exportés vers les États-Unis et l'Europe.",
+      "Red Door fabrique des objets en laque artisanale dans le village de métier de Ha Thai, près de Hanoï : plateaux, coffrets, dessous de verre et objets décoratifs laqués en couches, poncés à l'eau et polis à la main. Produits validés par TÜV, SGS et Eurofins selon les normes internationales, exportés vers les États-Unis et l'Europe.",
     pageDescriptions: {
-      home: "Laque vietnamienne faite main par Red Door au village de Ha Thai, près de Hanoï : plateaux, coffrets, dessous de verre, bols, vases. Testés TÜV, SGS, Eurofins.",
+      home: "Laque vietnamienne faite main par Red Door au village de Ha Thai, près de Hanoï : plateaux, coffrets, dessous de verre, bols, vases. Validés TÜV, SGS, Eurofins.",
       about:
-        "Red Door, atelier de laque vietnamienne au village de Ha Thai près de Hanoï : technique traditionnelle, dessin contemporain, pièces testées TÜV, SGS, Eurofins.",
+        "Red Door, atelier de laque vietnamienne au village de Ha Thai près de Hanoï : technique traditionnelle, dessin contemporain, pièces validées TÜV, SGS, Eurofins.",
       products:
         "Objets en laque vietnamienne faits main : plateaux, coffrets, dessous de verre, bols, vases et objets décoratifs Red Door, laqués en couches, polis à la main.",
       collections:
@@ -125,7 +125,7 @@ const dictionary = {
     highlightVillageLabel: "Village de métier",
     highlightVillageValue: "Ha Thai, Hanoï",
     highlightComplianceLabel: "Contrôles",
-    highlightComplianceValue: "TÜV, SGS, Eurofins",
+    highlightComplianceValue: "Validés — TÜV, SGS, Eurofins",
     highlightMarketsLabel: "Marchés",
     highlightMarketsValue: "États-Unis et Europe",
     mediaFeaturesEyebrow: "Médias & Télévision",
@@ -156,7 +156,7 @@ const dictionary = {
       "La nature habite les couleurs, les matières et la façon dont chaque surface prend la lumière. Nous voulons des objets durables, utiles, qui embellissent avec les années.",
     pillarStandardTitle: "Normes internationales",
     pillarStandardDescription:
-      "Les produits Red Door sont testés par des laboratoires reconnus tels que TÜV, SGS et Eurofins, selon les réglementations internationales sur la sécurité des substances et des matériaux, en particulier pour les produits au contact des aliments. Nos produits sont prêts à répondre aux normes des marchés les plus exigeants.",
+      "Les produits Red Door ont réussi les tests de laboratoires reconnus tels que TÜV, SGS et Eurofins, selon les réglementations internationales sur la sécurité des substances et des matériaux, en particulier pour les produits au contact des aliments. Nos produits sont prêts à répondre aux normes des marchés les plus exigeants.",
   },
   product: {
     category: "Catégorie",

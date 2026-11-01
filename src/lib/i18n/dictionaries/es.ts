@@ -5,11 +5,11 @@ const dictionary = {
     siteName: "Red Door",
     siteTitle: "Red Door — Laca artesanal de Ha Thai, Vietnam",
     siteDescription:
-      "Red Door elabora objetos de laca artesanal en el pueblo de laqueado de Ha Thai, cerca de Hanói: bandejas, cajas, posavasos y piezas decorativas creadas en capas, pulidas en húmedo y acabadas a mano. Probados por TÜV, SGS y Eurofins según estándares internacionales y exportados a Estados Unidos y Europa.",
+      "Red Door elabora objetos de laca artesanal en el pueblo de laqueado de Ha Thai, cerca de Hanói: bandejas, cajas, posavasos y piezas decorativas creadas en capas, pulidas en húmedo y acabadas a mano. Aprobados por TÜV, SGS y Eurofins según estándares internacionales y exportados a Estados Unidos y Europa.",
     pageDescriptions: {
-      home: "Laca vietnamita artesanal de Ha Thai, cerca de Hanói: bandejas, cajas, posavasos, cuencos y jarrones de Red Door. Probada por TÜV, SGS y Eurofins.",
+      home: "Laca vietnamita artesanal de Ha Thai, cerca de Hanói: bandejas, cajas, posavasos, cuencos y jarrones de Red Door. Aprobada por TÜV, SGS y Eurofins.",
       about:
-        "Red Door es un taller de laca en Ha Thai, cerca de Hanói: técnica tradicional vietnamita y diseño contemporáneo, probado por TÜV, SGS y Eurofins.",
+        "Red Door es un taller de laca en Ha Thai, cerca de Hanói: técnica tradicional vietnamita y diseño contemporáneo, con piezas aprobadas por TÜV, SGS y Eurofins.",
       products:
         "Laca artesanal de Red Door: bandejas, cajas, posavasos, cuencos, jarrones y piezas decorativas, pulidas en húmedo y acabadas a mano. Pida presupuesto.",
       collections:
@@ -125,7 +125,7 @@ const dictionary = {
     highlightVillageLabel: "Pueblo artesanal",
     highlightVillageValue: "Ha Thai, Hanói",
     highlightComplianceLabel: "Certificación",
-    highlightComplianceValue: "TÜV, SGS, Eurofins",
+    highlightComplianceValue: "Superada — TÜV, SGS, Eurofins",
     highlightMarketsLabel: "Mercados",
     highlightMarketsValue: "Estados Unidos y Europa",
     mediaFeaturesEyebrow: "Reportajes y apariciones en televisión",
@@ -156,7 +156,7 @@ const dictionary = {
       "La naturaleza está presente en los colores, los materiales y la forma en que cada superficie capta la luz. Buscamos objetos sostenibles, útiles y que ganen belleza con los años.",
     pillarStandardTitle: "Estándares internacionales",
     pillarStandardDescription:
-      "Los productos de Red Door se ensayan en laboratorios de prestigio como TÜV, SGS y Eurofins conforme a la normativa internacional sobre seguridad química y de materiales, en especial para productos en contacto con alimentos. Nuestros productos están listos para cumplir los estándares de los mercados más exigentes.",
+      "Los productos de Red Door han superado los ensayos de laboratorios de prestigio como TÜV, SGS y Eurofins conforme a la normativa internacional sobre seguridad química y de materiales, en especial para productos en contacto con alimentos. Nuestros productos están listos para cumplir los estándares de los mercados más exigentes.",
   },
   product: {
     category: "Categoría",

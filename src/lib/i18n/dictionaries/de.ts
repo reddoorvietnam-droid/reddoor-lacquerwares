@@ -5,11 +5,11 @@ const dictionary = {
     siteName: "Red Door",
     siteTitle: "Red Door — Lackkunst aus Ha Thai, Vietnam",
     siteDescription:
-      "Red Door fertigt handgemachte Lackwaren im Handwerksdorf Ha Thai bei Hanoi: Tabletts, Schatullen, Untersetzer und Dekorobjekte, in Schichten lackiert, nass geschliffen und von Hand poliert. Geprüft von TÜV, SGS und Eurofins nach internationalen Standards, exportiert in die USA und nach Europa.",
+      "Red Door fertigt handgemachte Lackwaren im Handwerksdorf Ha Thai bei Hanoi: Tabletts, Schatullen, Untersetzer und Dekorobjekte, in Schichten lackiert, nass geschliffen und von Hand poliert. Erfolgreich geprüft von TÜV, SGS und Eurofins nach internationalen Standards, exportiert in die USA und nach Europa.",
     pageDescriptions: {
-      home: "Handgemachte Lackwaren von Red Door aus dem Lackdorf Ha Thai bei Hanoi: Tabletts, Schatullen, Untersetzer, Schalen und Vasen. Geprüft von TÜV, SGS und Eurofins.",
+      home: "Handgemachte Lackwaren von Red Door aus dem Lackdorf Ha Thai bei Hanoi: Tabletts, Schatullen, Schalen, Vasen. Prüfungen bei TÜV, SGS, Eurofins bestanden.",
       about:
-        "Red Door ist eine Werkstatt für vietnamesische Lackkunst im Dorf Ha Thai bei Hanoi: traditionelle Technik, modernes Design, geprüft von TÜV, SGS und Eurofins.",
+        "Red Door ist eine Werkstatt für vietnamesische Lackkunst in Ha Thai bei Hanoi: traditionelle Technik, modernes Design. TÜV-, SGS-, Eurofins-Prüfung bestanden.",
       products:
         "Handgemachte Lackwaren von Red Door: Tabletts, Schatullen, Schalen, Vasen und Dekorobjekte – in Schichten lackiert, nass geschliffen, von Hand poliert.",
       collections:
@@ -126,7 +126,7 @@ const dictionary = {
     highlightVillageLabel: "Handwerksdorf",
     highlightVillageValue: "Ha Thai, Hanoi",
     highlightComplianceLabel: "Prüfung",
-    highlightComplianceValue: "TÜV, SGS, Eurofins",
+    highlightComplianceValue: "Bestanden — TÜV, SGS, Eurofins",
     highlightMarketsLabel: "Märkte",
     highlightMarketsValue: "USA und Europa",
     mediaFeaturesEyebrow: "Medien & Fernsehen",
@@ -156,7 +156,7 @@ const dictionary = {
       "Die Natur lebt in den Farben, den Materialien und der Art, wie jede Oberfläche das Licht fängt. Wir wollen langlebige, nützliche Objekte, die mit den Jahren schöner werden.",
     pillarStandardTitle: "Internationale Standards",
     pillarStandardDescription:
-      "Red-Door-Produkte werden in renommierten Laboren wie TÜV, SGS und Eurofins nach internationalen Vorschriften zur Chemikalien- und Materialsicherheit geprüft, insbesondere für Produkte mit Lebensmittelkontakt. Unsere Produkte sind bereit, die Standards der anspruchsvollsten Märkte zu erfüllen.",
+      "Red-Door-Produkte haben die Prüfungen renommierter Labore wie TÜV, SGS und Eurofins nach internationalen Vorschriften zur Chemikalien- und Materialsicherheit bestanden, insbesondere für Produkte mit Lebensmittelkontakt. Unsere Produkte sind bereit, die Standards der anspruchsvollsten Märkte zu erfüllen.",
   },
   product: {
     category: "Kategorie",
