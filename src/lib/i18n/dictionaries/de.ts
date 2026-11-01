@@ -60,11 +60,11 @@ const dictionary = {
     contact: "Kontakt",
   },
   home: {
-    eyebrow: "RED DOOR — LACK AUS HA THAI",
-    title: "Vietnamesische Lackkunst,",
-    titleAccent: "von Hand geformt, Schicht für Schicht",
+    eyebrow: "RED DOOR Co., Ltd",
+    title: "Die Essenz vietnamesischer Lackkunst bewahren",
+    titleAccent: "in einer zeitgenössischen Designsprache",
     heroDescription:
-      "Das Wesen vietnamesischer Lackkunst wird in jeder Schicht bewahrt — jedes Produkt ist ein Zusammenspiel von Natur und Handwerkskunst.",
+      "Vietnamesische Lackkunst ist mehr als eine Handwerkstechnik — sie ist ein Erbe aus Materialwissen, ästhetischem Empfinden und der Geduld des Kunsthandwerkers. In dieser Tradition bewahrt RED DOOR Co., Ltd das traditionelle Lackhandwerk und entwickelt es weiter, verbunden mit modernen Druck- und Maltechniken, die die Ausdrucksmöglichkeiten auf der Oberfläche jedes Werks erweitern.\n\nIm Zusammenspiel aus der Tiefe der Lackschichten, der Kunst der Oberflächenbearbeitung und modernem Designdenken wird jedes Stück zu einem Dialog zwischen Erbe und Kreativität — tief verwurzelt in der vietnamesischen Kultur und zugleich im Einklang mit zeitgenössischen Wohnräumen.",
     craftTitle: "Eine Materialgeschichte in Schichten",
     craftBody:
       "Vom ersten grundierten Kern bis zur letzten Schicht durchläuft jedes Red-Door-Stück Dutzende Arbeitsschritte und Wochen natürlicher Trocknung. Wir lackieren, schleifen nass und lackieren erneut — bis die Oberfläche die Tiefe stillen Wassers trägt.",

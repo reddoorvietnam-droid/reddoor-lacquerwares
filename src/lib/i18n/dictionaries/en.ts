@@ -59,11 +59,11 @@ const dictionary = {
     contact: "Contact",
   },
   home: {
-    eyebrow: "RED DOOR — HA THAI LACQUER",
-    title: "Handmade Vietnamese lacquerware,",
-    titleAccent: "a living surface shaped by hand",
+    eyebrow: "RED DOOR Co., Ltd",
+    title: "Preserving the art of Vietnamese lacquerware",
+    titleAccent: "in a contemporary design language",
     heroDescription:
-      "The essence of Vietnamese lacquer is preserved in every coat — each product is a harmony of nature and the artisan's hand.",
+      "Vietnamese lacquer is more than a craft technique — it is a heritage of material knowledge, aesthetic sensibility and the artisan's patience. Carrying these values forward, RED DOOR Co., Ltd preserves and develops traditional lacquer craftsmanship, while combining it with advanced printing and painting techniques to broaden what the surface of each piece can express.\n\nWhere the depth of lacquer layers, the art of surface finishing and modern design thinking meet, every piece becomes a dialogue between heritage and creativity — deeply rooted in Vietnamese culture, yet in harmony with contemporary living spaces.",
     craftTitle: "A material story in layers",
     craftBody:
       "From the first primed core to the final coat, every Red Door piece passes through dozens of stages and weeks of natural drying. We coat, wet-sand and coat again — until the surface holds the depth and stillness of dark water.",

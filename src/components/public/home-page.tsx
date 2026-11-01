@@ -108,7 +108,7 @@ export function HomePage({
               </h1>
             </MotionReveal>
             <MotionReveal delay={0.2} distance={18}>
-              <p className="text-charcoal/65 mt-7 max-w-[30rem] text-[0.95rem] leading-[1.75] italic">
+              <p className="text-charcoal/65 mt-7 max-w-[30rem] text-[0.95rem] leading-[1.75] whitespace-pre-line italic">
                 {home.heroDescription}
               </p>
             </MotionReveal>

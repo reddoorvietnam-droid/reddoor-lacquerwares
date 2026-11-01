@@ -59,11 +59,11 @@ const dictionary = {
     contact: "Contacto",
   },
   home: {
-    eyebrow: "RED DOOR — LACA DE HA THAI",
-    title: "Piezas de laca vietnamita,",
-    titleAccent: "una superficie viva moldeada a mano",
+    eyebrow: "RED DOOR Co., Ltd",
+    title: "Preservar la esencia de la laca vietnamita",
+    titleAccent: "en un lenguaje de diseño contemporáneo",
     heroDescription:
-      "La esencia de la laca vietnamita se conserva en cada capa: cada producto es una armonía entre la naturaleza y la mano del artesano.",
+      "La laca vietnamita no es solo una técnica artesanal: es un legado de conocimiento de los materiales, sensibilidad estética y paciencia del artesano. Continuando estos valores, RED DOOR Co., Ltd preserva y desarrolla el oficio tradicional de la laca, a la vez que lo combina con técnicas avanzadas de impresión y pintura para ampliar las posibilidades expresivas de la superficie de cada obra.\n\nEn la confluencia entre la profundidad de las capas de laca, el arte del tratamiento de superficies y el pensamiento de diseño moderno, cada pieza es un diálogo entre herencia y creación, con una marcada identidad cultural vietnamita y en armonía con los espacios de vida contemporáneos.",
     craftTitle: "Una historia de materiales en capas",
     craftBody:
       "Desde el primer núcleo imprimado hasta la última capa, cada pieza de Red Door pasa por decenas de etapas y semanas de secado natural. Recubrimos, pulimos en húmedo y volvemos a recubrir, hasta que la superficie adquiere la profundidad y la calma del agua oscura.",

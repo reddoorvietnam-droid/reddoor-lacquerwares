@@ -59,11 +59,11 @@ const dictionary = {
     contact: "Contact",
   },
   home: {
-    eyebrow: "RED DOOR — LAQUE DE HA THAI",
-    title: "Objets en laque vietnamienne,",
-    titleAccent: "façonnés à la main, couche après couche",
+    eyebrow: "RED DOOR Co., Ltd",
+    title: "Préserver l'essence de la laque vietnamienne",
+    titleAccent: "dans un langage de design contemporain",
     heroDescription:
-      "L'essence de la laque vietnamienne est préservée dans chaque couche — chaque produit est une harmonie entre nature et main de l'artisan.",
+      "La laque vietnamienne n'est pas seulement une technique artisanale : c'est un héritage de savoir sur la matière, de sensibilité esthétique et de patience de l'artisan. Dans la continuité de ces valeurs, RED DOOR Co., Ltd préserve et fait vivre le savoir-faire traditionnel de la laque, tout en l'associant à des techniques d'impression et de peinture avancées pour élargir les possibilités d'expression à la surface de chaque œuvre.\n\nÀ la croisée de la profondeur des couches de laque, de l'art du traitement de surface et d'une pensée design moderne, chaque pièce est un dialogue entre héritage et création — profondément ancrée dans la culture vietnamienne, tout en s'accordant aux espaces de vie contemporains.",
     craftTitle: "Un récit de matière, couche après couche",
     craftBody:
       "Du premier apprêt à la dernière couche, chaque pièce Red Door traverse des dizaines d'étapes et des semaines de séchage naturel. Nous laquons, ponçons à l'eau, puis laquons encore — jusqu'à ce que la surface prenne la profondeur d'une eau calme.",

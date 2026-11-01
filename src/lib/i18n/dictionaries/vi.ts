@@ -59,11 +59,11 @@ const dictionary = {
     contact: "Liên hệ",
   },
   home: {
-    eyebrow: "RED DOOR — SƠN MÀI SỐNG",
-    title: "Đồ sơn mài thủ công Việt Nam,",
-    titleAccent: "sống động qua từng lớp sơn",
+    eyebrow: "RED DOOR Co., Ltd",
+    title: "Gìn giữ tinh hoa sơn mài Việt",
+    titleAccent: "trong ngôn ngữ thiết kế đương đại",
     heroDescription:
-      "Tinh hoa sơn mài Việt được gìn giữ qua từng lớp sơn, mỗi sản phẩm là sự hòa quyện giữa thiên nhiên và bàn tay nghệ nhân.",
+      "Sơn mài Việt Nam không chỉ là một kỹ nghệ chế tác, mà còn là di sản của tri thức vật liệu, cảm quan thẩm mỹ và sự kiên nhẫn của người nghệ nhân. Tiếp nối những giá trị ấy, RED DOOR Co., Ltd gìn giữ và phát huy kỹ nghệ sơn mài truyền thống, đồng thời kết hợp các kỹ thuật in, vẽ tiên tiến để mở rộng khả năng biểu đạt trên bề mặt tác phẩm.\n\nTrong sự giao thoa giữa chiều sâu của những lớp sơn, nghệ thuật xử lý bề mặt và tư duy thiết kế hiện đại, mỗi sản phẩm là một cuộc đối thoại giữa di sản và sáng tạo — mang đậm bản sắc văn hoá Việt, đồng thời hài hoà với không gian sống đương đại.",
     craftTitle: "Câu chuyện vật liệu qua từng lớp",
     craftBody:
       "Từ tấm vóc đầu tiên đến lớp sơn cuối cùng, mỗi món đồ Red Door đi qua hàng chục công đoạn và nhiều tuần chờ sơn khô tự nhiên. Chúng tôi phủ, mài nước rồi lại phủ — cho đến khi mặt sơn sâu và trong như mặt nước lặng.",
