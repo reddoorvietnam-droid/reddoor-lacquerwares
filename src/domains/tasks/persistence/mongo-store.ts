@@ -3,7 +3,11 @@ import "server-only";
 import { Types } from "mongoose";
 
 import type { SystemRoleKey } from "@/domains/identity/role-definitions";
-import type { OrderStage } from "@/domains/orders/workflow";
+import {
+  type OrderStage,
+  orderStages,
+  retiredOrderStages,
+} from "@/domains/orders/workflow";
 import type {
   NewTaskRecord,
   TaskExtensionDecision,
@@ -20,6 +24,20 @@ import type {
 import { getTaskModel } from "@/domains/tasks/persistence/models";
 import { connectToDatabase } from "@/lib/db/mongoose";
 
+/**
+ * Tasks written under the earlier fifteen-step chart may hold a retired stage
+ * key. Read it forward to the stage that now covers the same work, as the
+ * order store does; a key neither chart knows is dropped rather than crashing
+ * the task list.
+ */
+function readTaskStage(value: string | null | undefined): OrderStage | null {
+  if (!value) return null;
+  if ((orderStages as readonly string[]).includes(value)) {
+    return value as OrderStage;
+  }
+  return (retiredOrderStages as Record<string, OrderStage>)[value] ?? null;
+}
+
 type TaskDocument = {
   _id: Types.ObjectId;
   title: string;
@@ -28,7 +46,7 @@ type TaskDocument = {
   priority: TaskPriority;
   orderId: Types.ObjectId | null;
   orderCode: string | null;
-  stage: OrderStage | null;
+  stage: string | null;
   ownerRole: SystemRoleKey | null;
   assigneeUserId: Types.ObjectId | null;
   businessUnitIds: Types.ObjectId[];
@@ -83,7 +101,7 @@ function toDto(document: TaskDocument): TaskRecordDto {
     priority: document.priority,
     orderId: document.orderId ? document.orderId.toHexString() : null,
     orderCode: document.orderCode ?? null,
-    stage: document.stage ?? null,
+    stage: readTaskStage(document.stage),
     ownerRole: document.ownerRole ?? null,
     assigneeUserId: document.assigneeUserId
       ? document.assigneeUserId.toHexString()

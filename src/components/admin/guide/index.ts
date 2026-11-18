@@ -18,11 +18,13 @@ import { importShipmentScreens } from "@/components/admin/guide/screens/import-s
 import { orderFlowScreens } from "@/components/admin/guide/screens/order-flow";
 import { orderScreens } from "@/components/admin/guide/screens/orders";
 import { shopSettingsScreens } from "@/components/admin/guide/screens/shop-settings";
+import { soTayScreens } from "@/components/admin/guide/screens/so-tay";
 import { warehouseScreens } from "@/components/admin/guide/screens/warehouse";
 
 /** Every screen the guide describes, whichever roles read it. */
 export const screenGuides: readonly ScreenGuide[] = [
   ...commonScreens,
+  ...soTayScreens,
   ...directorDeskScreens,
   ...warehouseScreens,
   ...counterSalesScreens,

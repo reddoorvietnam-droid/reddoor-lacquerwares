@@ -8,7 +8,11 @@ import {
   type GoogleSignInError,
 } from "@/components/admin";
 import { resolveSessionIdentity } from "@/lib/auth/session";
-import { inspectAuthEnv, inspectMongoEnv } from "@/lib/env/server";
+import {
+  inspectAuthEnv,
+  inspectMongoEnv,
+  inspectPasswordLoginEnv,
+} from "@/lib/env/server";
 import { isLocale } from "@/lib/i18n/config";
 import { resolveAdminLocale } from "@/lib/i18n/admin";
 
@@ -56,7 +60,11 @@ export default async function AdminSignInPage({
   return (
     <AdminShell locale={locale} withNav={false}>
       {configured ? (
-        <GoogleSignIn locale={locale} error={signInError(query.error)} />
+        <GoogleSignIn
+          locale={locale}
+          error={signInError(query.error)}
+          passwordEnabled={inspectPasswordLoginEnv().configured}
+        />
       ) : (
         <AdminSetupRequired locale={locale} />
       )}

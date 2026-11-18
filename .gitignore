@@ -54,3 +54,8 @@ next-env.d.ts
 
 # generated pdf.js decoder assets (see scripts/sync-pdfjs-assets.mjs)
 /public/pdfjs/
+
+# Sổ tay: dữ liệu nguồn (CCCD, bảng lương, công nợ, mật khẩu) không đưa lên Git
+/so_tay_red_door/
+_so_tay_nguon/
+seed/taikhoan.json

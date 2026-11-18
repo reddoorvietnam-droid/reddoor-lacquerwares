@@ -3,7 +3,7 @@ import "server-only";
 import { type InferSchemaType, Schema } from "mongoose";
 
 import { systemRoleKeys } from "@/domains/identity/role-definitions";
-import { orderStages } from "@/domains/orders/workflow";
+import { orderStages, retiredOrderStages } from "@/domains/orders/workflow";
 import { taskPriorities, taskStatuses } from "@/domains/tasks/contracts";
 import {
   actorFields,
@@ -65,7 +65,13 @@ export const taskSchema = new Schema(
     },
     orderId: { type: Schema.Types.ObjectId, ref: "SalesOrder", default: null },
     orderCode: { type: String, trim: true, maxlength: 40, default: null },
-    stage: { type: String, enum: [...orderStages, null], default: null },
+    // Retired keys still validate so old tasks can be saved; the store reads
+    // them forward to the current stage.
+    stage: {
+      type: String,
+      enum: [...orderStages, ...Object.keys(retiredOrderStages), null],
+      default: null,
+    },
     ownerRole: { type: String, enum: [...systemRoleKeys, null], default: null },
     assigneeUserId: { type: Schema.Types.ObjectId, ref: "User", default: null },
     businessUnitIds: {

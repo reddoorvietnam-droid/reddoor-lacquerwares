@@ -143,6 +143,15 @@ type AdminCopy = {
     cardHint: string;
     googleButton: string;
     googleRedirecting: string;
+    passwordDivider: string;
+    passwordUsername: string;
+    passwordPassword: string;
+    passwordButton: string;
+    passwordSubmitting: string;
+    passwordErrors: Record<
+      "CredentialsSignin" | "PasswordLocked" | "Unavailable",
+      string
+    >;
     signInErrors: Record<
       "AccessDenied" | "Configuration" | "Unavailable" | "default",
       string
@@ -431,6 +440,18 @@ const adminDictionaries = {
         "Chọn đúng Gmail bạn dùng cho công việc. Lần đầu đăng nhập, tài khoản sẽ chờ Giám đốc duyệt.",
       googleButton: "Tiếp tục với Google",
       googleRedirecting: "Đang chuyển sang Google…",
+      passwordDivider: "hoặc đăng nhập bằng tài khoản",
+      passwordUsername: "Tên đăng nhập",
+      passwordPassword: "Mật khẩu",
+      passwordButton: "Đăng nhập",
+      passwordSubmitting: "Đang đăng nhập…",
+      passwordErrors: {
+        CredentialsSignin: "Sai tên đăng nhập hoặc mật khẩu.",
+        PasswordLocked:
+          "Nhập sai quá nhiều lần. Tài khoản tạm khóa 15 phút; trong lúc chờ có thể đăng nhập bằng Google.",
+        Unavailable:
+          "Máy chủ chưa xử lý được lượt đăng nhập này. Thử lại sau ít phút.",
+      },
       signInErrors: {
         AccessDenied:
           "Tài khoản Google này chưa xác minh địa chỉ Gmail nên chưa đăng nhập được. Hãy dùng Gmail đã xác minh.",
@@ -764,6 +785,18 @@ const adminDictionaries = {
         "Pick the Gmail you use for work. On a first sign-in the account waits for the Director's approval.",
       googleButton: "Continue with Google",
       googleRedirecting: "Redirecting to Google…",
+      passwordDivider: "or sign in with an account",
+      passwordUsername: "Username",
+      passwordPassword: "Password",
+      passwordButton: "Sign in",
+      passwordSubmitting: "Signing in…",
+      passwordErrors: {
+        CredentialsSignin: "Wrong username or password.",
+        PasswordLocked:
+          "Too many wrong attempts. The account is locked for 15 minutes; Google sign-in still works meanwhile.",
+        Unavailable:
+          "The server could not complete this sign-in. Try again in a few minutes.",
+      },
       signInErrors: {
         AccessDenied:
           "This Google account has no verified Gmail address, so it cannot sign in. Use a verified Gmail.",

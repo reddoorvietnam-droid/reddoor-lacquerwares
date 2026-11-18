@@ -17,6 +17,7 @@ import { roleDefinitionSeeds } from "@/domains/identity/role-definitions";
 import { canSeeMaterials } from "@/domains/materials/access";
 import { canSeeReceivables } from "@/domains/receivables/access";
 import { canSeeSampleProgress } from "@/domains/sample-progress/access";
+import { canSeeSoTay } from "@/domains/so-tay/truy-cap";
 import { canSeeAssignedTasks } from "@/domains/tasks/access";
 import { resolveActiveRoleKeys, resolvePermissionCoverages } from "@/lib/auth";
 import type { AdminLocale } from "@/lib/i18n/admin";
@@ -45,6 +46,7 @@ export const resolveAdminNavigation = cache(
     const materialsVisible = await canSeeMaterials();
     const receivablesVisible = await canSeeReceivables();
     const assignedTasksVisible = await canSeeAssignedTasks();
+    const soTayVisible = await canSeeSoTay();
 
     const covered = (permission: Permission): boolean => {
       const coverage = coverages[permission as keyof typeof coverages];
@@ -70,6 +72,7 @@ export const resolveAdminNavigation = cache(
                 ({ href }) =>
                   !href.endsWith("/receivables") || receivablesVisible,
               )
+              .filter(({ href }) => !href.endsWith("/so-tay") || soTayVisible)
               // The personal task inbox is granted at `own`, which reports no
               // coverage; its own guard decides whether the entry shows.
               .filter(({ href, anyOf }) =>

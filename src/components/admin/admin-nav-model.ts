@@ -57,6 +57,15 @@ export function adminNavSeeds(
           standalone: true,
         },
         {
+          // Sổ tay (the shared production ledger) has its own six roles,
+          // derived from the admin role; `canSeeSoTay` decides whether the
+          // entry shows, so it is listed for every reader here.
+          href: `${basePath}/so-tay` as Route,
+          label: locale === "vi" ? "Sổ tay" : "Production ledger",
+          anyOf: null,
+          standalone: true,
+        },
+        {
           href: `${basePath}/paint-warehouse` as Route,
           label:
             locale === "vi" ? "Bảng xuất kho sơn" : "Paint warehouse exports",

@@ -74,6 +74,10 @@ const navDescriptions: Record<string, Localized> = {
     vi: "Công nợ của khách mua sơn tại quầy.",
     en: "What paint-counter customers still owe.",
   },
+  "/so-tay": {
+    vi: "Sổ chung sản xuất: đơn, chia việc, công nợ cơ sở, kho, nhân công.",
+    en: "Shared production ledger: orders, work, site debts, stock, labour.",
+  },
   "/assistant": {
     vi: "Hỏi nhanh về đơn hàng, số liệu và công việc.",
     en: "Ask about orders, figures and work.",

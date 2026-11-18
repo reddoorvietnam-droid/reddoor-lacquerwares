@@ -37,9 +37,10 @@ const mongoSchema = baseSchema.extend({
 });
 
 /**
- * Sign-in is Google only (confirmed 2026-09-13: Gmail, no phone login, no
- * passwords, no role preview). Without the full Google pair nobody can sign
- * in, so auth stays unconfigured and the portal shows its setup screen.
+ * Sign-in is Google (confirmed 2026-09-13: Gmail, no phone login, no role
+ * preview), plus one optional password account (`passwordLoginSchema`).
+ * Without the full Google pair auth stays unconfigured and the portal shows
+ * its setup screen.
  * `ADMIN_EMAILS` names the Director's Gmail for the one-time bootstrap.
  */
 const authSchema = baseSchema.extend({
@@ -55,6 +56,30 @@ const authSchema = baseSchema.extend({
     .trim()
     .min(1, "AUTH_GOOGLE_SECRET is required for Google sign-in"),
   ADMIN_EMAILS: optionalText,
+});
+
+/**
+ * The one shared username/password account (added 2026-11-17, alongside
+ * Google). Only a scrypt hash is configured — see
+ * `scripts/hash-admin-password.ts`. Without both keys the password form is
+ * hidden and Google stays the only way in.
+ */
+const passwordLoginSchema = baseSchema.extend({
+  ADMIN_PASSWORD_USERNAME: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .regex(
+      /^[a-z0-9._-]{3,64}$/,
+      "ADMIN_PASSWORD_USERNAME must be 3-64 of a-z 0-9 . _ -",
+    ),
+  ADMIN_PASSWORD_HASH: z
+    .string()
+    .trim()
+    .regex(
+      /^scrypt:[A-Za-z0-9_-]{16,}:[A-Za-z0-9_-]{43,}$/,
+      "ADMIN_PASSWORD_HASH must come from scripts/hash-admin-password.ts",
+    ),
 });
 
 const cloudinarySchema = baseSchema.extend({
@@ -201,6 +226,7 @@ const notificationSchema = baseSchema
 export type BaseEnv = z.infer<typeof baseSchema>;
 export type MongoEnv = z.infer<typeof mongoSchema>;
 export type AuthEnv = z.infer<typeof authSchema>;
+export type PasswordLoginEnv = z.infer<typeof passwordLoginSchema>;
 export type CloudinaryEnv = z.infer<typeof cloudinarySchema>;
 export type EmailEnv = z.infer<typeof emailSchema>;
 export type AiEnv = z.infer<typeof aiSchema>;
@@ -351,6 +377,10 @@ function inspect<T>(schema: z.ZodType<T>): OptionalFeatureEnv<T> {
       ),
     ],
   };
+}
+
+export function inspectPasswordLoginEnv(): OptionalFeatureEnv<PasswordLoginEnv> {
+  return inspect(passwordLoginSchema);
 }
 
 export function inspectAiEnv(): OptionalFeatureEnv<AiEnv> {

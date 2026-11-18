@@ -35,6 +35,8 @@ describe("the Director's menu, laid out by role", () => {
       // Every role's own guide opens the menu.
       "Hướng dẫn sử dụng website",
       "Tổng quan",
+      // The shared production ledger; its own roles decide who sees it.
+      "Sổ tay",
       "Trợ lý AI",
       // Personal like the assistant: everyone's own inbox of assigned work.
       "Công việc được giao",

@@ -1,0 +1,828 @@
+# PROMPT XÂY DỰNG LẠI "SỔ TAY RED DOOR" (SỔ CHUNG QUẢN LÝ SẢN XUẤT) TRÊN WEBSITE reddoor.vn
+
+> Dành cho Claude Code trong VS Code. Đọc hết tài liệu này trước khi viết bất kỳ dòng code nào.
+> Tài liệu mô tả **đúng** Sổ chung đang chạy thử (phiên bản 16/11/2026). Không tự thêm, bớt hay đổi quy tắc nghiệp vụ. Chỗ nào chưa rõ thì **hỏi lại**, không tự đoán.
+
+---
+
+## 0. Bối cảnh và mục tiêu
+
+**Công ty:** Công ty TNHH Cửa Đỏ (RED DOOR Co., Ltd Việt Nam), sản xuất đồ sơn mài xuất khẩu.
+- Địa chỉ: Số 25A Lô 15, Cụm làng nghề sơn mài Hạ Thái, Xã Hồng Vân, TP Hà Nội
+- Mã số thuế: 0101455557
+- Đại diện ký hợp đồng gia công: Bà Nguyễn Thị Tuyến – Quản lý xưởng – ĐT 0973162771
+
+**Sổ tay** (tên cũ: Sổ chung) là công cụ nội bộ để Giám đốc, quản lý xưởng, kế toán và thủ kho cùng theo dõi một luồng dữ liệu:
+- đơn hàng xuất khẩu và tiến độ sản xuất;
+- giao việc cho các cơ sở gia công và hợp đồng với cơ sở;
+- công nợ với cơ sở, tạm ứng, thanh toán;
+- kho vật tư, mua vật tư;
+- chi tiêu xưởng;
+- nhân công, chấm công, bảng lương.
+
+**Mục tiêu:** đưa Sổ tay thành **một tính năng (module) mới của website reddoor.vn đang chạy**, dùng **MongoDB** để lưu dữ liệu. Website hiện có phải tiếp tục chạy bình thường.
+
+### Phạm vi GIAI ĐOẠN 1 (lần làm này): dựng KHUNG
+
+Làm:
+- Khảo sát dự án hiện có, đề xuất cách gắn module (mục 1).
+- Backend API + kết nối MongoDB + toàn bộ schema (mục 5).
+- Đăng nhập, phân quyền, màn hình chào, trang đầu, điều hướng (mục 3, 4, 9).
+- Đủ **15 tab** với giao diện, biểu mẫu nhập liệu, bảng hiển thị, gọi API thật (mục 8). Dữ liệu trống vẫn phải hiển thị đúng trạng thái "chưa có dữ liệu".
+- Các hàm tính nghiệp vụ cốt lõi, **kèm unit test** (mục 7).
+- Seed **cấu hình** tối thiểu: tài khoản, vai trò, danh sách cố định (loại phiếu, khoản chi phí, mẫu tiến độ…).
+
+**Chưa làm:** không nạp dữ liệu nghiệp vụ thật (danh mục cơ sở, vật tư, công nợ, chấm công, lương…). Dữ liệu sẽ nạp ở giai đoạn 2 từ file JSON xuất từ Sổ chung cũ, nên **schema phải giữ đúng tên trường mô tả trong mục 5** để nạp thẳng được.
+
+### Nguyên tắc bắt buộc
+1. Giao diện **hoàn toàn bằng tiếng Việt**, giọng văn ngắn gọn, rõ ràng, giống mô tả trong tài liệu.
+2. Định dạng Việt Nam:
+   - số tiền `1.234.567` (đơn vị đồng, lưu là **số nguyên VND**);
+   - ngày hiển thị `dd/mm/yyyy`, lưu là chuỗi `YYYY-MM-DD`;
+   - múi giờ `Asia/Ho_Chi_Minh` cho mọi phép tính "hôm nay".
+3. **Không lưu giá bán** (giá khách hàng, USD, PI có giá) ở bất kỳ đâu trong module này. Khi đọc file PI, chỉ lấy mã hàng, mô tả, kích thước, số lượng, quy cách đóng gói.
+4. Mọi kiểm tra quyền phải làm **ở backend**. Giao diện chỉ ẩn/hiện cho dễ dùng.
+5. Không đụng vào các phần khác của website, trừ chỗ cần gắn menu, route, middleware. Mọi thay đổi ngoài thư mục module phải liệt kê rõ trước khi làm.
+6. Làm theo từng bước ở mục 12. Sau mỗi bước, chạy được và báo lại những gì đã làm.
+
+---
+
+## 1. Bước 0 – Khảo sát dự án trước khi code
+
+1. Đọc cấu trúc dự án reddoor.vn rồi báo lại:
+   - framework (Next.js / React / Vue / PHP / WordPress / HTML tĩnh…), cách định tuyến, cách build, cách deploy;
+   - website đã có đăng nhập chưa, có backend Node.js chưa;
+   - hệ thống CSS / thư viện UI đang dùng;
+   - hosting có chạy được Node.js không.
+2. Đề xuất phương án gắn module phù hợp nhất và **chờ chủ dự án đồng ý** rồi mới làm. Gợi ý:
+   - **Nếu là Next.js:** module nằm ở `app/so-tay/...`, API ở `app/api/so-tay/...`, MongoDB qua Mongoose.
+   - **Nếu là React/Vue + Node:** thêm router `/api/so-tay` (Express) và các trang `/so-tay/*`.
+   - **Nếu là site tĩnh hoặc WordPress không có Node:** đề xuất dựng một service Node.js riêng (Express + Mongoose) chạy ở subdomain `so-tay.reddoor.vn`, website chính chỉ thêm liên kết.
+3. Đường dẫn module: **`/so-tay`**. Trang này không xuất hiện trong menu công khai cho khách. Chỉ có một liên kết nhỏ "Nội bộ" ở chân trang, hoặc theo ý chủ dự án.
+
+---
+
+## 2. Kiến trúc kỹ thuật
+
+- **CSDL:** MongoDB (khuyên dùng MongoDB Atlas, vùng Singapore), Mongoose làm ODM. Chuỗi kết nối nằm trong biến môi trường `MONGODB_URI`, **không bao giờ** đưa ra frontend.
+- **Backend:** API REST JSON dưới tiền tố `/api/so-tay`. Mọi route trừ `/auth/login` đều yêu cầu đã đăng nhập.
+- **Đăng nhập:**
+  - email + mật khẩu, mật khẩu băm bằng **bcrypt** (cost ≥ 12);
+  - phiên lưu bằng **cookie httpOnly, Secure, SameSite=Lax** (session lưu trong MongoDB, hoặc JWT ngắn hạn kèm refresh);
+  - phiên hết hạn sau **12 giờ**;
+  - giới hạn đăng nhập sai: **5 lần thì khóa 30 giây** cho cặp email + IP.
+- **Phân quyền:** middleware `yeuCau(viec)` kiểm tra vai trò theo bảng QUYEN (mục 4).
+- **Ghi lịch sử:** mọi thao tác ghi (tạo / sửa / xóa) đi qua một lớp chung, tự ghi vào collection `lichsu` (mục 9.3).
+- **Giao dịch:** các thao tác ghi nhiều tài liệu cùng lúc dùng **MongoDB transaction**, ví dụ: chi đề nghị → tạo bút toán công nợ + cập nhật đề nghị; nhận đơn mua → tạo phiếu nhập + cập nhật đơn mua.
+- **Cập nhật gần thời gian thực:** người khác sửa thì trang tự làm mới. Giai đoạn 1 được dùng polling 15 giây hoặc SSE/WebSocket với MongoDB Change Streams; chọn cách đơn giản nhất phù hợp hosting.
+- **Xuất file:**
+  - Excel bằng `exceljs` (backend) hoặc SheetJS (frontend);
+  - PDF bằng `pdfkit` hoặc jsPDF + autotable, **nhúng phông Noto Sans có đủ dấu tiếng Việt**.
+- **Ảnh sản phẩm:** lưu ở thư mục upload của website hoặc dịch vụ lưu trữ file. Trong DB chỉ lưu đường dẫn.
+- **Sao lưu:** viết script `npm run sao-luu` dùng `mongodump`, và ghi chú cách đặt lịch chạy hằng ngày.
+- **Tiện ích dùng chung:** `today()`, `addDays()`, `daysTo()`, `dvn()` (dd/mm/yyyy), `fm()` (tiền), `fq()` (số lượng, tối đa 3 chữ số thập phân), `slug()` (bỏ dấu, viết hoa, nối bằng `_`, dùng để sinh mã đối tượng).
+
+---
+
+## 3. Tài khoản, đăng nhập, màn hình chào
+
+### 3.1 Tài khoản (seed từ file `seed/taikhoan.json`, file này **phải nằm trong .gitignore**)
+
+Chủ dự án tự điền mật khẩu vào file seed trên máy. Không ghi mật khẩu vào code hay vào repo. Mật khẩu là **cố định** theo danh sách công ty; giai đoạn 1 **không có chức năng tự đổi mật khẩu**.
+
+| Email | Tên hiển thị | Lời chào trên màn hình chào |
+|---|---|---|
+| sales@reddoor.vn | TOAN TRAN | Xin chào TOAN TRAN, chúc một ngày tốt lành! |
+| yennguyen@reddoor.vn | Hải Yến | Xin chào Hải Yến. Chúc Chị một ngày tốt lành! |
+| vannguyen@reddoor.vn | Hà Vân | Xin chào Hà Vân. Chúc Chị một ngày tốt lành! |
+| thuylinh@reddoor.vn | Thùy Linh | Xin chào Thùy Linh. Chúc Chị một ngày tốt lành! |
+| tuyennguyen@reddoor.vn | Chị Tuyến | Xin chào Chị Tuyến. Chúc Chị một ngày tốt lành! |
+| quanhtran@reddoor.vn | Quang Anh | Xin chào Quang Anh. Anh đã hết ốm chưa? Chúc Anh một ngày tốt lành và không bị cảm! |
+
+Mỗi tài khoản có trường `vaitro` (một trong các mã ở mục 4). File seed có sẵn trường này để chủ dự án điền. Giám đốc đổi được vai trò trong tab Danh mục & người dùng.
+
+### 3.2 Luồng vào sổ
+1. Vào `/so-tay` thì thấy **Trang đầu** (mục 9.1). Trang đầu chỉ cần bản tóm tắt lịch, không cần đăng nhập để hiện **khung lịch**. Riêng **tên đơn và mốc chỉ hiện sau khi đăng nhập**, vì không để lộ thông tin cho người ngoài.
+2. Bấm **logo RED DOOR** ở giữa trang thì hiện hộp đăng nhập:
+   - logo nhỏ, tiêu đề "Đăng nhập Sổ chung", dòng phụ "Dùng email công ty và mật khẩu riêng của bạn.";
+   - ô Email, ô Mật khẩu kèm nút **👁 Hiện / 🙈 Ẩn**;
+   - nút **Đăng nhập** và **Hủy**.
+   Sai thì báo "Email hoặc mật khẩu không đúng.", sai 5 lần thì báo đợi 30 giây.
+3. Đăng nhập đúng thì vào **Màn hình chào**:
+   - logo;
+   - lời chào riêng của người đó (bảng 3.1);
+   - dòng "Thứ…, dd/mm/yyyy · Âm lịch d/m năm Can Chi", kèm tên ngày lễ nếu có;
+   - tiêu đề **"Công việc hiện tại của ngày hôm nay cần lưu ý là:"** và bảng công việc của nhà máy tại thời điểm đăng nhập;
+   - nút **Vào sổ →** và **Đăng xuất**.
+4. **Bảng công việc trên màn hình chào** gồm các cột Đơn hàng | Công việc | Phụ trách | Hạn | Tình trạng. Dữ liệu là:
+   - mọi việc **quá hạn**, theo hàm `quaHan()` ở mục 7.4;
+   - các mốc tiến độ chưa xong có hạn trong **0–3 ngày tới**;
+   - các việc của kế toán (mục 7.6) chưa xong, hạn ≤ 3 ngày.
+   Tình trạng hiển thị: "Quá N ngày" (đỏ) / "Hôm nay" (vàng) / "Còn N ngày" (xám). Sắp xếp quá hạn lâu nhất lên đầu. Không có việc thì ghi "Hôm nay không có việc nào quá hạn hoặc đến hạn trong 3 ngày tới."
+5. Mỗi lần đăng nhập ghi một dòng `lichsu` với `op: "Đăng nhập"`.
+6. Thanh điều hướng trong sổ hiện "👤 Tên hiển thị" và nút **🔒 Đăng xuất**.
+
+---
+
+## 4. Vai trò, quyền và tab
+
+### 4.1 Vai trò
+| Mã | Tên |
+|---|---|
+| quanly | Giám đốc (kiêm bán hàng) |
+| quandoc | Quản lý xưởng |
+| ketoancty | Kế toán công ty |
+| ketoan | Kế toán xưởng |
+| thukho | Thủ kho |
+| qc | QC công ty |
+
+### 4.2 Quyền thao tác (QUYEN). `quanly` có **mọi quyền**.
+| Việc | Vai được làm |
+|---|---|
+| donmoi – gửi đơn mới cho xưởng | (chỉ quanly) |
+| nhandon – nhận đơn | quandoc |
+| chia – chia việc cho cơ sở, ghi chú kỹ thuật | quandoc |
+| nhancong – chấm công nhân công nhà máy | quandoc |
+| nhancongvp – lương cố định nhân viên văn phòng | ketoancty |
+| baobi – đặt bao bì | thukho |
+| kho – lập phiếu kho | thukho |
+| muavt – đặt mua vật tư | thukho |
+| nhan – nhận hàng cơ sở giao | thukho, quandoc |
+| hd – hợp đồng, đề nghị tạm ứng / thanh toán | ketoan |
+| congno – ghi công nợ cơ sở | ketoan |
+| thu – phiếu thu tiền cơ sở trả | ketoan |
+| chi – chi tiền cho cơ sở theo đề nghị | ketoancty |
+| chixuong – chi tiêu nhỏ tại xưởng | quandoc |
+| qc1 – ghi QC lần 1 | qc, quandoc |
+| giaohang – ghi giao hàng | quandoc, thukho |
+
+### 4.3 Tab và quyền xem
+**Giám đốc, kế toán xưởng, kế toán công ty xem MỌI tab.** Các vai khác xem theo bảng dưới (`mọi người` = ai cũng xem).
+
+**Nhóm 1 – "Quản lý sản xuất"** (theo đúng thứ tự):
+| Mã tab | Tên tab | Ai xem |
+|---|---|---|
+| tongquan | Tổng quan | mọi người |
+| donmoi | Đơn mới | quanly |
+| donhang | Đơn hàng | mọi người |
+| sanxuat | Sản xuất | quandoc, thukho, ketoan, ketoancty, qc |
+| coso | Cơ sở sản xuất | mọi người |
+| congno | Công nợ sản xuất | ketoan, ketoancty |
+| chi | Chi cho cơ sở | ketoancty, ketoan |
+
+**Nhóm 2 – "Kho, nhân sự & danh mục":**
+| Mã tab | Tên tab | Ai xem |
+|---|---|---|
+| nhancong | Nhân công nhà máy | quandoc |
+| nhancongvp | Nhân công văn phòng | ketoancty |
+| bangluong | Bảng lương | mọi người (giai đoạn thử nghiệm) |
+| kho | Phiếu kho | thukho, ketoan |
+| ton | Tồn kho | thukho, quandoc |
+| muavt | Mua vật tư | thukho |
+| chixuong | Chi tiêu xưởng | quandoc, ketoancty |
+| danhmuc | Danh mục & người dùng | mọi người |
+
+**Bố cục điều hướng:**
+- Hàng trên cùng là 2 nút tròn chọn nhóm. Nhóm đang chọn tô màu đỏ thương hiệu.
+- Hàng dưới là các tab của nhóm đó.
+- Tab đang mở được nhớ trong `localStorage`.
+
+**Giá bán:** module này không chứa giá bán. Giá bán quản lý ở hệ thống riêng, chỉ Giám đốc và hai kế toán xem được. Thủ kho và quản lý xưởng **không được** xem giá bán.
+
+---
+
+## 5. Mô hình dữ liệu MongoDB
+
+Quy ước chung:
+- Mọi tài liệu nghiệp vụ có `by` (id người tạo), `at` (ISO datetime).
+- Hủy chứng từ thì đặt `huy: {lydo, by, at}`, **không xóa thật** (trừ danh mục, theo quy tắc ở mục 6.4).
+- Mã chứng từ sinh bằng `rid(tiềnTố)`, dạng `PK-261116-AB12` (tiền tố + yymmdd + 4 ký tự ngẫu nhiên).
+- Giữ đúng tên trường ngắn dưới đây để nạp dữ liệu cũ.
+
+### 5.1 Danh mục
+**`doituong`** – cơ sở, nhà cung cấp, nhân sự… Mỗi đối tượng một tài liệu, `_id` = mã `c`.
+```
+c     : mã gốc, không bao giờ đổi (vd "LE_THI_NGA"; sinh bằng slug(tên))
+n     : họ tên / tên cơ sở (bắt buộc ghi đủ họ tên)
+l     : loại — một trong LOAI_DT
+g     : nhóm / khâu (vd "Mộc","Hoàn thiện","Bao bì","Vật tư","Vận chuyển","Phụ liệu","In, mẫu, hoàn thiện mẫu","Văn phòng")
+so    : số định danh A01…, B01…, C01…, D01…, E01… (mục 6.1); có thể trống
+p     : điện thoại      cccd : số CCCD      note : ghi chú
+m     : 1 = cơ sở chính, 0 = không
+luu   : true nếu ở kho lưu đối chiếu "Axx" (mục 6.2)
+```
+`LOAI_DT` = Cơ sở gia công, Nhà cung cấp, Dịch vụ, Nhân sự nhà máy, Nhân sự văn phòng, Khách lẻ, Nội bộ, Khác, Chưa rõ.
+
+**`donhang`** – `_id` = mã đơn `c` (vd "2026-36", "2026-22", "KHO-BB"), `k` khách, `n` tên đơn (vd "Top Cado 0126").
+
+**`vattu`** – `_id` = mã `c`, `n` tên, `k` kho ("S" = Kho sơn, "N" = Kho NVL), `g` nhóm, `u` ĐVT, `t` tồn đầu kỳ (theo ngày chốt), `gv` giá vốn, `y` mức báo vàng, `r` mức báo đỏ.
+
+### 5.2 Số dư chốt và công nợ đầu kỳ: `sodu` (một tài liệu duy nhất)
+```
+ngay   : ngày chốt "YYYY-MM-DD"
+nguon  : tên file nguồn
+cn     : [ { d: mã cơ sở, o: mã đơn, cp: khoản chi phí, hd: tổng giá trị HĐ, tra: tổng đã trả,
+             ct: [ { n: ngày, nv: nghiệp vụ, t: số tiền, f: tên file hợp đồng, gc: ghi chú } ] } ]
+son    : [ { d: mã cơ sở, amt: số tiền cơ sở nợ RD tiền sơn } ]
+tamtinh: [ { o: mã đơn, tien: giá trị hợp đồng tạm tính } ]   ← KHÔNG cộng vào công nợ
+```
+Giai đoạn 1 tạo tài liệu rỗng `{ngay: null, cn: [], son: [], tamtinh: []}`.
+
+### 5.3 Sản xuất
+**`sanxuat`** – mỗi đơn gửi xưởng một tài liệu, `_id` = mã đơn.
+```
+dh, khach, ngayxuat ("YYYY-MM-DD" theo PI)
+items: [ { ma, mt (mô tả), L, W, H (cm), qty, u (đơn vị), img (đường dẫn ảnh), in (true nếu in hoa văn),
+           inner (SL / hộp trong), io (hộp trong / thùng ngoài), oL, oW, oH (KT thùng ngoài),
+           ktsx (ghi chú kỹ thuật sản xuất), ktsxBy, ktsxAt } ]
+tt: "moi" | "nhan"        nhan: {by, at}       mau: tên mẫu tiến độ đang chọn (tùy chọn)
+moc: { m1..m5: ngày thực tế ghi tay (tùy chọn) }   qc1: {ngay, by}   giao: {ngay, by}
+```
+**`phancong`** – phần việc giao cho cơ sở:
+`dh, ma, khau, dt, sl, dg (đơn giá tạm tính), han, ghichu, tru (mã cơ sở hoàn thiện bị trừ tiền khi nhà máy làm Nhập kho thay), ls: [{dg, at, by}] (lịch sử đổi giá), huy`.
+
+**`giaohang`** – cơ sở giao hàng về nhà máy: `dh, pc (id phần việc), ngay, sl (đạt), loi (số lỗi), ghichu (bắt buộc khi có lỗi)`.
+
+**`hopdong`** – `_id` = `${dh}~${dt}`: `dh, dt, so (số HĐ), ngay (ngày ký), gt (giá trị lúc ký), ls (các lần ký trước)`.
+
+### 5.4 Tiền
+**`congno`** – bút toán công nợ với cơ sở: `ngay, dh, dt, cp, nv, tien (>0), hd (số HĐ), ghichu, nguon ("chi" nếu sinh từ đề nghị chi), dn (id đề nghị), huy`.
+
+`NV` (nghiệp vụ → dấu, +1 là RD nợ thêm, −1 là giảm nợ):
+| nv | dấu |
+|---|---|
+| Giá trị hợp đồng | +1 |
+| Tạm ứng | −1 |
+| Thanh toán | −1 |
+| Trừ sơn / gỗ (bảng kê) | −1 |
+| Trừ tiền | −1 |
+| Điều chỉnh tăng | +1 |
+| Điều chỉnh giảm | −1 |
+
+`CP` (khoản chi phí) = Chi phí làm mộc, Chi phí hoàn thiện, Chi phí làm vóc, Chi phí bao bì, Chi phí vật tư, Phụ liệu, Vận chuyển, Gia công phụ, Chi phí khác.
+
+**`thutien`** – cơ sở trả tiền cho RD (nợ tiền sơn): `ngay, dt, tien, ht (Tiền mặt / Chuyển khoản), nd`.
+
+**`denghichi`** – kế toán xưởng đề nghị chi, `_id` = `DN-…`:
+`ngay, dh, dt, cp, loai ("Tạm ứng" | "Thanh toán"), tien, han, hd (số HĐ), ghichu, tt ("cho" | "dachi" | "tuchoi"), chi: {ngay, tien, ht, cn (id bút toán congno), by, at}, tuchoi: {lydo, by, at}`.
+
+**`chixuong`** – quỹ chi tiêu xưởng:
+`kieu ("chi" | "nap"), ngay, loai, nd, tien, nguoinhan, dh, ghichu, tt ("cho" | "dachi" | "tuchoi"), duyet, chi, tuchoi`.
+`LOAI_CHI` = Vật tư lặt vặt, Sửa chữa bảo trì, Vận chuyển bốc xếp, Ăn uống nước, Công nhật thuê ngoài, Khác.
+
+### 5.5 Kho
+**`phieukho`** – `_id` = số phiếu `so`: `ngay, loai, dt, dh, ghichu, dong: [{vt, sl, dg}], huy`.
+
+`LOAI` phiếu (h: +1 nhập / −1 xuất; cn: tạo nợ tiền sơn cho cơ sở; dh: cần mã đơn; dt: cần đối tượng ("ncc" = nhà cung cấp); gia: cần đơn giá; tu: vật tư xưởng cấp trừ khi thanh toán; lydo: bắt buộc ghi lý do):
+| Loại | h | cn | dh | dt | khác |
+|---|---|---|---|---|---|
+| Nhập mua | +1 | 0 | 0 | ncc | |
+| Nhập trả lại từ cơ sở | +1 | 0 | 1 | 1 | |
+| Xuất cấp cơ sở theo đơn | −1 | 0 | 1 | 1 | |
+| Xuất vật tư tạm ứng đơn hàng | −1 | 0 | 1 | 1 | gia, tu |
+| Xuất bán cho cơ sở | −1 | 1 | 1 | 1 | gia |
+| Bán khách lẻ | −1 | 1 | 0 | 1 | gia |
+| Xuất dùng nội bộ | −1 | 0 | 0 | 1 | |
+| Hao hụt / hỏng | −1 | 0 | 0 | 0 | lydo |
+| Kiểm kê tăng | +1 | 0 | 0 | 0 | lydo |
+| Kiểm kê giảm | −1 | 0 | 0 | 0 | lydo |
+
+**`donmua`** – đơn đặt mua vật tư: `so, ngay, ncc, han, ghichu, dong: [{vt, sl, dg}], tt ("dat" | "nhan"), nhan: {ngay, phieu, by, at}`.
+
+### 5.6 Nhân sự
+- **`chamcong`** – `_id` = `${ngay}~${nv}`: `ngay, nv, cong (1 | 0.5 | 0 | số lẻ như 0.75, 1.5), tc (giờ tăng ca), ghichu`.
+- **`luong`** – `_id` = `${thang}~${nv}`: `thang ("YYYY-MM"), nv, ten, khoi ("Nhà máy" | "Văn phòng"), muc (lương/công hoặc lương tháng), cong_hc, cong_ng, cong_cn, cong_phat, tong_cong, gio_tc, ngay_cn, gio_tc_cn, tien_luong, phucap, an_trua, tam_ung, bh_nld, tong_thu_nhap, thuc_nhan, ghichu`.
+- **`nhanvienvp`** – `_id` = mã nhân viên: `nv, luong (lương cố định/tháng), congviec, ghichu`.
+
+### 5.7 Hệ thống
+- **`taikhoan`** – `email, ten, chao, hash (bcrypt), vaitro, hoatdong (bool)`.
+- **`phien`** – phiên đăng nhập, nếu dùng session lưu trong DB.
+- **`cauhinh`** – tài liệu `canhbao` = mẫu tiến độ (mục 7.3), có thể sửa trong tab Danh mục.
+- **`lichsu`** – `at, by, ten, tk (email), tab, col, id, op ("Tạo mới" | "Sửa" | "Xóa" | "Hủy" | "Đăng nhập"), tom (tóm tắt thay đổi), phien`.
+- **`tomtat`** – tài liệu `lich`, bản tóm tắt nhỏ cho trang đầu (mục 9.1).
+
+Tạo index cho các trường tra cứu thường dùng: `dh`, `dt`, `ngay`, `pc`, `tt`, `nv`, `thang`, và `lichsu.at`.
+
+---
+
+## 6. Danh mục và quy tắc mã
+
+### 6.1 Số định danh cơ sở (`so`)
+| Nhóm | Ý nghĩa | Điều kiện (hàm `soLoai`) |
+|---|---|---|
+| A | Cơ sở làm mộc | `g` là "Mộc" hoặc "Vóc" |
+| B | Cơ sở hoàn thiện | `g` = "Hoàn thiện" |
+| C | Cơ sở bao bì | `g` = "Bao bì" |
+| E | Vận chuyển | `g` = "Vận chuyển" |
+| D | Vật tư & dịch vụ khác | còn lại, với `l` ∈ {Cơ sở gia công, Nhà cung cấp, Dịch vụ} và `g` ≠ "Chưa rõ" |
+
+- Số mới = chữ cái nhóm + (số lớn nhất hiện có trong nhóm + 1), hai chữ số: A05, B16…
+- **Số đã cấp không dồn lại** khi xóa. Ví dụ B15, E10 bỏ trống vẫn để trống.
+- Sửa đối tượng mà **nhóm không đổi thì giữ nguyên số**. Đổi sang nhóm khác thì cấp số mới ở nhóm đó, và báo trước "Đổi nhóm: số X sẽ thành Y".
+- Nhân sự không có số định danh.
+
+### 6.2 Kho lưu đối chiếu "Axx"
+- Đối tượng có `luu: true`: **ẩn khỏi mọi ô chọn** khi nhập liệu (trừ khi đang là giá trị đã chọn), không có số, nhưng **giữ nguyên công nợ cũ**.
+- Ở tab Cơ sở sản xuất, Axx là **một dòng riêng cuối bảng** "Axx · Kho lưu đối chiếu (N cơ sở cũ)", nhóm "Lưu trữ". Gõ "Axx" ở ô tìm cơ sở cũng mở được kho này.
+- Mở kho Axx sẽ thấy tổng RD còn nợ, nợ tiền sơn, danh sách cơ sở trong kho và công nợ còn lại theo đơn.
+- Trong hộp Sửa có ô "Lưu đối chiếu (Axx)". Bỏ chọn thì cơ sở trở lại danh sách và được cấp số mới.
+
+### 6.3 Ô chọn đối tượng dùng chung (`dtSelect`). Mọi chỗ chọn cơ sở / nhân sự đều dùng component này:
+- Ô nhỏ **"Số A01…"**: gõ số định danh hoặc tên là tự chọn dòng khớp (khớp đầu chuỗi trước, rồi khớp chứa).
+- Danh sách gom theo `l`, mỗi dòng hiện `A01 · Tên · nhóm`, sắp theo số.
+- Nút **"+ Thêm mới"**: mở hộp thêm đối tượng (Họ tên, Loại, Nhóm/khâu có gợi ý, Điện thoại, Số CCCD, Ghi chú). Hộp hiện trước "Số định danh sẽ cấp: …".
+  - Loại và nhóm điền sẵn theo ô đang chọn: ô chọn cơ sở khâu Mộc thì nhóm sẵn là "Mộc".
+  - Trùng tên (theo `slug`) thì báo "Đã có trong danh mục: A01 · …" và không tạo.
+  - Lưu xong thì **tự chọn** đối tượng mới vào ô đang nhập.
+- Nút **"Sửa"**: sửa đối tượng đang chọn. Mã `c` giữ nguyên. Đổi thành tên trùng với đối tượng khác thì cảnh báo, bấm Lưu lần nữa mới lưu.
+
+### 6.4 Sửa / Xóa trong tab Danh mục (đối tượng, đơn hàng, vật tư)
+- **Xóa:** trước khi xóa, đếm số tham chiếu trong mọi collection và trong `sodu`.
+  - Có tham chiếu thì **không cho xóa**, và liệt kê rõ: "Phiếu kho (2), Công nợ (5), Số dư chốt ngày … (3)…". Gợi ý dùng Sửa thay vì xóa.
+  - Không có tham chiếu thì hỏi lại rồi mới xóa hẳn.
+- **Sửa:**
+  - Đơn hàng sửa được tên đơn, khách.
+  - Vật tư sửa được tên, kho, ĐVT, mức vàng, mức đỏ, giá vốn.
+  - Tồn đầu kỳ **không sửa ở đây**; muốn đổi thì lập phiếu kiểm kê.
+
+---
+
+## 7. Quy tắc nghiệp vụ (viết thành các hàm thuần trong `lib/nghiepvu/`, có unit test)
+
+### 7.1 Khâu sản xuất (`KHAU`)
+| Khâu | Khoản chi phí | Nhóm cơ sở được giao | `off` (ngày trước ngày xuất) | ĐVT | Ghi chú |
+|---|---|---|---|---|---|
+| Mộc | Chi phí làm mộc | Mộc | 56 | cái | |
+| Hoàn thiện (sơn) | Chi phí hoàn thiện | Hoàn thiện | 21 | cái | |
+| In tại nhà máy | — (không lên HĐ) | In, mẫu, hoàn thiện mẫu (nhân sự nhà máy) | 14 | cái | chỉ cho mã có `in = true` |
+| Bao bì | Chi phí bao bì | Bao bì | 21 | thùng / hộp | đặt ở ô "Bao bì" riêng |
+| Kiểm hàng | — (không lên HĐ) | In, mẫu, hoàn thiện mẫu (người của nhà máy) | 10 | cái | |
+| Nhập kho | Chi phí hoàn thiện | Hoàn thiện, hoặc người nhà máy | 7 | cái | xem 7.5 |
+
+**Hạn mặc định của phần việc** theo mốc tiến độ: Mộc → m1, Hoàn thiện → m2, In → m3, Kiểm hàng → m4, Nhập kho → m5. Chưa tính được mốc thì lấy ngày xuất − `off`.
+
+**Thứ tự cột trong bảng mã hàng:** Mộc → Hoàn thiện (sơn) → Bao bì → In tại nhà máy → Kiểm hàng → Nhập kho.
+
+**Bao bì của mỗi mã hàng:**
+- Hộp trong 3 lớp: số lượng = ⌈qty / inner⌉, tên dòng "Hộp trong 3 lớp · {mã hàng}".
+- Thùng ngoài 5 lớp: dùng chung nhiều mã, đặt cùng trong ô Bao bì.
+
+### 7.2 Mốc tiến độ (`MOC`)
+| Mốc | Tên | Tính từ | Phụ trách |
+|---|---|---|---|
+| m1 | Mộc giao hàng | ngày ký hợp đồng mộc | Quản lý xưởng |
+| m2 | Cơ sở hoàn thiện chuyển sang nhà máy in | khi mộc giao xong | Quản lý xưởng |
+| m3 | In xong tại nhà máy | khi hàng về nhà máy | Quản lý xưởng (in) |
+| m4 | Trả cơ sở → QC kiểm tra lần 1 | khi in xong | QC công ty |
+| m5 | QC lần 1 → giao hàng | từ QC lần 1 | Quản lý xưởng, thủ kho |
+
+### 7.3 Mẫu tiến độ (`cauhinh.canhbao`, mặc định)
+`baoTruoc = 3` (số ngày trước hạn bắt đầu báo vàng).
+
+| Mẫu | Áp dụng khi số ngày từ mốc gốc → ngày xuất ≤ | m1 | m2 | m3 | m4 | m5 | m5 tối đa |
+|---|---|---|---|---|---|---|---|
+| 2 tháng | 75 | 15 | 20 | 7 | 3 | 5 | 10 |
+| 3 tháng | 105 | 30 | 30 | 10 | 10 | 5 | 15 |
+| 4 tháng | 135 | 30 | 45 | 15 | 15 | 15 | 15 |
+| 5 tháng | (còn lại) | 45 | 45 | 20 | 20 | 20 | 20 |
+
+### 7.4 Hàm `mocDon(don)`: tính tiến độ một đơn
+1. **Mốc gốc** = ngày ký hợp đồng sớm nhất của các cơ sở có phần việc Mộc trong đơn. Chưa có thì lấy ngày xưởng nhận đơn (`nhan.at`), cuối cùng là ngày tạo đơn.
+2. **Mẫu**: `don.mau` nếu Giám đốc/quản lý xưởng đã chọn. Nếu không, chọn mẫu đầu tiên có `den` ≥ số ngày từ mốc gốc tới ngày xuất.
+3. Tính lần lượt m1 → m5:
+   - `han = điểm bắt đầu + số ngày của mẫu`;
+   - điểm bắt đầu của m1 là mốc gốc, của mốc sau là **ngày thực tế của mốc trước nếu đã xong**, nếu chưa thì là hạn của mốc trước (mốc trước trễ thì các mốc sau dời theo);
+   - m5 có thêm `hanMax = điểm bắt đầu + m5max`.
+4. **Ngày thực tế `tt`** của mỗi mốc:
+   - m1, m2, m3: ngày mà **mọi mã hàng cần khâu đó** đã được giao đủ số lượng, theo các phiếu `giaohang` của phần việc khâu đó (hàm `khauXong`);
+   - m4: ngày QC lần 1;
+   - m5: ngày giao hàng;
+   - ngoài ra cho ghi tay ngày thực tế ở từng mốc.
+5. **Trạng thái mốc:** `xong` nếu có `tt`; `do` (đỏ) nếu quá hạn; `vang` nếu còn ≤ `baoTruoc` ngày; còn lại `xanh`. Số ngày quá hạn `qua`.
+6. **Mộc theo từng cơ sở (`mocCS`):** hạn = ngày ký HĐ của cơ sở đó + số ngày m1. Kèm số đã giao / số cần.
+7. **Dự kiến giao** = `tt` hoặc `han` của m5. Nếu dự kiến giao muộn hơn ngày xuất (PI) thì cả đơn **đỏ**.
+8. **Mức của đơn** = mức cao nhất trong các mốc và mocCS (đỏ > vàng > xanh). Đơn đã giao thì "Đã giao hàng".
+
+**`quaHan()`** gom mọi việc quá hạn của các đơn đã nhận mà chưa giao:
+- mốc chưa xong mà quá hạn;
+- mộc của từng cơ sở trễ;
+- phần việc trễ hạn chưa nhận đủ: ghi khâu · mã · cơ sở (đã nhận x/y). Bao bì do Thủ kho phụ trách, còn lại do Quản lý xưởng;
+- ngày xuất PI đã qua: Giám đốc phụ trách.
+
+Sắp xếp quá hạn lâu nhất lên đầu. Có thêm nút **"Sao chép tin Zalo"** với nội dung:
+```
+⚠ QUÁ HẠN SẢN XUẤT dd/mm/yyyy
+
+📦 {mã đơn} {tên đơn}
+- {việc}: quá N ngày (hạn dd/mm/yyyy) · {phụ trách}
+...
+Tổng: N việc quá hạn.
+```
+
+### 7.5 Hợp đồng với cơ sở (`sxCalc`), theo từng đơn × cơ sở
+- **Giá trị tạm tính `gt`** = Σ (sl × dg) các phần việc có khoản chi phí của cơ sở trong đơn, tách theo khoản chi phí (`byCP`).
+- **Nhập kho:**
+  - Mặc định do cơ sở hoàn thiện của chính mã hàng đó làm; khi chia việc, tự chọn sẵn cơ sở hoàn thiện nếu mã đó chỉ có một cơ sở. Giá để trống nghĩa là đã gồm trong giá hoàn thiện.
+  - Nếu giao cho **người của nhà máy** thì bắt buộc chọn "Trừ tiền vào cơ sở hoàn thiện" và nhập "Tiền trừ vào cơ sở (đ/cái)". Khoản này **âm** vào hợp đồng của cơ sở bị trừ. Ghi chú tự sinh: "Nhà máy làm nhập kho thay, trừ X đ/cái vào {cơ sở}".
+- **Ký hợp đồng:** nhập số HĐ và ngày ký, lưu `gt` lúc ký. Sau đó kế toán xưởng bấm **"Ghi công nợ"**: tạo bút toán "Giá trị hợp đồng" theo từng khoản chi phí.
+- **Đổi giá sau khi ký:** khi giá trị hiện tại khác `gt` đã ký, hiện cảnh báo "Đổi giá sau ký". Quản lý xưởng ký phụ lục, rồi kế toán ghi phần chênh là "Điều chỉnh tăng" hoặc "Điều chỉnh giảm". Mỗi lần đổi đơn giá lưu vào `ls` của phần việc.
+- **Các số hiển thị cho mỗi hợp đồng:**
+  - đã ghi công nợ;
+  - đã ứng (bút toán Tạm ứng);
+  - đã thanh toán;
+  - **vật tư xưởng cấp** (phiếu "Xuất vật tư tạm ứng đơn hàng" cho cơ sở, theo đơn, tính theo đơn giá phiếu);
+  - **còn phải trả** = giá trị đã ghi − đã ứng − đã thanh toán − trừ tiền − vật tư xưởng cấp;
+  - số còn có thể đề nghị.
+
+### 7.6 Tạm ứng và thanh toán cho cơ sở
+- **Mức tạm ứng: 30% giá trị hợp đồng, làm tròn XUỐNG đơn vị triệu đồng**, ví dụ HĐ 86.190.000 đ thì ứng 25.000.000 đ. Phần lẻ thanh toán cuối kỳ.
+- **Ai được tạm ứng (`coTamUng`):**
+  - hợp đồng có khoản ngoài "Chi phí làm mộc" và "Chi phí bao bì" (tức là cơ sở hoàn thiện…) thì **được**;
+  - cơ sở **mộc**: được xét tạm ứng khi giá trị hợp đồng **trên 10.000.000 đ**;
+  - cơ sở **bao bì**: chỉ **Trần Quang Hiếu (C04)** và **Công ty CP In Ecoprint (C05)** được tạm ứng; các cơ sở bao bì khác không.
+- **Vật tư xưởng cấp không trừ vào tạm ứng.** Chỉ trừ vào phần thanh toán sau khi cơ sở xong hợp đồng.
+- **Việc của kế toán (`viecDon`), hiển thị ở tab Sản xuất và màn hình chào:**
+  - mộc trên 10 triệu: "Xét tạm ứng hợp đồng mộc (trên 10 triệu) · {cơ sở}", hạn = ngày ký HĐ;
+  - **thanh toán 100% cho cơ sở mộc** (trừ phần đã ứng) trong **7 ngày** kể từ khi giao xong toàn bộ mộc;
+  - tạm ứng cho cơ sở hoàn thiện khi mộc xong;
+  - **thanh toán hợp đồng** cho các cơ sở trong **15 ngày** kể từ ngày xuất hàng;
+  - **đặt lịch đóng hàng** (kế toán công ty) **15 ngày trước** ngày xuất dự kiến;
+  - **làm chứng từ xuất khẩu** (kế toán công ty) trong **7 ngày** kể từ ngày đóng hàng. Bộ chứng từ gồm Invoice, Packing List, tờ khai, C/O, hun trùng, B/L.
+- **Luồng chi:**
+  1. Kế toán xưởng lập **đề nghị tạm ứng / thanh toán**. Đề nghị thanh toán vượt số còn có thể đề nghị thì cảnh báo, bấm gửi lần nữa mới gửi.
+  2. Kế toán công ty mở tab **Chi cho cơ sở** và bấm **"Đã chi"**, ghi ngày, số tiền, hình thức. Lúc này mới sinh bút toán công nợ (`nguon: "chi"`). Hoặc bấm **"Từ chối"** kèm lý do.
+  3. **Tiền chỉ vào công nợ khi kế toán công ty đã chi thật.**
+
+### 7.7 Công nợ cơ sở (`calc()`)
+- **RD còn nợ cơ sở**, theo (đơn, cơ sở) = (số dư chốt `hd − tra`) + Σ bút toán `congno` theo dấu NV − vật tư xưởng cấp.
+- **Nợ tiền sơn** (cơ sở nợ RD) = số dư `son` + giá trị phiếu có `cn = 1` cho cơ sở − bút toán "Trừ sơn / gỗ (bảng kê)" − phiếu thu `thutien`.
+- **Giá trị tạm tính** (`sodu.tamtinh`) chỉ hiển thị riêng, **không** cộng vào công nợ.
+- **"KHO-BB · Bao bì mua dùng dần (tồn kho)"** là một mã đơn đặc biệt, dùng cho hợp đồng bao bì mua dùng dần không gắn đơn nào (ví dụ Ecoprint). Vẫn tính công nợ bình thường.
+
+### 7.8 Kho
+- **Tồn kho** = tồn đầu kỳ `t` + Σ nhập − Σ xuất, tính từ ngày chốt, bỏ phiếu đã hủy.
+- **Cảnh báo theo vật tư (`stat`):** âm thì "Âm – kiểm kê" (đỏ); dưới `r` thì đỏ; dưới `y` thì vàng.
+- **Mức mặc định:**
+  - sơn lót, sơn phủ: vàng dưới 400 kg, đỏ dưới 200 kg;
+  - dung môi: vàng dưới 200 kg;
+  - MDF, mực in, gương kính, dây đai: chỉ nhắc.
+- **Tem QR thùng sơn:** in cho mỗi thùng của phiếu "Xuất bán cho cơ sở", "Bán khách lẻ" hoặc "Xuất vật tư tạm ứng đơn hàng". Tem ghi cơ sở, màu, số lượng, đơn giá, ngày bán. Khổ A4, 21 tem cỡ 70×40 mm. Xuất ra file ảnh PNG / PDF để in ở cỡ 100%.
+
+### 7.9 Chi tiêu xưởng
+- Quỹ xưởng = Σ nạp quỹ (kế toán công ty nạp) − Σ khoản chi đã chi.
+- **Khoản dưới 1.000.000 đ:** quản lý xưởng tự chi (`tt = "dachi"`). Nếu số chi lớn hơn số dư quỹ thì cảnh báo, bấm lần nữa mới lưu, và nhắc báo kế toán nạp quỹ.
+- **Khoản từ 1.000.000 đ:** chờ Giám đốc duyệt (`tt = "cho"`). Giám đốc **Duyệt** hoặc **Không duyệt** (kèm lý do). Duyệt xong thì bấm **Đã chi**.
+- **Cảnh báo chia nhỏ:** nhiều khoản dưới 1 triệu **cùng ngày, cùng người nhận** mà cộng lại ≥ 1 triệu thì cảnh báo.
+- Tổng chi theo loại trong tháng.
+
+### 7.10 Lịch âm và ngày nghỉ lễ Việt Nam
+- **Âm lịch:** dùng thuật toán Hồ Ngọc Đức (múi giờ +7), có tháng nhuận và năm Can Chi.
+  - CAN = Canh, Tân, Nhâm, Quý, Giáp, Ất, Bính, Đinh, Mậu, Kỷ (năm % 10);
+  - CHI = Thân, Dậu, Tuất, Hợi, Tý, Sửu, Dần, Mão, Thìn, Tỵ, Ngọ, Mùi (năm % 12).
+  - Unit test bắt buộc (phải đúng hết):
+    - 06/02/2027 = 1/1 Đinh Mùi;
+    - 17/02/2026 = 1/1 Bính Ngọ;
+    - 29/01/2025 = 1/1 Ất Tỵ;
+    - 10/02/2024 = 1/1 Giáp Thìn;
+    - 22/01/2023 = 1/1 Quý Mão;
+    - 22/03/2023 = 1/2 **nhuận** Quý Mão;
+    - 25/09/2026 = 15/8;
+    - 26/04/2026 = 10/3 (Giỗ Tổ);
+    - 29/04/2023 = 10/3;
+    - 05/02/2027 = 29/12 Bính Ngọ (tháng Chạp thiếu, nên là ngày tất niên).
+- **Ngày nghỉ lễ:**
+  - Dương lịch: 1/1 Tết Dương lịch, 30/4 Ngày Giải phóng miền Nam, 1/5 Quốc tế Lao động, 2/9 Quốc khánh. Ngày liền kề Quốc khánh theo thông báo hằng năm, không tự đánh dấu.
+  - Âm lịch: **Tết Nguyên đán 5 ngày**, từ ngày cuối năm âm (29 hoặc 30 Tết) đến mùng 4; 10/3 Giỗ Tổ Hùng Vương.
+  - Ghi chú trên giao diện: lịch nghỉ Tết chính thức theo thông báo của Chính phủ.
+- **Chủ nhật** tô đỏ. **Thứ Bảy là ngày làm việc** của xưởng.
+
+---
+
+## 8. Màn hình từng tab
+
+**Mọi tab** đều có ở đầu trang: **thanh điều hướng** (mục 9.2), **thanh công cụ** Chỉnh sửa / Lưu / Hủy / Lịch sử (mục 9.3; riêng Tổng quan không có) và nút **⤓ Xuất Excel, ⤓ Xuất PDF (A4)** (mục 9.4).
+
+Thông báo kết quả (thành công / lỗi / cảnh báo) hiện ngay trên biểu mẫu liên quan, bằng câu ngắn tiếng Việt.
+
+### 8.1 Tổng quan
+- **Thẻ số liệu:**
+  - RD còn nợ cơ sở;
+  - cơ sở nợ RD tiền sơn;
+  - số vật tư cảnh báo đỏ / vàng;
+  - đơn đang sản xuất;
+  - đề nghị chi chờ chi;
+  - khoản chi xưởng chờ duyệt.
+- **Thẻ "Quá hạn hôm nay"**: danh sách `quaHan()` kèm nút "Sao chép tin Zalo".
+- **Đơn đang sản xuất**: mức Đỏ / Vàng / Đúng tiến độ, dự kiến giao, ngày xuất.
+- **Cảnh báo tồn kho.**
+- **Hoạt động gần đây:** phiếu kho, công nợ, giao hàng… mới nhất, có người làm và thời gian.
+- Dòng chú thích nguồn số dư: "Số dư công nợ cơ sở lấy từ file {nguon} ngày {ngay}."
+
+### 8.2 Đơn mới (Giám đốc)
+- **Nhập đơn từ file PI (Excel)**, chỉ đọc sheet đầu:
+  - tìm dòng tiêu đề có cột **"Item code"**;
+  - các cột được đọc: "Dimension…" (L, W, H), "Color…" (mô tả), "Unit", "Qty inner", "Inner/ outer", "Outer dimension", "QTY";
+  - **không đọc** cột giá.
+- Xem trước danh sách mã hàng, nhập mã đơn (dạng `YYYY-NN`), khách, ngày xuất, rồi bấm **"Gửi xưởng"**: tạo `sanxuat` với `tt: "moi"`.
+- **Bảng "Đơn đã gửi xưởng"**: Đơn | Khách | Gửi lúc | Xuất hàng (PI) | Xưởng (Chờ nhận / Đã nhận) | Dự kiến giao | Tiến độ (mức màu).
+
+### 8.3 Đơn hàng
+- Danh sách mọi mã đơn trong danh mục kèm khách, tên đơn, tổng giá trị hợp đồng cơ sở, đã trả, còn nợ, giá vốn vật tư đã xuất cho đơn.
+- Bấm một đơn để xem chi tiết:
+  - công nợ theo cơ sở;
+  - phiếu kho của đơn;
+  - giá trị tạm tính nếu có.
+
+### 8.4 Sản xuất
+- **Danh sách đơn:** đơn chờ xưởng nhận có nút **"Nhận đơn"** (quản lý xưởng).
+- **Chi tiết một đơn:**
+  - Tiêu đề "{mã} · {tên} · {khách}", trạng thái.
+  - **Thẻ số liệu:** Tổng số lượng, Đã chia việc %, Đã hoàn thành %, Giá trị HĐ tạm tính, Phần trễ hạn.
+  - **Bảng mốc tiến độ:** Mốc | Số ngày | Bắt đầu | Hạn | Thực tế | Quá hạn | Tình trạng. Có ô chọn mẫu tiến độ và ô ghi ngày thực tế.
+  - **Bảng mã hàng** "số đạt / số cần theo từng khâu; bấm một dòng để chia việc":
+    - các cột Ảnh | Mã hàng | Mô tả | KT (cm) | SL | Mộc | Hoàn thiện (sơn) | Bao bì | In tại nhà máy | Kiểm hàng | Nhập kho;
+    - mỗi ô khâu hiện "đạt / cần" kèm nhãn "Chưa chia" (vàng) / "Chia N" / số cơ sở;
+    - ô Bao bì hiện "Chưa đặt / Đã đặt (tên cơ sở) / Đã về kho";
+    - dưới mô tả có ghi chú kỹ thuật "KT: …" và nút **"+ Ghi chú KT" / "Sửa ghi chú KT"** (quản lý xưởng). Hộp ghi chú có ô nhiều dòng, gợi ý "Loại gỗ, độ dày, màu sơn, số lớp, cách in, yêu cầu đóng gói…", hiện người sửa và thời gian sửa cuối.
+  - **Biểu mẫu chia việc:**
+    - chọn mã hàng, khâu, cơ sở (dtSelect, lọc theo nhóm của khâu), số lượng (không vượt số còn lại), đơn giá tạm tính, hạn (mặc định theo mốc), ghi chú;
+    - quy tắc riêng của Nhập kho ở mục 7.5;
+    - khâu có khoản chi phí (trừ Nhập kho) bắt buộc nhập giá tạm tính.
+  - **Ô "Bao bì"** (thủ kho):
+    - các dòng hộp trong theo từng mã và thùng ngoài, tick dòng cần đặt;
+    - chọn cơ sở bao bì (chỉ nhóm Bao bì), giá tạm tính từng dòng, hạn giao về kho, rồi bấm đặt;
+    - mỗi dòng tạo một `phancong` khâu "Bao bì".
+  - **Danh sách phần việc:** nhận hàng, ghi số đạt / lỗi, lý do lỗi bắt buộc khi có lỗi; đổi giá (lưu lịch sử); hủy.
+  - **Bảng "Hợp đồng với cơ sở":** Cơ sở | Phần việc | Giá trị | Đã ký | Đã ghi công nợ | Đã ứng | Đã trả | Vật tư cấp | Còn phải trả | Thao tác. Thao tác gồm:
+    - **Ký HĐ**;
+    - **Ghi công nợ**;
+    - **Đề nghị tạm ứng** (chỉ khi `coTamUng`, số đề xuất = 30% làm tròn xuống triệu);
+    - **Đề nghị thanh toán**;
+    - **Tải HĐ Excel**;
+    - **Tải HĐ PDF (A4)**.
+  - **Việc của kế toán** theo đơn (7.6), có trạng thái xong / chưa.
+
+### 8.5 Cơ sở sản xuất
+- **Trang danh sách:** ô chọn cơ sở (gõ số A01, B05… hoặc tên). Bảng Số | Cơ sở | Nhóm | Đơn đang làm | SL đang làm | Giá trị HĐ | RD còn nợ | Nợ RD tiền sơn, sắp theo số. Dòng cuối là **Axx** (6.2).
+- **Chi tiết một cơ sở:**
+  - nút "← Tất cả cơ sở" (và "← Kho Axx" nếu là cơ sở trong kho), nút "Sửa thông tin cơ sở";
+  - tiêu đề "{số} · {tên}", dòng phụ loại · nhóm · ĐT · CCCD · ghi chú;
+  - thẻ: Đơn đang làm, SL đang làm, Giá trị hợp đồng, Đã ứng + thanh toán, RD còn nợ cơ sở, Cơ sở nợ RD tiền sơn, gỗ.
+- **Các bảng trong chi tiết cơ sở:**
+  1. **Đơn hàng và tiến độ:** Đơn | Khâu | Đã giao / SL | Giá trị HĐ | Nhận đơn | Đem in | Kiểm hàng | Giao tại kho | Tình trạng | nút Tải HĐ Excel / PDF.
+     - Nhận đơn = ngày ký HĐ, hoặc ngày chia việc.
+     - Đem in = m2, Kiểm hàng = m4, Giao tại kho = m5. Ngày nào đã xong thì có nhãn "xong", trễ thì nhãn "trễ".
+  2. **Sản phẩm đang làm:** Đơn | Mã hàng + mô tả | Khâu | SL | Đã giao | Đơn giá | Hạn | Tình trạng (Đã giao đủ / Trễ hạn / Đang làm) | Ghi chú kỹ thuật.
+  3. **Hợp đồng:** Đơn | Số HĐ (hoặc "chưa ký") | Ngày ký | Giá trị tạm tính | Đã ghi công nợ | Đã ứng | Đã thanh toán | Vật tư xưởng cấp | Còn phải trả.
+  4. **Thanh toán (đề nghị chi):** Ngày đề nghị | Đơn | Loại | Số tiền | Trạng thái | Ngày chi | Đã chi | Hình thức / lý do.
+  5. **Công nợ theo đơn:** Đơn | Hợp đồng | Đã trả | Vật tư xưởng cấp | Còn nợ.
+  6. **Sổ chi tiết RD phải trả cơ sở:** Ngày | Nghiệp vụ | Đơn | Tăng | Giảm | Còn (cộng dồn) | Nội dung. Nội dung gồm khoản chi phí · tên file HĐ · "Ghi chú: …".
+     - Dòng lấy từ `sodu.cn[].ct`, giao dịch không có ngày thì ghi "(không ghi ngày)".
+     - Cộng thêm bút toán `congno` và vật tư xưởng cấp.
+  7. **Sổ chi tiết cơ sở nợ RD** (sơn, gỗ, vật tư mua của nhà máy): số dư chốt, phiếu bán, trừ vào HĐ, cơ sở trả tiền.
+  8. **Ngày giao hàng về nhà máy:** Ngày | Đơn | Mã hàng | Khâu | SL nhận | Lỗi.
+
+### 8.6 Công nợ sản xuất (kế toán xưởng)
+- **Biểu mẫu "Ghi công nợ cơ sở":** ngày, mã đơn, cơ sở, khoản chi phí, nghiệp vụ (NV), số tiền, số HĐ, ghi chú. Hiện số còn nợ hiện tại của cặp đơn – cơ sở. Nếu số trả vượt số nợ thì cảnh báo.
+- **Biểu mẫu "Phiếu thu":** cơ sở trả tiền sơn, gồm ngày, người trả, số tiền, hình thức, nội dung.
+- **Danh sách hợp đồng "chờ ghi công nợ"** (đã ký hoặc có chênh sau phụ lục).
+- **Bảng công nợ theo cơ sở:** lọc theo khoản chi phí, tìm theo tên hoặc số. Bấm vào một dòng để xem sổ chi tiết.
+- **Bảng giá trị tạm tính theo đơn** (tách riêng, không cộng vào công nợ).
+- **Danh sách bút toán gần đây**, có nút Hủy kèm lý do.
+
+### 8.7 Chi cho cơ sở (kế toán công ty)
+- **Đề nghị chờ chi:** Ngày | Đơn | Cơ sở | Loại | Số tiền | Hạn | Số HĐ | Ghi chú | **Đã chi** (ngày, số tiền, hình thức) / **Từ chối** (lý do). Quá hạn chi thì có nhãn đỏ.
+- Tổng đã chi trong tháng theo cơ sở.
+- 100 đề nghị đã xử lý gần nhất.
+
+### 8.8 Nhân công nhà máy (quản lý xưởng)
+- **Chấm công theo ngày:** chọn ngày, rồi bảng các nhân sự loại "Nhân sự nhà máy":
+  - Công: Cả ngày / Nửa ngày / Nghỉ; giữ được giá trị lẻ cũ như 0,75 hoặc 1,5 công;
+  - giờ tăng ca, ghi chú;
+  - bấm "Lưu chấm công ngày …". Ngày đã chấm rồi thì báo lưu lại sẽ ghi đè.
+- **Tổng tháng:** ngày công, giờ tăng ca từng người.
+- **Việc in đang giao** cho nhân sự nhà máy.
+
+### 8.9 Nhân công văn phòng (kế toán công ty)
+- **Không chấm công.** Nhân viên văn phòng hưởng lương cố định, làm việc chủ yếu online.
+- Bảng nhân sự loại "Nhân sự văn phòng": Bộ phận / công việc | Lương cố định / tháng | Ghi chú | Thực nhận tháng gần nhất. Bấm "Lưu lương cố định" để lưu.
+
+### 8.10 Bảng lương
+- Chọn tháng và lọc khối (Tất cả / Nhà máy / Văn phòng).
+- Thẻ: Số người, Tổng tiền lương, Tổng thực nhận.
+- Bảng: Họ tên | Khối | Lương/công | Tổng công | Giờ làm thêm | Tiền lương | Phụ cấp | Ăn trưa | Đã tạm ứng | BH trừ vào lương | Thực nhận. Cộng riêng từng khối, rồi tổng cộng.
+- Giai đoạn 1 chỉ xem. Dữ liệu sẽ nạp từ file bảng lương ở giai đoạn 2.
+
+### 8.11 Phiếu kho (thủ kho)
+- **Biểu mẫu lập phiếu:**
+  - các trường: số phiếu tự sinh, ngày, loại phiếu (LOAI), đối tượng (dtSelect, ẩn nếu loại không cần), mã đơn (nếu cần), ghi chú / lý do;
+  - các dòng vật tư: chọn vật tư có ô tìm, số lượng, đơn giá (khi `gia`); thêm / xóa dòng;
+  - kiểm tra theo cờ của loại phiếu;
+  - cảnh báo khi xuất làm tồn âm.
+- Lưu xong thì hiện nút **"In N tem QR"** nếu loại phiếu có in tem (7.8).
+- **Danh sách phiếu**, lọc theo loại / đơn / có tem. Hủy phiếu phải kèm lý do.
+
+### 8.12 Tồn kho
+- Lọc theo kho (Kho sơn / Kho NVL), tìm theo mã / tên / nhóm, lọc "chỉ cảnh báo" / "chỉ còn hàng".
+- Bảng: Mã | Tên | Nhóm | ĐVT | Tồn | Mức cảnh báo | Giá vốn | Giá trị tồn. Có tổng giá trị.
+- Dòng chú thích: "Tồn = tồn chốt dd/mm/yyyy + nhập − xuất trên sổ chung. Sơn dưới 400 kg báo vàng, dưới 200 kg báo đỏ; dung môi dưới 200 kg báo vàng."
+
+### 8.13 Mua vật tư (thủ kho)
+- **Gợi ý cần mua:** vật tư đang cảnh báo đỏ / vàng, đánh dấu những vật tư đang có đơn đặt.
+- **Lập đơn đặt mua:** nhà cung cấp, hạn giao, ghi chú, các dòng vật tư / SL / đơn giá, tổng tiền.
+- **Đơn đang đặt:** bấm **"Nhận hàng"** để tự tạo phiếu "Nhập mua" và đổi đơn sang trạng thái đã nhận (một transaction).
+
+### 8.14 Chi tiêu xưởng
+- **Thẻ quỹ:** đã nạp, đã chi, còn lại.
+- **Biểu mẫu chi** (quản lý xưởng): ngày, loại chi, nội dung, số tiền, người nhận, mã đơn (nếu có), ghi chú. Ngay khi nhập số ≥ 1 triệu thì hiện "Khoản này cần Giám đốc duyệt".
+- **Nạp quỹ** (kế toán công ty).
+- **Ô "chờ Giám đốc duyệt"** (Giám đốc): Duyệt / Không duyệt.
+- **Cảnh báo chia nhỏ** (7.9). **Tổng chi theo loại** trong tháng.
+- **Danh sách khoản chi** kèm nhãn trạng thái.
+
+### 8.15 Danh mục & người dùng
+- **Ô "Tài khoản đăng nhập":**
+  - mọi người thấy "Đang đăng nhập: {tên} ({email}). Mật khẩu cố định theo danh sách của công ty.";
+  - Giám đốc thấy thêm bảng email + tên chào + vai trò, và đổi được vai trò.
+- **Thêm đối tượng:** Tên, Loại, Nhóm / khâu, ĐT, CCCD, Ghi chú. Số định danh tự cấp.
+- **Bảng đối tượng:** Số (hoặc "Axx") | Mã | Tên | Loại | Nhóm / khâu | Cơ sở chính | Ghi chú | **Sửa / Xóa**. Có ô lọc. Đối tượng Axx xếp cuối.
+- **Bảng đơn hàng** (thêm, sửa, xóa) và **bảng vật tư** (có ô tìm, hiện tối đa 200 dòng, sửa / xóa).
+- **Cấu hình mẫu tiến độ** (bảng 7.3): sửa số ngày từng mốc.
+
+---
+
+## 9. Tính năng chung
+
+### 9.1 Trang đầu: lịch sản xuất 6 tháng
+- **Bố cục 3 cột × 2 hàng.** Thứ tự ô (đọc từ trái sang phải, trên xuống dưới): tháng trước | **tháng hiện tại (ô thứ 2, có nhãn vàng "Tháng này")** | tháng sau | 3 tháng tiếp theo.
+- **Logo RED DOOR** đặt **chính giữa màn hình** (giữa ô 2 và ô 5). Bấm logo để đăng nhập; không có chữ bên dưới logo, chỉ có gợi ý khi rê chuột "Vào Sổ chung".
+- **Thanh trên cùng:** "CÔNG TY TNHH CỬA ĐỎ" và dòng phụ "Lịch sản xuất 6 tháng · dương lịch & âm lịch · bấm một ngày để xem tình trạng các đơn". Bên phải là chú giải màu.
+- **Mỗi ô tháng:**
+  - tiêu đề "Tháng m/yyyy", hàng thứ T2 … CN;
+  - **mỗi ngày:** số dương lịch to bên trái, số âm lịch nhỏ bên phải. Mùng 1 và rằm ghi "d/m", tô đỏ đậm; tháng nhuận thêm chữ "n";
+  - ngày lễ tô nền hồng, kèm tên lễ rút gọn;
+  - Chủ nhật số đỏ; hôm nay viền vàng;
+  - rê chuột hiện "Âm lịch d/m năm Can Chi" và tên ngày lễ.
+- **Mốc trên lịch** (chip màu kèm 2 số cuối mã đơn; nhiều đơn thì hiện số lượng):
+
+  | Mốc | Màu |
+  |---|---|
+  | Nhận đơn | #2f6fb0 |
+  | Giao mộc | #8a5a2b |
+  | In | #7b4bb3 (vạch tím dưới chân các ngày từ đem in đến in xong) |
+  | Kiểm hàng | #c97f00 |
+  | Giao hàng | #8E2927 |
+  | Xuất PI | #1f6b45 |
+
+  Mốc đã xong thì mờ; mốc trễ có viền đỏ.
+- **Bấm vào bất kỳ ngày nào** thì mở hộp **"Tình trạng các đơn ngày dd/mm/yyyy"**:
+  - dòng phụ: thứ · âm lịch · năm Can Chi · ngày lễ; ngày tương lai ghi "tình trạng tính theo kế hoạch tiến độ";
+  - các mốc trong ngày;
+  - **biểu đồ cột ngang "Số đơn theo giai đoạn":** Mộc, Hoàn thiện, In, Kiểm hàng, Giao hàng, Đã giao. Phần đơn trễ tô sọc đỏ;
+  - **"Tiến độ từng đơn":** mỗi đơn một thanh 5 bước. Bước xong tô màu, bước đang làm viền đậm, bước trễ tô đỏ. Bên phải ghi "Đang: … · hạn … / trễ N ngày · x%". Bấm một đơn thì đăng nhập (nếu chưa) rồi mở đơn ở tab Sản xuất.
+- **Tốc độ:** trang đầu **chỉ đọc tài liệu nhỏ `tomtat.lich`**, gồm các đơn với mốc đã tính sẵn: `{dh, ten, khach, ngayxuat, nhan, ev: [{k, ngay, den?, xong, tre}], st: [{k, han, tt}]}`. Backend cập nhật tài liệu này mỗi khi dữ liệu sản xuất thay đổi. Trang đầu phải hiện **dưới 1 giây**.
+- **Điện thoại (< 760px):** logo lên đầu, tháng hiện tại lên trước, các tháng xếp dọc, không chồng lên nhau.
+
+### 9.2 Thanh điều hướng (mọi tab)
+Gồm các nút:
+- **← Quay lại**: về đúng màn hình vừa xem (tab, đơn đang mở, cơ sở đang mở). Có ngăn xếp tối đa 60 bước; lùi hết thì về trang đầu.
+- **⌂ Tab chính**: về tab đầu của nhóm (Tổng quan / Nhân công nhà máy). Ẩn khi đang ở tab chính.
+- **Trang đầu**.
+- **👤 Tên người dùng**.
+- **🔒 Đăng xuất**.
+- Dòng vị trí, ví dụ "Quản lý sản xuất › Sản xuất › chi tiết".
+
+Bấm chữ "Sổ chung Red Door" ở góc trái cũng về trang đầu.
+
+### 9.3 Chỉnh sửa / Lưu / Hủy và lịch sử thay đổi (mọi tab trừ Tổng quan)
+- **Chế độ xem (mặc định):** mọi ô nhập và nút ghi dữ liệu bị khóa (mờ). Các bộ lọc, ô tìm, chọn ngày / tháng / cơ sở, mở chi tiết, xuất file vẫn dùng được.
+- **✎ Chỉnh sửa:** mở khóa tab. Thanh công cụ đổi màu vàng, ghi "Đang chỉnh sửa · N thay đổi".
+- **✓ Lưu:** xác nhận và thoát. Báo "Đã lưu N thay đổi. Lịch sử đã ghi người sửa và thời gian."
+- **✕ Hủy:** hộp xác nhận "Sổ sẽ hoàn tác N thay đổi đã ghi từ lúc bấm Chỉnh sửa…". Đồng ý thì **hoàn tác đúng thứ tự ngược lại**: khôi phục bản trước của từng tài liệu, hoặc xóa tài liệu vừa tạo.
+  - Backend lưu ảnh "trước khi sửa" của mỗi thay đổi theo mã `phien` (phiên chỉnh sửa) để làm được việc này.
+  - Việc hủy cũng ghi vào lịch sử.
+- **Chuyển tab** hoặc về trang đầu khi đang sửa thì tự Lưu.
+- **Lịch sử thay đổi:** hộp hiện tối đa 300 dòng gần nhất của tab (hoặc "Xem tất cả các tab"), gồm Thời gian | Người thay đổi | Thao tác | (Tab) | Nội dung.
+  - Nội dung là câu tóm tắt dễ đọc. Ví dụ "Danh mục doituong: sửa B10 Lê Thị Ngà (ghi chú: … → …)", "Phiếu kho PK-…: tạo mới".
+  - Tên trường hiển thị bằng tiếng Việt: n=tên, g=nhóm, l=loại, p=điện thoại, so=số, cccd=CCCD, dg=đơn giá, sl=số lượng, han=hạn, tt=trạng thái, tien=số tiền, ngay=ngày, dt=cơ sở, dh=đơn, khau=khâu…
+
+### 9.4 Xuất Excel và PDF A4 cho mọi tab
+- Xuất **đúng những gì đang hiện trên tab**: các bảng (bỏ cột nút bấm), thẻ tóm tắt, bộ lọc đang chọn, đơn / cơ sở đang mở. Mỗi bảng là một mục có tiêu đề.
+- **Excel:**
+  - đầu file: tên công ty, địa chỉ · MST, "SỔ CHUNG – {TÊN TAB}", dòng phụ, "Ngày xuất · Người xuất";
+  - số tiền ghi dạng **số** có định dạng `#,##0`;
+  - tên file `RD-{TEN_TAB}-{yyyy-mm-dd}.xlsx`.
+- **PDF A4:**
+  - logo trái, tên công ty đỏ đậm, địa chỉ, MST, đại diện; bên phải "Ngày xuất / Người xuất"; dưới là đường kẻ vàng và đỏ;
+  - tiêu đề tab màu đỏ, căn giữa;
+  - mỗi mục có vạch vàng và tiêu đề đỏ in hoa;
+  - bảng có tiêu đề nền đỏ chữ trắng, dòng xen kẽ màu kem nhạt, số căn phải, dòng "Cộng / Tổng" đậm trên nền kem;
+  - bảng trên 7 cột thì **tự xoay ngang**;
+  - trang sau có đầu trang nhỏ (logo + tên tab); chân trang ghi "tên công ty · MST · tên tab" và "Trang k/n".
+
+### 9.5 File hợp đồng gia công từng cơ sở (Excel + PDF A4)
+Nội dung (dùng chung cho cả hai định dạng):
+- **Đầu:**
+  - logo, CÔNG TY TNHH CỬA ĐỎ (RED DOOR), "RED DOOR Co., Ltd · Việt Nam";
+  - Địa chỉ, Mã số thuế: 0101455557, Đại diện: Bà Nguyễn Thị Tuyến – Quản lý xưởng · ĐT 0973162771.
+- **Tiêu đề:** "PHỤ LỤC GIAO VIỆC – HỢP ĐỒNG GIA CÔNG", "Số: {số HĐ hoặc '(chưa ký – giá tạm tính)'} · Ngày lập: …".
+- **Khung thông tin** (nền kem, 2 cột): Đơn hàng (mã · tên · khách), Ngày xuất hàng (PI), Cơ sở nhận việc (số · tên), Số CCCD, Điện thoại cơ sở, Khâu.
+- **1. TIẾN ĐỘ SẢN XUẤT** (Mốc | Ngày | Tình trạng | Ghi chú):
+  - Ngày nhận đơn hàng (ngày ký HĐ, hoặc ngày chia việc);
+  - Ngày giao mộc (nếu có khâu Mộc);
+  - Ngày giao bao bì về kho (nếu có khâu Bao bì);
+  - Ngày đem sản phẩm sang in (m2);
+  - Ngày giao kiểm hàng (m4);
+  - Ngày giao hàng tại kho nhà máy (m5).
+  Mốc đã xong ghi ngày thực tế, tình trạng "Đã xong"; còn lại ghi "Kế hoạch".
+- **2. CHI TIẾT SẢN PHẨM:** STT | Mã hàng | Mô tả sản phẩm | KT (cm) | Khâu | SL | Đơn giá (đ) | Thành tiền (đ) | Hạn giao.
+  - Mỗi mã có ghi chú KT thì thêm một dòng ngay dưới, gộp cả hàng: "Ghi chú kỹ thuật: …".
+  - Dòng trừ Nhập kho ghi số âm, mô tả "— nhà máy làm nhập kho thay, trừ tiền".
+  - Dòng cuối "TỔNG GIÁ TRỊ TẠM TÍNH".
+- **3. GIÁ TRỊ VÀ THANH TOÁN:** Tạm ứng 30% (làm tròn xuống triệu đồng, chỉ khi được tạm ứng) | Đã tạm ứng | Đã thanh toán | Vật tư xưởng cấp (trừ khi quyết toán) | **Còn phải trả** (đậm).
+- **4. ĐIỀU KHOẢN:**
+  1. Đơn giá là giá tạm tính. Đổi giá sau khi ký thì hai bên ký phụ lục, phần chênh ghi điều chỉnh tăng hoặc giảm.
+  2. Câu tạm ứng, tùy loại cơ sở:
+     - hoàn thiện: được tạm ứng 30% bằng tiền mặt, làm tròn xuống triệu đồng, phần lẻ thanh toán cuối kỳ;
+     - mộc trên 10 triệu: được xét tạm ứng tối đa 30%…, phần còn lại thanh toán trong 7 ngày kể từ khi giao xong toàn bộ mộc;
+     - bao bì C04/C05: được tạm ứng tối đa 30%…;
+     - mộc từ 10 triệu trở xuống: "Không tạm ứng. Tiền mộc thanh toán 100% trong 7 ngày kể từ khi giao xong toàn bộ mộc.";
+     - còn lại: "Không tạm ứng."
+  3. Vật tư xưởng cấp không trừ vào tạm ứng; trừ vào phần thanh toán sau khi cơ sở xong hợp đồng.
+  4. Thanh toán hợp đồng trong 15 ngày kể từ ngày xuất hàng.
+  5. Nếu nhà máy làm nhập kho thay, tiền nhập kho trừ vào thanh toán của cơ sở.
+- **Chữ ký:** "ĐẠI DIỆN BÊN GIAO" (CÔNG TY TNHH CỬA ĐỎ, "(Ký, ghi rõ họ tên, đóng dấu)", tên Nguyễn Thị Tuyến – Quản lý xưởng) | "ĐẠI DIỆN BÊN NHẬN" ({SỐ · TÊN CƠ SỞ} in hoa, "(Ký, ghi rõ họ tên)").
+- **Tên file:** `HD-{mã đơn}-{số định danh}-{SLUG_TÊN}.xlsx|.pdf`.
+- **PDF:** một cơ sở làm vài mã hàng phải vừa **1 trang A4 dọc**. Dài hơn thì sang trang sau có đầu trang nhỏ "Phụ lục giao việc – số … · cơ sở".
+
+### 9.6 Giao diện
+- **Màu thương hiệu:** đỏ son `#8E2927`, vàng đồng `#C9A24A`, kem `#FAF5EC`, viền nhạt `#E2D6C4`, chữ `#221C1B`, chữ phụ `#6E6563`.
+- **Màu trạng thái:** đỏ `#D0342C` (trễ / lỗi), vàng `#C97F00` (sắp đến hạn), xanh `#1F6B45` (đúng tiến độ / xong).
+- Phông chữ của website. Nếu website không có, dùng một phông sans-serif có đủ dấu tiếng Việt.
+- **Bố cục:** thẻ (card) bo góc, bảng có thanh cuộn ngang riêng trên điện thoại, nhãn (pill) trạng thái. Hỗ trợ cả chế độ sáng và tối nếu website có.
+- **Logo:** file `logo-reddoor` do chủ dự án cung cấp (nền đỏ, hoa văn cửa vàng, chữ "RED DOOR Co., Ltd VIET NAM"). Đặt trong thư mục ảnh của module.
+- **Dùng được tốt trên điện thoại** (quản lý xưởng, thủ kho dùng tại xưởng).
+
+---
+
+## 10. Bảo mật và an toàn dữ liệu
+- Mọi API kiểm tra phiên và quyền ở backend. Trả lỗi 401 / 403 bằng câu tiếng Việt.
+- Không bao giờ trả `hash` mật khẩu ra frontend. Không log mật khẩu.
+- Chống NoSQL injection: validate đầu vào (zod hoặc joi), chỉ nhận đúng các trường cho phép ở từng API.
+- Giới hạn tần suất đăng nhập. Mọi route ghi đều có CSRF protection nếu dùng cookie.
+- Dữ liệu nhạy cảm (bảng lương, CCCD, công nợ) **không đưa lên trang công khai** nào của website.
+- Sao lưu: script `mongodump`, kèm hướng dẫn khôi phục `mongorestore`.
+
+---
+
+## 11. Seed cấu hình (không phải dữ liệu nghiệp vụ)
+Script `npm run seed:so-tay` tạo các phần sau, và **chạy lại nhiều lần không bị nhân đôi**:
+- 6 tài khoản từ `seed/taikhoan.json`, mật khẩu băm bcrypt;
+- `cauhinh.canhbao` theo bảng 7.3;
+- tài liệu `sodu` rỗng;
+- tài liệu `tomtat.lich` rỗng;
+- **không** tạo đối tượng, vật tư, đơn hàng, công nợ.
+
+Hằng số `KHAU`, `MOC`, `LOAI`, `NV`, `CP`, `LOAI_DT`, `LOAI_CHI`, `ROLES`, `QUYEN`, `TABS`, `NHOM` đặt trong một file cấu hình dùng chung cho cả frontend và backend.
+
+---
+
+## 12. Thứ tự làm và tiêu chí nghiệm thu giai đoạn 1
+
+1. **Khảo sát và đề xuất** (mục 1). Chờ đồng ý.
+2. **Nền tảng:** kết nối MongoDB, models (mục 5), lớp ghi chung có lịch sử, seed (mục 11).
+   - Nghiệm thu: `npm run seed:so-tay` chạy được; collection tạo đúng index.
+3. **Đăng nhập, màn hình chào, phân quyền, điều hướng hai nhóm tab** (mục 3, 4, 9.2).
+   - Nghiệm thu: đăng nhập đúng / sai / khóa 30 giây; lời chào đúng từng người; thủ kho không vào được tab Công nợ sản xuất (kể cả gọi API trực tiếp thì nhận 403).
+4. **Thư viện nghiệp vụ và unit test** (mục 7). Bắt buộc có test cho:
+   - âm lịch (đủ 10 ca ở 7.10) và ngày lễ;
+   - `mocDon` với 4 mẫu tiến độ, trường hợp mốc trước trễ;
+   - `coTamUng` và mức tạm ứng 30% làm tròn xuống triệu (86.190.000 → 25.000.000; 57.150.000 → 17.000.000);
+   - `soLoai` / số định danh mới;
+   - tính tồn kho;
+   - công nợ theo dấu nghiệp vụ;
+   - chi tiêu xưởng: ngưỡng 1 triệu và cảnh báo chia nhỏ.
+5. **Danh mục & người dùng, dtSelect** (6.3, 6.4, 8.15).
+6. **Nhóm Quản lý sản xuất:** Tổng quan, Đơn mới (nhập PI), Đơn hàng, Sản xuất, Cơ sở sản xuất, Công nợ sản xuất, Chi cho cơ sở.
+7. **Nhóm Kho, nhân sự & danh mục:** Nhân công nhà máy, Nhân công văn phòng, Bảng lương, Phiếu kho (kèm tem QR), Tồn kho, Mua vật tư, Chi tiêu xưởng.
+8. **Chế độ chỉnh sửa / lưu / hủy và lịch sử** (9.3), **xuất Excel / PDF** (9.4), **hợp đồng PDF / Excel** (9.5).
+9. **Trang đầu lịch 6 tháng và biểu đồ ngày** (9.1).
+10. **Kiểm thử tổng:** tạo thử một đơn mẫu bằng tay, rồi chạy hết vòng:
+    - nhận đơn → chia việc → đặt bao bì → giao hàng;
+    - ký HĐ → ghi công nợ → đề nghị tạm ứng → chi;
+    - xuất hợp đồng PDF;
+    - phiếu kho xuất vật tư tạm ứng → thanh toán trừ vật tư;
+    - chi tiêu xưởng trên 1 triệu chờ duyệt.
+    Xóa dữ liệu thử sau khi xong.
+
+Sau mỗi bước: tóm tắt ngắn những gì đã làm, file đã đổi, cách chạy thử, và câu hỏi còn vướng.
+
+---
+
+## 13. Không được làm
+- Không thêm tính năng ngoài tài liệu này. Có ý tưởng hay thì ghi vào cuối báo cáo dưới mục "Đề xuất".
+- Không đổi tên trường dữ liệu ở mục 5. Không đổi mã vai trò, mã tab.
+- Không lưu giá bán.
+- Không làm chức năng tự đổi mật khẩu. Không dùng một mã chung cho mọi người.
+- Không nạp dữ liệu nghiệp vụ thật ở giai đoạn 1.
+- Không sửa, xóa hoặc định dạng lại code của các phần khác trên website khi không cần thiết.

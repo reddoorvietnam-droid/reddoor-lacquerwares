@@ -1,6 +1,7 @@
 import "server-only";
 
 import type { NextAuthOptions } from "next-auth";
+import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import { z } from "zod";
 
@@ -10,7 +11,15 @@ import {
   tryBootstrapInitialDirector,
 } from "@/domains/identity/bootstrap";
 import { mongoIdentityRepository } from "@/domains/identity/mongo-repository";
-import { inspectAuthEnv, inspectMongoEnv } from "@/lib/env/server";
+import {
+  authorizePasswordSignIn,
+  type PasswordAccount,
+} from "@/lib/auth/password-login";
+import {
+  inspectAuthEnv,
+  inspectMongoEnv,
+  inspectPasswordLoginEnv,
+} from "@/lib/env/server";
 
 const googleProfileSchema = z.object({
   sub: z.string().trim().min(1).max(255),
@@ -57,16 +66,21 @@ function removeAuthorizationTokenClaims(token: {
 }
 
 /**
- * Google is the only way in (confirmed 2026-09-13). A first sign-in creates a
- * pending account that the Director approves under "Danh sách nhân sự"; the
- * Gmail named in `ADMIN_EMAILS` is promoted to Director on its first sign-in.
+ * Google is the main way in (confirmed 2026-09-13). A first Google sign-in
+ * creates a pending account that the Director approves under "Danh sách nhân
+ * sự"; the Gmail named in `ADMIN_EMAILS` is promoted to Director on its first
+ * sign-in. When `ADMIN_PASSWORD_*` is set, one shared username/password
+ * account also signs in, straight in as a Director (owner, 2026-11-17).
  */
 function createAuthOptions(input: {
   secret: string;
   googleClientId: string;
   googleClientSecret: string;
   bootstrapAdminEmails: string | undefined;
+  passwordAccount: PasswordAccount | null;
 }): NextAuthOptions {
+  const passwordAccount = input.passwordAccount;
+
   const allowedBootstrapEmails = parseBootstrapAdminEmails(
     input.bootstrapAdminEmails,
   );
@@ -81,6 +95,20 @@ function createAuthOptions(input: {
         // every time lets them pick the company Gmail.
         authorization: { params: { prompt: "select_account" } },
       }),
+      ...(passwordAccount
+        ? [
+            CredentialsProvider({
+              id: "credentials",
+              name: "Password",
+              credentials: {
+                username: { type: "text" },
+                password: { type: "password" },
+              },
+              authorize: (credentials) =>
+                authorizePasswordSignIn(passwordAccount, credentials),
+            }),
+          ]
+        : []),
     ],
     pages: { signIn: signInPath, error: signInPath },
     session: {
@@ -90,7 +118,38 @@ function createAuthOptions(input: {
     },
     jwt: { maxAge: 8 * 60 * 60 },
     callbacks: {
-      async signIn({ account, profile }) {
+      async signIn({ account, profile, user }) {
+        if (account?.provider === "credentials" && passwordAccount) {
+          // `authorize` already checked the password and synchronized the
+          // account; only the audit trail is left.
+          try {
+            const snapshot = await mongoIdentityRepository.findSnapshotByUserId(
+              user.id,
+            );
+            if (!snapshot) return serverFailure;
+            await mongoAuditRepository.append({
+              actor: { type: "user", userId: user.id },
+              action:
+                snapshot.user.status === "active"
+                  ? "auth.signIn"
+                  : snapshot.user.status === "pending"
+                    ? "auth.accessPending"
+                    : "auth.accessSuspended",
+              resourceType: "user",
+              resourceId: user.id,
+              requestId: globalThis.crypto.randomUUID(),
+              metadata: {
+                userStatus: snapshot.user.status,
+                method: "password",
+              },
+              occurredAt: new Date(),
+            });
+            return true;
+          } catch {
+            return serverFailure;
+          }
+        }
+
         if (account?.provider !== "google") {
           return false;
         }
@@ -251,6 +310,8 @@ export function getAuthConfiguration(): AuthConfiguration {
     };
   }
 
+  const passwordEnv = inspectPasswordLoginEnv();
+
   return {
     configured: true,
     options: createAuthOptions({
@@ -258,6 +319,12 @@ export function getAuthConfiguration(): AuthConfiguration {
       googleClientId: authEnv.value.AUTH_GOOGLE_ID,
       googleClientSecret: authEnv.value.AUTH_GOOGLE_SECRET,
       bootstrapAdminEmails: authEnv.value.ADMIN_EMAILS,
+      passwordAccount: passwordEnv.configured
+        ? {
+            username: passwordEnv.value.ADMIN_PASSWORD_USERNAME,
+            passwordHash: passwordEnv.value.ADMIN_PASSWORD_HASH,
+          }
+        : null,
     }),
   };
 }

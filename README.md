@@ -164,3 +164,17 @@ placeholder in the app is labelled rather than invented.
 
 See `docs/DEPLOYMENT.md` for MongoDB Atlas, Cloudinary, Google OAuth, Resend,
 Vercel, and DNS setup.
+
+
+mở website:
+npm run dev
+
+Vào website bac viết:
+Kéo code mới nhất về cho tôi
+
+
+check code có đúng không:
+npm run build
+
+đẩy code lên github:
+git push origin mainĐiều 

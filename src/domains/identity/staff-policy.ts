@@ -44,6 +44,14 @@ export const internalAccountEmailPattern = new RegExp(
     .join("|")})$`,
 );
 
+/**
+ * The shared username/password account (`src/lib/auth/password-login.ts`).
+ * It is a working Director account and is listed like staff, but it is never
+ * the company's own Director, so it must not satisfy the first-Director
+ * bootstrap.
+ */
+export const passwordAccountEmailPattern = /@password\.local$/;
+
 export function isInternalAccountEmail(email: string): boolean {
   return internalAccountEmailPattern.test(normalizeEmail(email));
 }

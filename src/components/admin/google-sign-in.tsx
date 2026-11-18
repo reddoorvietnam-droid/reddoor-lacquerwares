@@ -1,13 +1,122 @@
 "use client";
 
+import type { Route } from "next";
+import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 
 import type { AdminLocale } from "@/lib/i18n/admin";
 import { getAdminDictionary } from "@/lib/i18n/admin";
 
 export type GoogleSignInError =
   "AccessDenied" | "Configuration" | "Unavailable" | "default";
+
+type PasswordError = "CredentialsSignin" | "PasswordLocked" | "Unavailable";
+
+function toPasswordError(code: string): PasswordError {
+  return code === "CredentialsSignin" || code === "PasswordLocked"
+    ? code
+    : "Unavailable";
+}
+
+const fieldClass =
+  "border-charcoal/15 text-charcoal focus-visible:border-burgundy/50 focus-visible:outline-burgundy mt-1.5 block min-h-12 w-full rounded-2xl border bg-white px-4 text-base focus-visible:outline-2 focus-visible:outline-offset-1";
+
+/** The shared username/password account, shown below the Google button. */
+function PasswordSignIn({
+  locale,
+  disabled,
+  onPendingChange,
+}: {
+  locale: AdminLocale;
+  disabled: boolean;
+  onPendingChange: (pending: boolean) => void;
+}) {
+  const copy = getAdminDictionary(locale).auth;
+  const router = useRouter();
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<PasswordError | null>(null);
+
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    setSubmitting(true);
+    onPendingChange(true);
+    setError(null);
+
+    try {
+      const result = await signIn("credentials", {
+        redirect: false,
+        username: String(form.get("username") ?? ""),
+        password: String(form.get("password") ?? ""),
+        callbackUrl: `/${locale}/admin`,
+      });
+      if (result && !result.error && result.ok) {
+        // Fresh server render with the new session cookie.
+        router.replace(`/${locale}/admin` as Route);
+        router.refresh();
+        return;
+      }
+      setError(toPasswordError(result?.error ?? "Unavailable"));
+    } catch {
+      setError("Unavailable");
+    }
+    setSubmitting(false);
+    onPendingChange(false);
+  }
+
+  return (
+    <form onSubmit={submit} className="mt-7">
+      <div className="text-charcoal/45 flex items-center gap-3 text-xs">
+        <span aria-hidden="true" className="bg-charcoal/10 h-px flex-1" />
+        {copy.passwordDivider}
+        <span aria-hidden="true" className="bg-charcoal/10 h-px flex-1" />
+      </div>
+
+      {error ? (
+        <p
+          role="alert"
+          className="border-lacquer/35 bg-lacquer/5 text-lacquer mt-5 rounded-2xl border px-4 py-3 text-sm leading-6"
+        >
+          {copy.passwordErrors[error]}
+        </p>
+      ) : null}
+
+      <label className="text-charcoal/75 mt-5 block text-sm font-medium">
+        {copy.passwordUsername}
+        <input
+          name="username"
+          type="text"
+          required
+          maxLength={64}
+          autoComplete="username"
+          autoCapitalize="none"
+          spellCheck={false}
+          className={fieldClass}
+        />
+      </label>
+      <label className="text-charcoal/75 mt-4 block text-sm font-medium">
+        {copy.passwordPassword}
+        <input
+          name="password"
+          type="password"
+          required
+          maxLength={256}
+          autoComplete="current-password"
+          className={fieldClass}
+        />
+      </label>
+
+      <button
+        type="submit"
+        disabled={disabled || submitting}
+        className="bg-burgundy text-ivory hover:bg-burgundy/90 focus-visible:outline-burgundy mt-5 inline-flex min-h-12 w-full items-center justify-center rounded-full px-6 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 disabled:pointer-events-none disabled:opacity-60"
+      >
+        {submitting ? copy.passwordSubmitting : copy.passwordButton}
+      </button>
+    </form>
+  );
+}
 
 /** Google's multicolour "G", drawn inline so no external asset is loaded. */
 function GoogleMark() {
@@ -36,12 +145,15 @@ function GoogleMark() {
 export function GoogleSignIn({
   locale,
   error = null,
+  passwordEnabled = false,
 }: {
   locale: AdminLocale;
   error?: GoogleSignInError | null;
+  passwordEnabled?: boolean;
 }) {
   const copy = getAdminDictionary(locale).auth;
   const [pending, setPending] = useState(false);
+  const [passwordPending, setPasswordPending] = useState(false);
 
   return (
     <section className="border-burgundy/15 mx-auto grid max-w-5xl overflow-hidden rounded-[2rem] border bg-white shadow-[var(--shadow-soft)] md:grid-cols-[1.1fr_1fr]">
@@ -95,7 +207,7 @@ export function GoogleSignIn({
 
         <button
           type="button"
-          disabled={pending}
+          disabled={pending || passwordPending}
           onClick={() => {
             setPending(true);
             void signIn("google", { callbackUrl: `/${locale}/admin` });
@@ -105,6 +217,14 @@ export function GoogleSignIn({
           <GoogleMark />
           {pending ? copy.googleRedirecting : copy.googleButton}
         </button>
+
+        {passwordEnabled ? (
+          <PasswordSignIn
+            locale={locale}
+            disabled={pending}
+            onPendingChange={setPasswordPending}
+          />
+        ) : null}
 
         <p className="text-charcoal/50 mt-6 text-xs leading-5">
           {copy.privacyNote}
